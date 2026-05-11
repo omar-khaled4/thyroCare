@@ -1,10 +1,10 @@
 {
   "info": {
-    "_postman_id": "8a47ea81-d538-4c8e-ac7c-a93560da1b3e",
+    "_postman_id": "a6092700-687b-4ef1-97ed-f8886ec715e7",
     "name": "ThyroCare",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-    "_exporter_id": "44631972",
-    "_collection_link": "https://go.postman.co/collection/44631972-8a47ea81-d538-4c8e-ac7c-a93560da1b3e?source=collection_link"
+    "_exporter_id": "52804944",
+    "_collection_link": "https://go.postman.co/collection/52804944-a6092700-687b-4ef1-97ed-f8886ec715e7?source=collection_link"
   },
   "item": [
     {
@@ -17,7 +17,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n  \"name\": \"string\",\r\n  \"email\": \"string\",\r\n  \"password\": \"string\"\r\n}",
+              "raw": "{\r\n  \"name\": \"string\",\r\n  \"email\": \"string\",\r\n  \"password\": \"string\",\r\n  \"gender\": \"string\",\r\n  \"age\": 0\r\n}",
               "options": {
                 "raw": {
                   "language": "json"
