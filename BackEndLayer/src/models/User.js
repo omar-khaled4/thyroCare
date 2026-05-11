@@ -16,8 +16,6 @@ const userSchema = new mongoose.Schema(
     password: { type: String, required: true, minlength: 6 },
     role: { type: String, enum: ["patient", "admin"], default: "patient" },
     profile: {
-      age: Number,
-      gender: String,
       phone: String,
       birthday: String,
     },
