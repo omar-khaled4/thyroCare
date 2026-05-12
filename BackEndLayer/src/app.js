@@ -24,14 +24,14 @@ app.use("/api/reports", reportRoutes);
 app.use("/api/chat", chatRoutes);
 
 // --- Health check ---
-app.get("/api/health", (req, res) => {
+app.get("/api", (req, res) => {
   res.json({ success: true, message: "API is running" });
 });
 
 app.get("/", (req, res) => {
   res.json({
     success: true,
-    message: "Thyroid Lab API is running. Go to /api/health",
+    message: "Thyroid Lab API is running. Go to /api",
   });
 });
 

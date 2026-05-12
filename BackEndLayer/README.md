@@ -10,7 +10,8 @@ Before you begin, ensure you have the following installed on your local machine:
 
 - [Node.js](https://nodejs.org/) (v16 or higher recommended)
 - [npm](https://www.npmjs.com/) (usually comes with Node.js)
-- [MongoDB](https://www.mongodb.com/) (Local instance or [MongoDB Atlas](https://www.mongodb.com/cloud/atlas) account)
+- [MongoDB Atlas](https://www.mongodb.com/cloud/atlas) 
+    -> you should have an account on it , and add your current ip address to the whitelist
 
 ---
 
@@ -81,6 +82,10 @@ BackEndLayer/
 ```
 
 ---
+
+## 🧪 API Documentation
+The backend API documentation will be accessible at this file:
+`ThyroCare.postman_collection.json`provided as a json file. if you have antigravity, you can let him explore the file to understand the API.
 
 ## 🧪 API Base URL
 The backend API will be accessible at:
