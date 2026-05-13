@@ -4,19 +4,18 @@ import pandas as pd
 import numpy as np
 import joblib
 import keras
-
+import os
 
 app = FastAPI()
 
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-
-model = keras.saving.load_model("medical_model.keras")
-num_imputer = joblib.load("num_imputer.pkl")
-cat_imputer = joblib.load("cat_imputer.pkl")
-ohe_encoder = joblib.load("ohe_encoder.pkl")
-scaler = joblib.load("scaler.pkl")
-le = joblib.load("label_encoder.pkl")
-
+model = keras.saving.load_model(os.path.join(BASE_DIR, "medical_model.keras"))
+num_imputer = joblib.load(os.path.join(BASE_DIR, "num_imputer.pkl"))
+cat_imputer = joblib.load(os.path.join(BASE_DIR, "cat_imputer.pkl"))
+ohe_encoder = joblib.load(os.path.join(BASE_DIR, "ohe_encoder.pkl"))
+scaler = joblib.load(os.path.join(BASE_DIR, "scaler.pkl"))
+le = joblib.load(os.path.join(BASE_DIR, "label_encoder.pkl"))
 
 num_cols = ['Age', 'HeightCm', 'WeightKg', 'BMI', 'Pregnant', 'Postpartum_6mo', 'FamilyHistoryThyroid', 'PriorThyroidDisease', 'NeckRadiationHistory', 'ThyroidSurgeryHistory', 'Diabetes', 'Hypertension', 'Dyslipidemia', 'CKD', 'CAD', 'DepressionAnxietyDx', 'OtherAutoimmuneDx', 'OnAmiodarone', 'OnLithium', 'OnInterferon', 'OnGlucocorticoids', 'OnBiotinSupplement', 'RecentIodineContrast', 'SBP', 'DBP', 'HeartRate', 'TempC', 'TSH_mIU_L', 'FreeT4_ng_dL', 'FreeT3_pg_mL', 'TPOAb_IU_mL', 'TgAb_IU_mL', 'TRAb_IU_L', 'ESR_mm_hr', 'CRP_mg_L', 'TotalChol_mg_dL', 'LDL_mg_dL', 'HDL_mg_dL', 'Triglycerides_mg_dL', 'HbA1c_pct', 'VitaminD_25OH_ng_mL', 'Ferritin_ng_mL', 'Goiter', 'ThyroidNodules', 'TenderThyroid', 'ThyroidVolume_mL', 'OnLevothyroxine', 'LevothyroxineDose_mcg', 'OnAntithyroidDrug', 'OnBetaBlocker', 'SymptomScore', 'Fatigue', 'WeightGain', 'WeightLoss', 'ColdIntolerance', 'HeatIntolerance', 'Palpitations', 'Tremor', 'Constipation', 'Diarrhea', 'HairLoss', 'DrySkin', 'Anxiety', 'Depression', 'Insomnia', 'MenstrualIrregularity', 'Infertility', 'NeckSwelling', 'EyeSymptoms', 'PulsePressure']
 cat_cols = ['Gender', 'SmokingStatus', 'AlcoholUse', 'PhysicalActivity', 'DietaryIodine', 'AntithyroidDrugType']
