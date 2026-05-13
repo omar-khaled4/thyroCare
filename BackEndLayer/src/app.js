@@ -7,6 +7,7 @@ const labResultRoutes = require("./routes/labResult.routes");
 const symptomRoutes = require("./routes/symptom.routes");
 const reportRoutes = require("./routes/report.routes");
 const chatRoutes = require("./routes/chat.routes");
+const predictionRoutes = require("./routes/prediction.routes");
 const errorHandler = require("./middlewares/error.middleware");
 
 const app = express();
@@ -22,6 +23,7 @@ app.use("/api/lab-results", labResultRoutes);
 app.use("/api/symptoms", symptomRoutes);
 app.use("/api/reports", reportRoutes);
 app.use("/api/chat", chatRoutes);
+app.use("/api/predict", predictionRoutes);
 
 // --- Health check ---
 app.get("/api", (req, res) => {
