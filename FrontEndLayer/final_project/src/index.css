@@ -1,0 +1,130 @@
+@import "tailwindcss";
+
+:root {
+  font-weight: 400;
+}
+
+/*scrollbar*/
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #adadad;
+  border-radius: 50px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #8d8d8d;
+}
+
+
+/*fonts*/
+.font-1{
+  font-family: "Amaranth", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+}
+.font-2{
+  font-family: "ADLaM Display", system-ui;
+  font-weight: 400;
+  font-style: normal;
+}
+.font-3{
+  font-family: "Barlow Condensed", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+}
+.font-4{
+  font-family: "Montserrat", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+}
+.font-5{
+  font-family: "Inter", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+}
+/*colors*/
+.color-1{
+  color:#00B3A1;
+}
+.color-2{
+  color:#444444;
+}
+.color-3{
+  color:#222222;
+}
+
+/*backgrounds*/
+.background-1{
+  background-color: #00B3A1;
+}
+.background-2{
+  background-color: #282828;
+}
+
+
+
+body {
+  margin: 0;
+  display: flex;
+  place-items: center;
+  min-width: 320px;
+  min-height: 100vh;
+}
+.line-1,.line-2{
+  position: relative;
+}
+.line-1::before{
+  content: "";
+  position: absolute;
+  height: 3px;
+  background-color: #00B3A1 ;
+  width: 80px;
+  bottom: -10px;
+}
+.line-2::before{
+  content: "";
+  position: absolute;
+  height: 3px;
+  background-color: #00B3A1 ;
+  width: 80px;
+  bottom: -10px;
+  left: calc(50% - 40px);
+}
+.hov{
+  background-color: #00B3A1;
+  color:white;
+}
+.hov:hover{
+  background-color: white;
+  color:#00B3A1
+}
+.background-image{
+    background-image: url(assets/image-2.png);
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    background-size: cover;
+    background-position: left center;
+}
+.background-DB{
+  min-height: 100vh;
+  background:
+    radial-gradient( circle at 15% 20%, rgba(0, 179, 161, 0.16), transparent 45% ),
+    radial-gradient( circle at 85% 80%, rgba(0, 179, 161, 0.12), transparent 55% ),
+    linear-gradient( 135deg, #E3F4F1 0%, #D4EEEA 40%, #EDF8F6 100% );
+}
+.background-card{
+  background: rgba(255, 255, 255, 0.45);
+  backdrop-filter: blur(22px);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  border-radius: 22px;
+  box-shadow:
+    0 10px 35px rgba(0, 0, 0, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.7);
+}

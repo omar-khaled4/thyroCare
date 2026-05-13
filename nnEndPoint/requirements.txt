@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+pandas
+numpy==1.26.4
+joblib
+keras
+scikit-learn==1.2.2
+pydantic
+tensorflow

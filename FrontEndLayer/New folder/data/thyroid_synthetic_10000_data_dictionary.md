@@ -1,0 +1,88 @@
+# Thyroid Synthetic Dataset (10,000 rows)
+
+This is **synthetic (fake) but medically-plausible** patient data for training/testing ML models.
+
+Targets:
+- `DiseaseType` ∈ {Normal, Hypothyroidism, Hyperthyroidism, Thyroiditis, Nodular Goiter}
+- `DiseaseSeverity` ∈ {None, Mild, Moderate, Severe}
+
+## Column notes (units)
+
+- **PatientId**
+- **Age**
+- **Gender**
+- **HeightCm**
+- **WeightKg**
+- **BMI**
+- **SmokingStatus**
+- **AlcoholUse**
+- **PhysicalActivity**
+- **DietaryIodine**
+- **Pregnant**
+- **Postpartum_6mo**
+- **FamilyHistoryThyroid**
+- **PriorThyroidDisease**
+- **NeckRadiationHistory**
+- **ThyroidSurgeryHistory**
+- **Diabetes**
+- **Hypertension**
+- **Dyslipidemia**
+- **CKD**
+- **CAD**
+- **DepressionAnxietyDx**
+- **OtherAutoimmuneDx**
+- **OnAmiodarone**
+- **OnLithium**
+- **OnInterferon**
+- **OnGlucocorticoids**
+- **OnBiotinSupplement**
+- **RecentIodineContrast**
+- **SBP**
+- **DBP**
+- **HeartRate**
+- **TempC**
+- **TSH_mIU_L**: Thyroid Stimulating Hormone (mIU/L)
+- **FreeT4_ng_dL**: Free T4 (ng/dL)
+- **FreeT3_pg_mL**: Free T3 (pg/mL)
+- **TPOAb_IU_mL**: Thyroid peroxidase antibody (IU/mL)
+- **TgAb_IU_mL**: Thyroglobulin antibody (IU/mL)
+- **TRAb_IU_L**: TSH receptor antibody (IU/L)
+- **ESR_mm_hr**: Erythrocyte sedimentation rate (mm/hr)
+- **CRP_mg_L**: C-reactive protein (mg/L)
+- **TotalChol_mg_dL**
+- **LDL_mg_dL**
+- **HDL_mg_dL**
+- **Triglycerides_mg_dL**
+- **HbA1c_pct**
+- **VitaminD_25OH_ng_mL**
+- **Ferritin_ng_mL**
+- **Goiter**
+- **ThyroidNodules**
+- **TenderThyroid**
+- **ThyroidVolume_mL**: Approx thyroid volume (mL)
+- **OnLevothyroxine**
+- **LevothyroxineDose_mcg**
+- **OnAntithyroidDrug**
+- **AntithyroidDrugType**
+- **OnBetaBlocker**
+- **SymptomScore**
+- **Fatigue**
+- **WeightGain**
+- **WeightLoss**
+- **ColdIntolerance**
+- **HeatIntolerance**
+- **Palpitations**
+- **Tremor**
+- **Constipation**
+- **Diarrhea**
+- **HairLoss**
+- **DrySkin**
+- **Anxiety**
+- **Depression**
+- **Insomnia**
+- **MenstrualIrregularity**
+- **Infertility**
+- **NeckSwelling**
+- **EyeSymptoms**
+- **DiseaseType**
+- **DiseaseSeverity**

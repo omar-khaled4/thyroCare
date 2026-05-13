@@ -1,0 +1,1024 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ThyroCare - Thyroid Health Management</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f8fafc;
+            color: #1e293b;
+        }
+        
+        .page-container {
+            display: none;
+        }
+        
+        .page-container.active {
+            display: block;
+        }
+        
+        .doctor-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+        
+        .feature-card:hover {
+            transform: scale(1.03);
+        }
+
+        .back{
+            background-color: #f1f1f1;
+        }
+        .aa{
+            color : #00b3a1;
+        }
+        
+        #world-map {
+            height: 400px;
+            background-color: #e2e8f0;
+            border-radius: 0.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .location-marker {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            background-color: #000;
+            border-radius: 50%;
+            border: 2px solid white;
+        }
+        
+        .location-marker::after {
+            content: "";
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background-color: rgba(0, 0, 0, 0.2);
+            border-radius: 50%;
+            top: -6px;
+            left: -6px;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% {
+                transform: scale(0.8);
+                opacity: 0.7;
+            }
+            70% {
+                transform: scale(1.3);
+                opacity: 0;
+            }
+            100% {
+                transform: scale(0.8);
+                opacity: 0;
+            }
+        }
+        
+        .aiva-message {
+            max-width: 80%;
+            padding: 0.75rem 1rem;
+            border-radius: 1rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .user-message {
+            background-color: #000;
+            color: white;
+            margin-left: auto;
+            border-bottom-right-radius: 0.25rem;
+        }
+        
+        .aiva-response {
+            background-color: #e2e8f0;
+            margin-right: auto;
+            border-bottom-left-radius: 0.25rem;
+        }
+        
+        .report-input:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px #000;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="bg-white shadow-md py-4 px-6 flex items-center justify-between sticky top-0 z-50">
+        <div class="flex items-center">
+            <i class="fa-solid text-black mr-2 text-2xl fa-heart-pulse"></i>
+            <span class="text-xl font-bold">ThyroCare</span>
+        </div>
+        
+        <div class="hidden md:flex space-x-8">
+            <a href="#" class="nav-link" data-page="home">Home</a>
+            <a href="#" class="nav-link" data-page="dashboard">Dashboard</a>
+            <a href="#" class="nav-link" data-page="report">Report</a>
+            <a href="#" class="nav-link" data-page="aiva">AIVA</a>
+        </div>
+        
+        <div class="flex items-center">
+            <div class="relative">
+                <button id="account-btn" class="flex items-center space-x-2 focus:outline-none">
+                    <img src="https://randomuser.me/api/portraits/women/44.jpg" alt="User" class="w-8 h-8 rounded-full object-cover">
+                    <span class="hidden md:inline">Account</span>
+                </button>
+                <div id="account-dropdown" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
+                    <a href="#" class="block px-4 py-2 text-sm hover:bg-gray-100">Profile</a>
+                    <a href="#" class="block px-4 py-2 text-sm hover:bg-gray-100">Settings</a>
+                    <a href="#" class="block px-4 py-2 text-sm hover:bg-gray-100">Sign out</a>
+                </div>
+            </div>
+            <button class="md:hidden ml-4 focus:outline-none" id="mobile-menu-btn">
+                <i class="fas fa-bars text-xl"></i>
+            </button>
+        </div>
+    </nav>
+    
+    <!-- Mobile Menu -->
+    <div id="mobile-menu" class="hidden bg-white shadow-lg absolute w-full sticky top-16 z-40">
+        <div class="flex flex-col py-4">
+            <a href="#" class="nav-link px-6 py-2" data-page="home">Home</a>
+            <a href="#" class="nav-link px-6 py-2" data-page="dashboard">Dashboard</a>
+            <a href="#" class="nav-link px-6 py-2" data-page="report">Report</a>
+            <a href="#" class="nav-link px-6 py-2" data-page="aiva">AIVA</a>
+            <div class="border-t mt-2 pt-2 px-6 py-2">
+                <a href="#" class="block">Account</a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Home Page -->
+    <div id="home" class="page-container active">
+        <!-- Hero Section -->
+        <section class="py-12 px-6 md:px-12">
+            <div class="max-w-6xl mx-auto flex flex-col md:flex-row items-center md:justify-between">
+                <div class="md:w-1/2 mb-8 md:mb-0 md:pr-8">
+                    <h1 class="text-4xl font-bold mb-4">Your Thyroid Health Companion</h1>
+                    <p class="text-lg mb-6">ThyroCare is dedicated to helping thyroid patients manage their condition effectively. Our platform provides comprehensive resources, tracking tools, and AI-powered assistance to support your thyroid health journey.</p>
+                    <button class="bg-black text-white px-6 py-3 rounded-lg hover:bg-gray-800 transition">Get Started</button>
+                </div>
+                <div class="md:w-1/4">
+                    <img src="pngtree-realistic-anatomical-model-of-the-thyroid-gland-highlighting-its-shape-and-png-image_18423239.png" alt="Thyroid Gland" class="rounded-lg shadow-lg w-full">
+                </div>
+            </div>
+        </section>
+        
+        <!-- Thyroid Information Section -->
+        <section class="py-12 px-6 md:px-12 bg-gray-50">
+            <div class="max-w-6xl mx-auto">
+                <h2 class="text-3xl font-bold mb-8 text-center">Understanding Your Thyroid</h2>
+                
+                <div class="grid md:grid-cols-2 gap-8 mb-12">
+                    <div>
+                        <h3 class="text-xl font-semibold mb-4">Basic Information</h3>
+                        <p class="mb-4">The thyroid is a butterfly-shaped gland located at the base of your neck. It produces hormones that regulate your body's metabolism, energy levels, and many other vital functions.</p>
+                        <p>Thyroid hormones influence every cell, tissue, and organ in your body, affecting heart rate, cholesterol levels, body weight, muscle strength, skin hydration, menstrual regularity, memory, and more.</p>
+                    </div>
+                    <div>
+                        <img src="pngtree-thyroid-gland-illustrated-in-3d-rendered-image-organs-png-image_10221146.png" alt="Thyroid Location" class="rounded-lg shadow-md w-full">
+                    </div>
+                </div>
+                
+                <div class="grid md:grid-cols-2 gap-8 mb-12">
+                    <div class="order-1 md:order-2">
+                        <h3 class="text-xl font-semibold mb-4">Types of Thyroid Diseases</h3>
+                        <ul class="space-y-3">
+                            <li class="flex items-start">
+                                <span class="bg-black text-white rounded-full w-6 h-6 flex items-center justify-center mr-3 flex-shrink-0">1</span>
+                                <span><strong>Hypothyroidism:</strong> Underactive thyroid that doesn't produce enough hormones</span>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="bg-black text-white rounded-full w-6 h-6 flex items-center justify-center mr-3 flex-shrink-0">2</span>
+                                <span><strong>Hyperthyroidism:</strong> Overactive thyroid that produces too much hormone</span>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="bg-black text-white rounded-full w-6 h-6 flex items-center justify-center mr-3 flex-shrink-0">3</span>
+                                <span><strong>Thyroiditis:</strong> Inflammation of the thyroid gland</span>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="bg-black text-white rounded-full w-6 h-6 flex items-center justify-center mr-3 flex-shrink-0">4</span>
+                                <span><strong>Thyroid nodules:</strong> Lumps in the thyroid gland</span>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="bg-black text-white rounded-full w-6 h-6 flex items-center justify-center mr-3 flex-shrink-0">5</span>
+                                <span><strong>Thyroid cancer:</strong> Malignant growths in the thyroid gland</span>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="order-2 md:order-1 flex md:justify-center">
+                        <img src="pngtree-exploring-vital-hormonal-functions-png-image_20071723.png" alt="Thyroid Diseases" class="rounded-lg shadow-md w-full md:w-1/2 ">
+                    </div>
+                </div>
+                
+                <div class="grid md:grid-cols-2 gap-8">
+                    <div>
+                        <h3 class="text-xl font-semibold mb-4">Treatment Methods</h3>
+                        <div class="space-y-4">
+                            <div class="p-4 border border-gray-200 rounded-lg">
+                                <h4 class="font-medium mb-2">Medication</h4>
+                                <p class="text-sm">Synthetic hormones for hypothyroidism or anti-thyroid drugs for hyperthyroidism.</p>
+                            </div>
+                            <div class="p-4 border border-gray-200 rounded-lg">
+                                <h4 class="font-medium mb-2">Radioactive Iodine</h4>
+                                <p class="text-sm">Used to treat hyperthyroidism by destroying overactive thyroid cells.</p>
+                            </div>
+                            <div class="p-4 border border-gray-200 rounded-lg">
+                                <h4 class="font-medium mb-2">Surgery</h4>
+                                <p class="text-sm">Partial or complete removal of the thyroid gland in cases of cancer or large goiters.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-semibold mb-4">Location and Shape</h3>
+                        <div class="relative h-64 bg-gray-100 rounded-lg flex items-center justify-center">
+                            <div class="absolute w-24 h-36 bg-gray-300 rounded-full" style="top: 50%; left: 50%; transform: translate(-50%, -50%);"></div>
+                            <div class="absolute w-24 h-24 bg-gray-300 rounded-full" style="top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(45deg);"></div>
+                            <div class="absolute w-8 h-8 bg-black rounded-full" style="top: 30%; left: 30%;"></div>
+                            <div class="absolute w-8 h-8 bg-black rounded-full" style="top: 30%; left: 70%;"></div>
+                            <div class="absolute w-16 h-1 bg-black" style="top: 50%; left: 50%; transform: translate(-50%, -50%);"></div>
+                            <div class="absolute text-xs" style="top: 20%; left: 50%; transform: translateX(-50%);">Thyroid Gland</div>
+                            <div class="absolute text-xs" style="bottom: 10%; left: 50%; transform: translateX(-50%);">Trachea</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Features Section -->
+        <section class="py-12 px-6 md:px-12">
+            <div class="max-w-6xl mx-auto">
+                <h2 class="text-3xl font-bold mb-12 text-center">Why Choose ThyroCare?</h2>
+                
+                <div class="grid md:grid-cols-3 gap-8">
+                    <div class="feature-card bg-white p-6 rounded-lg shadow-md transition duration-300">
+                        <div class="w-12 h-12 bg-black rounded-full flex items-center justify-center mb-4">
+                            <i class="fas fa-bolt text-white text-xl"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold mb-3">Fast & Easy to Use</h3>
+                        <p>Our intuitive interface makes tracking your thyroid health simple and straightforward, saving you time and effort.</p>
+                    </div>
+                    
+                    <div class="feature-card bg-white p-6 rounded-lg shadow-md transition duration-300">
+                        <div class="w-12 h-12 bg-black rounded-full flex items-center justify-center mb-4">
+                            <i class="fas fa-file-pdf text-white text-xl"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold mb-3">PDF Reports</h3>
+                        <p>Easily download your test results and health reports as PDFs to share with your healthcare providers.</p>
+                    </div>
+                    
+                    <div class="feature-card bg-white p-6 rounded-lg shadow-md transition duration-300">
+                        <div class="w-12 h-12 bg-black rounded-full flex items-center justify-center mb-4">
+                            <i class="fas fa-robot text-white text-xl"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold mb-3">AI Assistant Support</h3>
+                        <p>Our intelligent AIVA assistant is available 24/7 to answer your questions and provide personalized guidance.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Global Presence Section -->
+        <section class="py-12 px-6 md:px-12 bg-gray-50">
+            <div class="max-w-6xl mx-auto">
+                <h2 class="text-3xl font-bold mb-8 text-center">Our Global Presence</h2>
+                <p class="text-center mb-8 max-w-2xl mx-auto">ThyroCare services are available in multiple locations worldwide, helping thyroid patients everywhere manage their health effectively.</p>
+                
+                <div id="world-map" class="relative">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/80/World_map_-_low_resolution.svg/1200px-World_map_-_low_resolution.svg.png" alt="World Map" class="w-full h-full object-cover opacity-30">
+                    
+                    <!-- Location Markers -->
+                    <div class="location-marker" style="top: 30%; left: 20%;"></div>
+                    <div class="location-marker" style="top: 35%; left: 50%;"></div>
+                    <div class="location-marker" style="top: 40%; left: 75%;"></div>
+                    <div class="location-marker" style="top: 60%; left: 45%;"></div>
+                    <div class="location-marker" style="top: 70%; left: 80%;"></div>
+                    <div class="location-marker" style="top: 25%; left: 65%;"></div>
+                </div>
+                
+                <div class="mt-8 grid md:grid-cols-3 gap-6">
+                    <div class="bg-white p-4 rounded-lg shadow-sm">
+                        <h3 class="font-medium mb-2">North America</h3>
+                        <p class="text-sm">20+ clinics across the United States and Canada</p>
+                    </div>
+                    <div class="bg-white p-4 rounded-lg shadow-sm">
+                        <h3 class="font-medium mb-2">Europe</h3>
+                        <p class="text-sm">15 specialized thyroid centers in major cities</p>
+                    </div>
+                    <div class="bg-white p-4 rounded-lg shadow-sm">
+                        <h3 class="font-medium mb-2">Asia-Pacific</h3>
+                        <p class="text-sm">30+ partner hospitals and clinics</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Doctors Section -->
+        <section class="py-12 px-6 md:px-12">
+            <div class="max-w-6xl mx-auto">
+                <h2 class="text-3xl font-bold mb-8 text-center">Meet Our Thyroid Specialists</h2>
+                
+                <div class="grid md:grid-cols-3 gap-8">
+                    <div class="doctor-card bg-white rounded-lg shadow-md overflow-hidden transition duration-300">
+                        <img src="https://images.unsplash.com/photo-1559839734-2b71ea197ec2?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60" alt="Dr. Sarah Johnson" class="w-full object-cover">
+                        <div class="p-6">
+                            <h3 class="text-xl font-semibold mb-1">Dr. Sarah Johnson</h3>
+                            <p class="text-gray-600 text-sm mb-3">Endocrinologist, 15 years experience</p>
+                            <p class="text-sm">Specializes in autoimmune thyroid disorders and personalized treatment plans.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="doctor-card bg-white rounded-lg shadow-md overflow-hidden transition duration-300">
+                        <img src="https://images.unsplash.com/photo-1622253692010-333f2da6031d?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60" alt="Dr. Michael Chen" class="w-full h-60 object-top object-cover">
+                        <div class="p-6">
+                            <h3 class="text-xl font-semibold mb-1">Dr. Michael Chen</h3>
+                            <p class="text-gray-600 text-sm mb-3">Thyroid Surgeon, 12 years experience</p>
+                            <p class="text-sm">Expert in minimally invasive thyroid surgeries and cancer treatments.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="doctor-card bg-white rounded-lg shadow-md overflow-hidden transition duration-300">
+                        <img src="https://images.unsplash.com/photo-1594824476967-48c8b964273f?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60" alt="Dr. Amina Patel" class="w-full object-top h-60 object-cover">
+                        <div class="p-6">
+                            <h3 class="text-xl font-semibold mb-1">Dr. Amina Patel</h3>
+                            <p class="text-gray-600 text-sm mb-3">Pediatric Endocrinologist, 10 years experience</p>
+                            <p class="text-sm">Specializes in thyroid disorders in children and adolescents.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        
+    </div>
+    
+    <!-- Dashboard Page -->
+    <div id="dashboard" class="page-container">
+        <div class="py-8 px-6 md:px-12">
+            <div class="max-w-6xl mx-auto">
+                <h1 class="text-3xl font-bold mb-8">Your Thyroid Health Dashboard</h1>
+                
+                <div class="grid md:grid-cols-3 gap-8 mb-8">
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <h2 class="text-xl font-semibold mb-4">Current Condition</h2>
+                        <div class="flex items-center">
+                            <div class="w-24 h-24 rounded-full bg-gray-100 flex items-center justify-center mr-4">
+                                <i class="fas fa-heartbeat text-4xl text-green-600"></i>
+                            </div>
+                            <div>
+                                <p class="text-lg font-medium">Hypothyroidism</p>
+                                <p class="text-sm">Stable condition</p>
+                                <p class="text-sm text-green-600">Last updated: Today</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <h2 class="text-xl font-semibold mb-4">Medication Status</h2>
+                        <div class="flex items-center">
+                            <div class="w-24 h-24 rounded-full bg-gray-100 flex items-center justify-center mr-4">
+                                <i class="fas fa-pills text-4xl text-green-600"></i>
+                            </div>
+                            <div>
+                                <p class="text-lg font-medium">Levothyroxine</p>
+                                <p class="text-sm">75 mcg daily</p>
+                                <p class="text-sm text-green-600">Next refill in 12 days</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <h2 class="text-xl font-semibold mb-4">Next Appointment</h2>
+                        <div class="flex items-center">
+                            <div class="w-24 h-24 rounded-full bg-gray-100 flex items-center justify-center mr-4">
+                                <i class="fas fa-calendar-alt text-4xl text-green-600"></i>
+                            </div>
+                            <div>
+                                <p class="text-lg font-medium">Dr. Sarah Johnson</p>
+                                <p class="text-sm text-green-600">June 15, 2023</p>
+                                <p class="text-sm text-green-600">10:30 AM</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="grid md:grid-cols-2 gap-8 mb-8">
+                    <div class="back p-6 rounded-lg shadow-md">
+                        <h2 class="text-xl font-semibold mb-4">TSH Levels Over Time</h2>
+                        <canvas id="tshChart" height="250"></canvas>
+                    </div>
+                    
+                    <div class="back p-6 rounded-lg shadow-md">
+                        <h2 class="text-xl font-semibold mb-4">T4 Levels Over Time</h2>
+                        <canvas id="t4Chart" height="250"></canvas>
+                    </div>
+                </div>
+                
+                <div class="back p-6 rounded-lg shadow-md mb-8">
+                    <h2 class="text-xl font-semibold mb-4">Symptom Tracker</h2>
+                    <canvas id="symptomChart" height="250"></canvas>
+                </div>
+                
+                <div class="grid md:grid-cols-2 gap-8">
+                    <div class="back p-6 rounded-lg shadow-md">
+                        <h2 class="text-xl font-semibold mb-4">Current vs Previous Results</h2>
+                        <table class="w-full">
+                            <thead>
+                                <tr class="border-b">
+                                    <th class="text-left py-2">Test</th>
+                                    <th class="text-left py-2">Current</th>
+                                    <th class="text-left py-2">Previous</th>
+                                    <th class="text-left py-2">Change</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr class="border-b">
+                                    <td class="py-2">TSH</td>
+                                    <td class="py-2">2.5 mIU/L</td>
+                                    <td class="py-2">3.8 mIU/L</td>
+                                    <td class="py-2 aa">-1.3</td>
+                                </tr>
+                                <tr class="border-b">
+                                    <td class="py-2">Free T4</td>
+                                    <td class="py-2">1.1 ng/dL</td>
+                                    <td class="py-2">0.9 ng/dL</td>
+                                    <td class="py-2 aa">+0.2</td>
+                                </tr>
+                                <tr class="border-b">
+                                    <td class="py-2">Free T3</td>
+                                    <td class="py-2">3.2 pg/mL</td>
+                                    <td class="py-2">3.0 pg/mL</td>
+                                    <td class="py-2 aa">+0.2</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-2">Thyroid Antibodies</td>
+                                    <td class="py-2">Positive</td>
+                                    <td class="py-2">Positive</td>
+                                    <td class="py-2 aa">-</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <h2 class="text-xl font-semibold mb-4">Recommended Actions</h2>
+                        <div class="space-y-4">
+                            <div class="flex items-start">
+                                <div class="bg-black text-white rounded-full w-6 h-6 flex items-center justify-center mr-3 flex-shrink-0">1</div>
+                                <p>Continue current medication dosage as prescribed</p>
+                            </div>
+                            <div class="flex items-start">
+                                <div class="bg-black text-white rounded-full w-6 h-6 flex items-center justify-center mr-3 flex-shrink-0">2</div>
+                                <p>Schedule next blood test in 3 months</p>
+                            </div>
+                            <div class="flex items-start">
+                                <div class="bg-black text-white rounded-full w-6 h-6 flex items-center justify-center mr-3 flex-shrink-0">3</div>
+                                <p>Increase water intake to help with dry skin symptoms</p>
+                            </div>
+                            <div class="flex items-start">
+                                <div class="bg-black text-white rounded-full w-6 h-6 flex items-center justify-center mr-3 flex-shrink-0">4</div>
+                                <p>Consider adding selenium-rich foods to your diet</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Report Page -->
+    <div id="report" class="page-container">
+        <div class="py-8 px-6 md:px-12">
+            <div class="max-w-4xl mx-auto bg-white rounded-lg shadow-md p-6 md:p-8">
+                <h1 class="text-3xl font-bold mb-6">Thyroid Test Report</h1>
+                <p class="mb-8 text-green-600">Please fill in your latest thyroid test results to generate a comprehensive report.</p>
+                
+                <form>
+                    <div class="mb-8">
+                        <h2 class="text-xl font-semibold mb-4 border-b pb-2">Basic Information</h2>
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-sm font-medium mb-1">Date of Test</label>
+                                <input type="date" class="report-input w-full px-4 py-2 border rounded-lg focus:border-black">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-1">Testing Facility</label>
+                                <input type="text" class="report-input w-full px-4 py-2 border rounded-lg focus:border-black" placeholder="Hospital or clinic name">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-8">
+                        <h2 class="text-xl font-semibold mb-4 border-b pb-2">Thyroid Function Tests</h2>
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-sm font-medium mb-1">TSH <span class="text-green-600">(Thyroid Stimulating Hormone)</span></label>
+                                <input type="text" class="report-input w-full px-4 py-2 border rounded-lg focus:border-black" placeholder="Value in mIU/L">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-1">Free T4 <span class="text-green-600"> (Thyroxine)</span></label>
+                                <input type="text" class="report-input w-full px-4 py-2 border rounded-lg focus:border-black" placeholder="Value in ng/dL">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-1">Free T3 <span class="text-green-600"> (Triiodothyronine)</span></label>
+                                <input type="text" class="report-input w-full px-4 py-2 border rounded-lg focus:border-black" placeholder="Value in pg/mL">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-1">Total T4</label>
+                                <input type="text" class="report-input w-full px-4 py-2 border rounded-lg focus:border-black" placeholder="Value in μg/dL">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-8">
+                        <h2 class="text-xl font-semibold mb-4 border-b pb-2">Thyroid Antibody Tests</h2>
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-sm font-medium mb-1">TPO Antibodies</label>
+                                <input type="text" class="report-input w-full px-4 py-2 border rounded-lg focus:border-black" placeholder="Value in IU/mL">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-1">Thyroglobulin Antibodies</label>
+                                <input type="text" class="report-input w-full px-4 py-2 border rounded-lg focus:border-black" placeholder="Value in IU/mL">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-1">TSH Receptor Antibodies</label>
+                                <input type="text" class="report-input w-full px-4 py-2 border rounded-lg focus:border-black" placeholder="Value in IU/L">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-8">
+                        <h2 class="text-xl font-semibold mb-4 border-b pb-2">Other Relevant Tests</h2>
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-sm font-medium mb-1">Thyroglobulin</label>
+                                <input type="text" class="report-input w-full px-4 py-2 border rounded-lg focus:border-black" placeholder="Value in ng/mL">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-1">Calcitonin</label>
+                                <input type="text" class="report-input w-full px-4 py-2 border rounded-lg focus:border-black" placeholder="Value in pg/mL">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-1">Reverse T3</label>
+                                <input type="text" class="report-input w-full px-4 py-2 border rounded-lg focus:border-black" placeholder="Value in ng/dL">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-8">
+                        <h2 class="text-xl font-semibold mb-4 border-b pb-2">Symptoms Checklist</h2>
+                        <p class="text-sm text-gray-600 mb-4">Rate your experience of these symptoms over the past month (1 = Not present, 5 = Severe)</p>
+                        
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium mb-1">Fatigue</label>
+                                <input type="range" min="1" max="5" value="3" class="w-full">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-1">Weight Changes</label>
+                                <input type="range" min="1" max="5" value="3" class="w-full">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-1">Temperature Sensitivity</label>
+                                <input type="range" min="1" max="5" value="3" class="w-full">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-1">Mood Changes</label>
+                                <input type="range" min="1" max="5" value="3" class="w-full">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-1">Hair/Skin Changes</label>
+                                <input type="range" min="1" max="5" value="3" class="w-full">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex justify-end space-x-4">
+                        <button type="button" class="px-6 py-2 border border-black rounded-lg hover:bg-gray-100">Save Draft</button>
+                        <button type="button" class="px-6 py-2 bg-black text-white rounded-lg hover:bg-gray-800">Generate Report</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- AIVA Page -->
+    <div id="aiva" class="page-container">
+        <div class="py-8 px-6 md:px-12">
+            <div class="max-w-4xl mx-auto">
+                <div class="flex items-center mb-8">
+                    <div class="w-12 h-12 bg-black rounded-full flex items-center justify-center mr-4">
+                        <i class="fas fa-robot text-white text-xl"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-3xl font-bold">AIVA</h1>
+                        <p class="text-gray-600">Your Artificial Intelligence Virtual Assistant for thyroid health</p>
+                    </div>
+                </div>
+                
+                <div class="bg-white rounded-lg shadow-md overflow-hidden mb-8">
+                    <div class="p-4 border-b bg-gray-50">
+                        <h2 class="font-semibold">Chat with AIVA</h2>
+                    </div>
+                    
+                    <div id="chat-container" class="p-4 h-96 overflow-y-auto">
+                        <div class="aiva-message aiva-response">
+                            <p>Hello! I'm AIVA, your thyroid health assistant. How can I help you today?</p>
+                        </div>
+                    </div>
+                    
+                    <div class="p-4 border-t">
+                        <div class="flex">
+                            <input type="text" id="user-input" placeholder="Type your question here..." class="flex-grow px-4 py-2 border rounded-l-lg focus:outline-none focus:border-black">
+                            <button id="send-btn" class="px-4 py-2 bg-black text-white rounded-r-lg hover:bg-gray-800">
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="grid md:grid-cols-2 gap-8">
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <h2 class="text-xl font-semibold mb-4">Frequently Asked Questions</h2>
+                        <div class="space-y-3">
+                            <button class="faq-btn w-full text-left px-4 py-2 border rounded-lg hover:bg-gray-50">What are normal TSH levels?</button>
+                            <button class="faq-btn w-full text-left px-4 py-2 border rounded-lg hover:bg-gray-50">How often should I get my thyroid checked?</button>
+                            <button class="faq-btn w-full text-left px-4 py-2 border rounded-lg hover:bg-gray-50">What foods should I avoid with hypothyroidism?</button>
+                            <button class="faq-btn w-full text-left px-4 py-2 border rounded-lg hover:bg-gray-50">Can thyroid problems cause weight gain?</button>
+                            <button class="faq-btn w-full text-left px-4 py-2 border rounded-lg hover:bg-gray-50">What are the symptoms of thyroid disease?</button>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <h2 class="text-xl font-semibold mb-4">Quick Actions</h2>
+                        <div class="grid grid-cols-2 gap-4">
+                            <button class="action-btn flex flex-col items-center justify-center p-4 border rounded-lg hover:bg-gray-50">
+                                <div class="w-10 h-10 bg-black rounded-full flex items-center justify-center mb-2">
+                                    <i class="fas fa-book text-white"></i>
+                                </div>
+                                <span class="text-sm">Resources</span>
+                            </button>
+                            <button class="action-btn flex flex-col items-center justify-center p-4 border rounded-lg hover:bg-gray-50">
+                                <div class="w-10 h-10 bg-black rounded-full flex items-center justify-center mb-2">
+                                    <i class="fas fa-chart-line text-white"></i>
+                                </div>
+                                <span class="text-sm">Trends</span>
+                            </button>
+                            <button class="action-btn flex flex-col items-center justify-center p-4 border rounded-lg hover:bg-gray-50">
+                                <div class="w-10 h-10 bg-black rounded-full flex items-center justify-center mb-2">
+                                    <i class="fas fa-pills text-white"></i>
+                                </div>
+                                <span class="text-sm">Medication</span>
+                            </button>
+                            <button class="action-btn flex flex-col items-center justify-center p-4 border rounded-lg hover:bg-gray-50">
+                                <div class="w-10 h-10 bg-black rounded-full flex items-center justify-center mb-2">
+                                    <i class="fas fa-user-md text-white"></i>
+                                </div>
+                                <span class="text-sm">Find a Doctor</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Account Page -->
+    <div id="account" class="hidden fixed inset-0 bg-white z-50 overflow-y-auto">
+        <div class="py-8 px-6 md:px-12 max-w-4xl mx-auto">
+            <div class="flex justify-between items-center mb-8">
+                <h1 class="text-3xl font-bold">My Account</h1>
+                <button id="close-account-btn" class="text-2xl">&times;</button>
+            </div>
+            
+            <div class="flex flex-col md:flex-row gap-8">
+                <div class="md:w-1/3">
+                    <div class="bg-gray-100 p-6 rounded-lg flex flex-col items-center">
+                        <img src="https://randomuser.me/api/portraits/women/44.jpg" alt="User" class="w-32 h-32 rounded-full object-cover mb-4">
+                        <h2 class="text-xl font-semibold">Sarah Johnson</h2>
+                        <p class="text-gray-600 mb-4">Hypothyroidism Patient</p>
+                        <button class="px-4 py-2 border border-black rounded-lg hover:bg-gray-100">Edit Profile</button>
+                    </div>
+                </div>
+                
+                <div class="md:w-2/3">
+                    <div class="bg-white rounded-lg shadow-sm">
+                        <div class="p-4 border-b">
+                            <h2 class="text-xl font-semibold">Personal Information</h2>
+                        </div>
+                        
+                        <div class="p-6">
+                            <div class="grid md:grid-cols-2 gap-6 mb-6">
+                                <div>
+                                    <label class="block text-sm font-medium mb-1">First Name</label>
+                                    <p>Sarah</p>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium mb-1">Last Name</label>
+                                    <p>Johnson</p>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium mb-1">Date of Birth</label>
+                                    <p>March 15, 1985</p>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium mb-1">Gender</label>
+                                    <p>Female</p>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-6">
+                                <label class="block text-sm font-medium mb-1">Email</label>
+                                <p>sarah.johnson@example.com</p>
+                            </div>
+                            
+                            <div class="mb-6">
+                                <label class="block text-sm font-medium mb-1">Phone Number</label>
+                                <p>(555) 123-4567</p>
+                            </div>
+                            
+                            <div class="mb-6">
+                                <label class="block text-sm font-medium mb-1">Address</label>
+                                <p>123 Main Street, Apt 4B</p>
+                                <p>New York, NY 10001</p>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium mb-1">Emergency Contact</label>
+                                <p>Michael Johnson (Spouse) - (555) 987-6543</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white rounded-lg shadow-sm mt-8">
+                        <div class="p-4 border-b">
+                            <h2 class="text-xl font-semibold">Medical Information</h2>
+                        </div>
+                        
+                        <div class="p-6">
+                            <div class="mb-6">
+                                <label class="block text-sm font-medium mb-1">Primary Condition</label>
+                                <p>Hypothyroidism (Hashimoto's Thyroiditis)</p>
+                            </div>
+                            
+                            <div class="mb-6">
+                                <label class="block text-sm font-medium mb-1">Diagnosis Date</label>
+                                <p>January 2018</p>
+                            </div>
+                            
+                            <div class="mb-6">
+                                <label class="block text-sm font-medium mb-1">Current Medications</label>
+                                <p>Levothyroxine 75 mcg daily</p>
+                            </div>
+                            
+                            <div class="mb-6">
+                                <label class="block text-sm font-medium mb-1">Allergies</label>
+                                <p>None known</p>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium mb-1">Primary Endocrinologist</label>
+                                <p>Dr. Emily Wilson - New York Thyroid Center</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!--footer-->
+    <nav class="bg-black text-white shadow-md py-12 px-6 mt-12 flex items-center justify-center z-50">
+        <div class="flex items-center">
+            <i class="fa-solid text-white mr-3 text-4xl fa-heart-pulse"></i>
+        <span class="text-4xl font-bold">ThyroCare</span>
+        </div>
+    </nav>
+    
+    <script>
+        // Navigation functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            // Page navigation
+            const navLinks = document.querySelectorAll('.nav-link');
+            const pageContainers = document.querySelectorAll('.page-container');
+            
+            navLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const page = this.getAttribute('data-page');
+                    
+                    // Hide all pages
+                    pageContainers.forEach(container => {
+                        container.classList.remove('active');
+                    });
+                    
+                    // Show selected page
+                    document.getElementById(page).classList.add('active');
+                    
+                    // Close mobile menu if open
+                    document.getElementById('mobile-menu').classList.add('hidden');
+                });
+            });
+            
+            // Account dropdown
+            const accountBtn = document.getElementById('account-btn');
+            const accountDropdown = document.getElementById('account-dropdown');
+            
+            accountBtn.addEventListener('click', function() {
+                document.getElementById('account').classList.toggle('hidden');
+            });
+            
+            // Close account page
+            document.getElementById('close-account-btn').addEventListener('click', function() {
+                document.getElementById('account').classList.add('hidden');
+            });
+            
+            // Mobile menu toggle
+            document.getElementById('mobile-menu-btn').addEventListener('click', function() {
+                document.getElementById('mobile-menu').classList.toggle('hidden');
+            });
+            
+            // Initialize charts
+            initCharts();
+            
+            // AIVA chat functionality
+            setupAIVAChat();
+        });
+        
+        function initCharts() {
+            // TSH Chart
+            const tshCtx = document.getElementById('tshChart').getContext('2d');
+            const tshChart = new Chart(tshCtx, {
+                type: 'line',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                    datasets: [{
+                        label: 'TSH Level (mIU/L)',
+                        data: [4.2, 3.8, 3.5, 3.0, 2.8, 2.5],
+                        borderColor: 'rgba(0, 179, 161)',
+                        backgroundColor: 'rgba(0, 179, 161, 0.1)',
+                        tension: 0.3,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            suggestedMin: 0,
+                            suggestedMax: 5
+                        }
+                    }
+                }
+            });
+            
+            // T4 Chart
+            const t4Ctx = document.getElementById('t4Chart').getContext('2d');
+            const t4Chart = new Chart(t4Ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                    datasets: [{
+                        label: 'Free T4 Level (ng/dL)',
+                        data: [0.8, 0.9, 0.95, 1.0, 1.05, 1.1],
+                        backgroundColor: 'rgba(0, 179, 161, 0.7)',
+                        borderColor: 'rgba(0, 179, 161, 0.1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            suggestedMin: 0.7,
+                            suggestedMax: 1.3
+                        }
+                    }
+                }
+            });
+            
+            // Symptom Chart
+            const symptomCtx = document.getElementById('symptomChart').getContext('2d');
+            const symptomChart = new Chart(symptomCtx, {
+                type: 'radar',
+                data: {
+                    labels: ['Fatigue', 'Weight Gain', 'Cold Sensitivity', 'Dry Skin', 'Hair Loss', 'Brain Fog'],
+                    datasets: [
+                        {
+                            label: 'Current Month',
+                            data: [4, 3, 2, 3, 2, 3],
+                            backgroundColor: 'rgba(0, 179, 161, 0.2)',
+                            borderColor: 'rgba(0, 179, 161, 1)',
+                            borderWidth: 2
+                        },
+                        {
+                            label: 'Previous Month',
+                            data: [5, 4, 3, 4, 3, 4],
+                            backgroundColor: 'rgba(75, 75, 75, 0.2)',
+                            borderColor: '#000',
+                            borderWidth: 2
+                        }
+                    ]
+                },
+                options: {
+                    scales: {
+                        r: {
+                            angleLines: {
+                                display: true
+                            },
+                            suggestedMin: 0,
+                            suggestedMax: 5
+                        }
+                    }
+                }
+            });
+        }
+        
+        function setupAIVAChat() {
+            const chatContainer = document.getElementById('chat-container');
+            const userInput = document.getElementById('user-input');
+            const sendBtn = document.getElementById('send-btn');
+            const faqBtns = document.querySelectorAll('.faq-btn');
+            
+            // Sample AIVA responses
+            const aivaResponses = {
+                "default": "I'm here to help with your thyroid health questions. Could you please provide more details about your concern?",
+                "What are normal TSH levels?": "Normal TSH levels typically range between 0.4 and 4.0 mIU/L. However, optimal levels may vary depending on individual factors. For most people with treated hypothyroidism, a TSH between 0.5-2.5 mIU/L is often considered ideal.",
+                "How often should I get my thyroid checked?": "For most people with stable hypothyroidism, testing every 6-12 months is sufficient. If you've recently changed medication doses or have unstable levels, your doctor may recommend testing every 6-8 weeks until levels stabilize.",
+                "What foods should I avoid with hypothyroidism?": "Some foods can interfere with thyroid function or medication absorption. These include soy products, cruciferous vegetables (in large amounts), gluten (for some individuals), and excessive fiber. It's also best to take your thyroid medication on an empty stomach and wait at least 30-60 minutes before eating.",
+                "Can thyroid problems cause weight gain?": "Yes, hypothyroidism can slow your metabolism and lead to weight gain, typically 5-10 pounds. The weight gain is often due to excess salt and water retention rather than fat accumulation. With proper treatment, weight usually stabilizes, though losing the extra weight may require dietary changes and exercise.",
+                "What are the symptoms of thyroid disease?": "Thyroid symptoms vary by condition. Hypothyroidism symptoms include fatigue, weight gain, cold intolerance, dry skin, hair loss, and depression. Hyperthyroidism symptoms include weight loss, rapid heartbeat, heat intolerance, anxiety, and tremors. If you're experiencing these symptoms, consult your doctor for testing."
+            };
+            
+            // Send message function
+            function sendMessage() {
+                const message = userInput.value.trim();
+                if (message === '') return;
+                
+                // Add user message to chat
+                const userMessage = document.createElement('div');
+                userMessage.className = 'aiva-message user-message';
+                userMessage.innerHTML = `<p>${message}</p>`;
+                chatContainer.appendChild(userMessage);
+                
+                // Clear input
+                userInput.value = '';
+                
+                // Scroll to bottom
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+                
+                // Simulate AIVA thinking
+                setTimeout(() => {
+                    // Get AIVA response
+                    let response = aivaResponses.default;
+                    for (const key in aivaResponses) {
+                        if (message.toLowerCase().includes(key.toLowerCase())) {
+                            response = aivaResponses[key];
+                            break;
+                        }
+                    }
+                    
+                    // Add AIVA response to chat
+                    const aivaResponse = document.createElement('div');
+                    aivaResponse.className = 'aiva-message aiva-response';
+                    aivaResponse.innerHTML = `<p>${response}</p>`;
+                    chatContainer.appendChild(aivaResponse);
+                    
+                    // Scroll to bottom
+                    chatContainer.scrollTop = chatContainer.scrollHeight;
+                }, 1000);
+            }
+            
+            // Send message on button click
+            sendBtn.addEventListener('click', sendMessage);
+            
+            // Send message on Enter key
+            userInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    sendMessage();
+                }
+            });
+            
+            // FAQ button clicks
+            faqBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    userInput.value = this.textContent;
+                    sendMessage();
+                });
+            });
+        }
+    </script>
+</body>
+</html>
