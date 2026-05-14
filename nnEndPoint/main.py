@@ -1,4 +1,7 @@
+# pyrefly: ignore [missing-import]
 from fastapi import FastAPI
+# pyrefly: ignore [missing-import]
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 import pandas as pd
 import numpy as np
@@ -34,29 +37,36 @@ def health():
 
 @app.post("/predict")
 def get_prediction(patient: PatientData):
-    patient_df = pd.DataFrame([patient.patient_data])
+    try:
+        patient_df = pd.DataFrame([patient.patient_data])
+        
+        # Compute derived feature
+        patient_df['PulsePressure'] = patient_df['SBP'] - patient_df['DBP']
+        
+        # Impute
+        patient_df[num_cols] = num_imputer.transform(patient_df[num_cols])
+        patient_df[cat_cols] = cat_imputer.transform(patient_df[cat_cols])
+        
+        # Encode categoricals
+        patient_ohe = ohe_encoder.transform(patient_df[low_card_cols])
+        patient_ohe_df = pd.DataFrame(patient_ohe, columns=ohe_cols, index=patient_df.index)
+        
+        # Scale numerics
+        patient_scaled = scaler.transform(patient_df[num_cols])
+        patient_scaled_df = pd.DataFrame(patient_scaled, columns=num_cols, index=patient_df.index)
+        
+        # Combine — make sure order matches training
+        patient_final = pd.concat([patient_scaled_df, patient_ohe_df], axis=1)
+        
+        pred_probs = model.predict(patient_final)
+        pred_class_index = np.argmax(pred_probs, axis=1)[0]
+        predicted_illness = le.inverse_transform([pred_class_index])[0]
+        
+        return {"prediction": predicted_illness}
     
-    
-    patient_df['PulsePressure'] = patient_df['SBP'] - patient_df['DBP']
-    
-    patient_df[num_cols] = num_imputer.transform(patient_df[num_cols])
-    patient_df[cat_cols] = cat_imputer.transform(patient_df[cat_cols])
-    
-    patient_ohe = ohe_encoder.transform(patient_df[low_card_cols])
-    patient_ohe_df = pd.DataFrame(patient_ohe, columns=ohe_cols, index=patient_df.index)
-    
-    patient_scaled = scaler.transform(patient_df[num_cols])
-    patient_scaled_df = pd.DataFrame(patient_scaled, columns=num_cols, index=patient_df.index)
-    
-    patient_final = pd.concat([patient_scaled_df, patient_ohe_df], axis=1)
-    
-    
-    pred_probs = model.predict(patient_final)
-    pred_class_index = np.argmax(pred_probs, axis=1)[0]
-    
-    predicted_illness = le.inverse_transform([pred_class_index])[0]
-    
-    return {"prediction": predicted_illness}
-
-
-
+    except Exception as e:
+        import traceback
+        return JSONResponse(status_code=500, content={
+            "error": str(e),
+            "trace": traceback.format_exc()
+        })
