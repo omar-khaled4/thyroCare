@@ -3,6 +3,6 @@ uvicorn
 pandas
 numpy
 joblib
-scikit-learn
+scikit-learn==1.6.1
 pydantic
 tensorflow-cpu
