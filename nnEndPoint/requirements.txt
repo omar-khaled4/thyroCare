@@ -6,4 +6,4 @@ joblib
 keras
 scikit-learn
 pydantic
-tensorflow
+tensorflow-cpu
