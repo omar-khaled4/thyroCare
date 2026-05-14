@@ -58,3 +58,5 @@ def get_prediction(patient: PatientData):
     
     return {"prediction": predicted_illness}
 
+
+
