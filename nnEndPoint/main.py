@@ -27,6 +27,11 @@ class PatientData(BaseModel):
     patient_data: dict
 
 
+@app.get("/")
+def health():
+    return {"status": "Thyroid model API is running"}
+
+
 @app.post("/predict")
 def get_prediction(patient: PatientData):
     patient_df = pd.DataFrame([patient.patient_data])
@@ -52,3 +57,4 @@ def get_prediction(patient: PatientData):
     predicted_illness = le.inverse_transform([pred_class_index])[0]
     
     return {"prediction": predicted_illness}
+
