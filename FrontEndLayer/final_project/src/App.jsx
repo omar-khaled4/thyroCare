@@ -19,23 +19,26 @@ import ViewReports from './components/ViewReports/ViewReports';
 
 
 let x = createBrowserRouter([
-  { path : "" , element : <Layout/> , children:[
-    { index: true, element:<Home/>},
-    { path: "about us", element:<AboutUs/>},
-    { path: "login", element:<Login/>},
-    { path: "signup", element:<SignUp/>},
-    { path: "dashboard", element:<ProtectedRoute><Dashboard/></ProtectedRoute>},
-    { path: "report", element:<ProtectedRoute><Report/></ProtectedRoute>,children:
-      [
-        { index:true , element:<ReportOptions/> },
-        { path: "insert_report", element:<InsertReport/> },
-        { path: "view_report", element:<ViewReports/> }
-      ]
-    },
-    { path: "profile", element:<ProtectedRoute><Profile/></ProtectedRoute>},
-    { path: "chat", element:<AiChat/>},
-    { path: "*", element:<NotFound/>},
-  ] }
+  {
+    path: "", element: <Layout />, children: [
+      { index: true, element: <Home /> },
+      { path: "about", element: <AboutUs /> },
+      { path: "login", element: <Login /> },
+      { path: "signup", element: <SignUp /> },
+      { path: "dashboard", element: <ProtectedRoute><Dashboard /></ProtectedRoute> },
+      {
+        path: "report", element: <ProtectedRoute><Report /></ProtectedRoute>, children:
+          [
+            { index: true, element: <ReportOptions /> },
+            { path: "insert_report", element: <InsertReport /> },
+            { path: "view_report", element: <ViewReports /> }
+          ]
+      },
+      { path: "profile", element: <ProtectedRoute><Profile /></ProtectedRoute> },
+      { path: "chat", element: <AiChat /> },
+      { path: "*", element: <NotFound /> },
+    ]
+  }
 ])
 
 function App() {
