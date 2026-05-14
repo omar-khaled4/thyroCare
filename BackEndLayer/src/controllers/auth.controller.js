@@ -9,27 +9,24 @@ const { respond, tryCatch } = require("../utils/helpers");
  * Body: { name, email, password }
  */
 const register = tryCatch(async (req, res) => {
-  const { name, email, password, gender, age } = req.body;
+  const { firstName, lastName, email, phone, password, dateOfBirth, gender } = req.body;
 
-  if (!name || !email || !password || !gender || !age) {
+  if (!firstName || !lastName || !email || !phone || !password || !dateOfBirth || !gender) {
     return respond(
       res,
       400,
       null,
-      "name, email, password, gender, and age are required",
+      "All fields are required",
     );
   }
   if (password.length < 6) {
     return respond(res, 400, null, "Password must be at least 6 characters");
   }
-  if (!["male", "female", "other"].includes(gender.toLowerCase())) {
-    return respond(res, 400, null, "Gender must be male, female, or other");
-  }
-  if (typeof age !== "number" || age < 13 || age > 120) {
-    return respond(res, 400, null, "Age must be a number between 13 and 120");
+  if (!["male", "female"].includes(gender.toLowerCase())) {
+    return respond(res, 400, null, "Gender must be male or female");
   }
 
-  const user = await User.create({ name, email, password, gender, age });
+  const user = await User.create({ firstName, lastName, email, phone, password, dateOfBirth, gender });
   const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRES_IN,
   });

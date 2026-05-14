@@ -18,7 +18,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n  \"name\": \"test\",\r\n  \"email\": \"test@gmail.com\",\r\n  \"password\": \"123456789\",\r\n  \"gender\": \"female\",\r\n  \"age\": 21\r\n}",
+							"raw": "{\r\n  \"firstName\": \"John\",\r\n  \"lastName\": \"Doe\",\r\n  \"email\": \"john@example.com\",\r\n  \"password\": \"secret123\",\r\n  \"gender\": \"male\",\r\n  \"dateOfBirth\": \"1999-05-14\",\r\n  \"phone\": \"01000000000\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -45,7 +45,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n  \"email\": \"omar@gmail.com\",\r\n  \"password\": \"Omar@2002\"\r\n}",
+							"raw": "{\r\n  \"email\": \"[EMAIL_ADDRESS]\",\r\n  \"password\": \"[PASSWORD]\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
