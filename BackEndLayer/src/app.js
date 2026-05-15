@@ -1,6 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const connectDB = require("./config/db");
+const mongoose = require("mongoose");
 
 const authRoutes = require("./routes/auth.routes");
 const profileRoutes = require("./routes/profile.routes");
@@ -21,9 +22,14 @@ app.use(express.json());
 app.use(async (req, res, next) => {
   try {
     await connectDB();
+    // Make sure mongoose is actually ready
+    if (mongoose.connection.readyState !== 1) {
+      throw new Error("MongoDB not ready");
+    }
     next();
   } catch (err) {
-    res.status(500).json({ success: false, message: "Database connection failed" });
+    console.error("DB Middleware error:", err.message);
+    res.status(500).json({ success: false, message: err.message });
   }
 });
 
