@@ -27,6 +27,8 @@ const reportSchema = new mongoose.Schema(
     // Other Tests
     otherTests: {
       thyroglobulin: Number,
+      calcitonin: Number,
+      reverseT3: Number,
     },
     // Symptoms at time of test
     symptoms: {

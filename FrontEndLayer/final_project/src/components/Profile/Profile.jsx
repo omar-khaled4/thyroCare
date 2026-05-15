@@ -1,13 +1,39 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useState, useEffect } from "react";
 import style from "./Profile.module.css"
 import { UserContext } from "../../context/UserContext";
 import { Link, useNavigate } from "react-router-dom";
 import { useFormik } from "formik";
+import { getMe, updateProfile } from "../../services/authService";
 
 export default function Profile(){
 
     let { userToken , setuserToken , user , setuser } = useContext(UserContext)
     let navigate = useNavigate()
+
+    const [isLoading, setIsLoading] = useState(true)
+    const [feedback, setFeedback] = useState({ message: "", type: "" })
+
+    useEffect(() => {
+        const fetchUserProfile = async () => {
+            setIsLoading(true)
+            try {
+                const userData = await getMe()
+                if (userData) {
+                    setuser(userData)
+                }
+            } catch (error) {
+                console.error("Failed to fetch user profile:", error)
+                setFeedback({ message: "Failed to load profile", type: "error" })
+            } finally {
+                setIsLoading(false)
+            }
+        }
+        if (userToken) {
+            fetchUserProfile()
+        } else {
+            setIsLoading(false)
+        }
+    }, [userToken, setuser])
 
     function signout(){
         localStorage.removeItem("userToken");
@@ -17,37 +43,58 @@ export default function Profile(){
         navigate("/")
     }
 
-    //update
     let[update , setupdate]=useState(false)
+
+    const handleProfileUpdate = async (values) => {
+        setFeedback({ message: "", type: "" })
+        try {
+            const updatedUser = await updateProfile(values)
+            setuser(updatedUser)
+            setFeedback({ message: "Profile updated successfully!", type: "success" })
+            setupdate(false)
+        } catch (error) {
+            console.error("Failed to update profile:", error)
+            setFeedback({ 
+                message: error.response?.data?.message || "Failed to update profile", 
+                type: "error" 
+            })
+        }
+    }
 
     let formik = useFormik({
         initialValues :{
-            firstName :user?.firstName,
-            lastName :user?.lastName,
-            email:user?.email,
-            phone:user?.phone,
-            password:user?.password,
-            dateOfBirth:user?.dateOfBirth,
-            gender:user?.gender,
-            address:"",
-            emergencyContact:"",
-            primaryCondition:"",
-            diagnosisDate:"",
-            currentMedications:"",
-            allergies:"",
-            primaryEndocrinologist:"",
+            firstName :user?.firstName || "",
+            lastName :user?.lastName || "",
+            email:user?.email || "",
+            phone:user?.phone || "",
+            password:"",
+            dateOfBirth:user?.dateOfBirth || "",
+            gender:user?.gender || "",
+            address:user?.address || "",
+            emergencyContact:user?.emergencyContact || "",
+            primaryCondition:user?.primaryCondition || "",
+            diagnosisDate:user?.diagnosisDate || "",
+            currentMedications:user?.currentMedications || "",
+            allergies:user?.allergies || "",
+            primaryEndocrinologist:user?.primaryEndocrinologist || "",
         },
         enableReinitialize: true,
+        onSubmit: handleProfileUpdate
     })
 
     return <>
 
-        {update?<>
+{update ? <>
             <div className="fixed top-0 right-0 left-0 bottom-0 bg-black opacity-50 z-10"></div>
             <div className="fixed top-0 left-0 z-10 h-screen p-4 pt-20 overflow-y-auto bg-gray-100 w-full sm:w-100 font-1">
                 
                 <p className="mb-8 text-xl color-1 text-center uppercase"><i className="fa-regular fa-pen-to-square pr-2"></i> update your info </p>
                 <form onSubmit={formik.handleSubmit} className="mb-6">
+                    {feedback.message && (
+                        <div className={`p-3 mb-4 rounded-lg ${feedback.type === "success" ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}>
+                            {feedback.message}
+                        </div>
+                    )}
 
                     <div className="relative mb-6">
                         <input type="text" id="firstName" name="firstName" value={formik.values.firstName} onChange={formik.handleChange} onBlur={formik.handleBlur} className="block px-2.5 pb-2.5 pt-4 w-full text-sm text-black bg-gray-100 rounded-lg border border-gray-300 focus:outline-none focus:ring-0 focus:border-[#00b3a1] peer" placeholder=" " />
@@ -104,14 +151,16 @@ export default function Profile(){
                         <input type="text" id="primaryEndocrinologist" name="primaryEndocrinologist" value={formik.values.primaryEndocrinologist} onChange={formik.handleChange} onBlur={formik.handleBlur} className="block px-2.5 pb-2.5 pt-4 w-full text-sm text-black bg-gray-100 rounded-lg border border-gray-300 focus:outline-none focus:ring-0 focus:border-[#00b3a1] peer" placeholder=" " />
                         <label htmlFor="primaryEndocrinologist" className="absolute text-sm text-gray-500 duration-300 transform -translate-y-4 scale-75 top-2 z-10 origin-left bg-gray-100 px-2 peer-focus:px-2 peer-focus:text-[#00b3a1] peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-90 peer-focus:-translate-y-4 rtl:peer-focus:translate-x-1/4 rtl:peer-focus:left-auto inset-s-1">Primary Endocrinologist</label>
                     </div>
-                    <button type="submit" className="text-white justify-center flex items-center bg-amber-500 hover:bg-amber-600 w-full  font-medium rounded-lg text-md px-5 py-2.5 mb-2">Update</button>   
+                    <button type="submit" disabled={formik.isSubmitting} className="text-white justify-center flex items-center bg-amber-500 hover:bg-amber-600 w-full  font-medium rounded-lg text-md px-5 py-2.5 mb-2 disabled:opacity-50">
+                        {formik.isSubmitting ? "Updating..." : "Update"}
+                    </button>   
                     
                 </form>
                 <button type="button" onClick={()=>setupdate(false)} className="text-white justify-center flex items-center bg-red-600 hover:bg-red-700 w-full  font-medium rounded-lg text-md px-5 py-2.5 mb-2">Cancle</button>
 
             </div>
 
-        </>:null}
+        </> : null}
 
 
         <div className="bg-[url(/src/assets/image-3.png)] w-full h-100 bg-cover bg-position-[50%_15%]"></div>
@@ -165,33 +214,33 @@ export default function Profile(){
                 </div>
                 <div className="mt-4">
                     <p className="text-xl">Address</p>
-                    <p className="color-1 text-lg">-</p>
+                    <p className="color-1 text-lg">{user?.address || "-"}</p>
                 </div>
                 <div className="mt-4">
                     <p className="text-xl">Emergency Contact</p>
-                    <p className="color-1 text-lg">-</p>
+                    <p className="color-1 text-lg">{user?.emergencyContact || "-"}</p>
                 </div>
 
                 <p className="text-3xl mt-15 pb-4 border-b-2">Medical Information</p>
                 <div className="mt-4">
                     <p className="text-xl">Primary Condition</p>
-                    <p className="color-1 text-lg">-</p>
+                    <p className="color-1 text-lg">{user?.primaryCondition || "-"}</p>
                 </div>
                 <div className="mt-4">
                     <p className="text-xl">Diagnosis Date</p>
-                    <p className="color-1 text-lg">-</p>
+                    <p className="color-1 text-lg">{user?.diagnosisDate || "-"}</p>
                 </div>
                 <div className="mt-4">
                     <p className="text-xl">Current Medications</p>
-                    <p className="color-1 text-lg">-</p>
+                    <p className="color-1 text-lg">{user?.currentMedications || "-"}</p>
                 </div>
                 <div className="mt-4">
                     <p className="text-xl">Allergies</p>
-                    <p className="color-1 text-lg">-</p>
+                    <p className="color-1 text-lg">{user?.allergies || "-"}</p>
                 </div>
                 <div className="mt-4">
                     <p className="text-xl">Primary Endocrinologist</p>
-                    <p className="color-1 text-lg">-</p>
+                    <p className="color-1 text-lg">{user?.primaryEndocrinologist || "-"}</p>
                 </div>
             </div>
             

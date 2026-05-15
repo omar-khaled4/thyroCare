@@ -25,6 +25,8 @@ export default function InsertReport(){
         }),
         otherTests: Yup.object({
             thyroglobulin: Yup.number().typeError('Must be a number').required('Thyroglobulin is required'),
+            calcitonin: Yup.number().typeError('Must be a number').required('Calcitonin is required'),
+            reverseT3: Yup.number().typeError('Must be a number').required('Reverse T3 is required'),
         }),
         symptoms: Yup.object({
             fatigue: Yup.number().min(0).max(10).required('Fatigue is required'),
@@ -73,6 +75,8 @@ export default function InsertReport(){
             },
             otherTests: {
                 thyroglobulin: "",
+                calcitonin: "",
+                reverseT3: "",
             },
             symptoms: {
                 fatigue: "5",
@@ -156,14 +160,24 @@ export default function InsertReport(){
                         </div>
                     </div>
 
-                    <div className="grid gap-4 md:grid-cols-2">
-                        <p className="md:col-span-2 font-1 text-2xl mt-5 mb-2 border-b-2 py-3">Other Relevant Tests</p>
-                        <div>
-                            <label htmlFor="thyroglobulin" className="font-1 w-full text-xl">Thyroglobulin</label>
-                            <input type="number" id="thyroglobulin" name="otherTests.thyroglobulin" value={formik.values.otherTests.thyroglobulin} onChange={formik.handleChange} onBlur={formik.handleBlur} placeholder="value in ng/mL" className="w-full font-1 bg-[#00000000] color-1 border border-black rounded-lg mt-2" required/>
-                            { formik.errors.otherTests?.thyroglobulin && formik.touched.otherTests?.thyroglobulin ?( <p className="font-1 pt-1 text-red-800">{formik.errors.otherTests.thyroglobulin}</p> ):null}
-                        </div>
-                    </div>
+                     <div className="grid gap-4 md:grid-cols-2">
+                         <p className="md:col-span-2 font-1 text-2xl mt-5 mb-2 border-b-2 py-3">Other Relevant Tests</p>
+                         <div>
+                             <label htmlFor="thyroglobulin" className="font-1 w-full text-xl">Thyroglobulin</label>
+                             <input type="number" id="thyroglobulin" name="otherTests.thyroglobulin" value={formik.values.otherTests.thyroglobulin} onChange={formik.handleChange} onBlur={formik.handleBlur} placeholder="value in ng/mL" className="w-full font-1 bg-[#00000000] color-1 border border-black rounded-lg mt-2" required/>
+                             { formik.errors.otherTests?.thyroglobulin && formik.touched.otherTests?.thyroglobulin ?( <p className="font-1 pt-1 text-red-800">{formik.errors.otherTests.thyroglobulin}</p> ):null}
+                         </div>
+                         <div>
+                             <label htmlFor="calcitonin" className="font-1 w-full text-xl">Calcitonin</label>
+                             <input type="number" id="calcitonin" name="otherTests.calcitonin" value={formik.values.otherTests.calcitonin} onChange={formik.handleChange} onBlur={formik.handleBlur} placeholder="value in pg/mL" className="w-full font-1 bg-[#00000000] color-1 border border-black rounded-lg mt-2" required/>
+                             { formik.errors.otherTests?.calcitonin && formik.touched.otherTests?.calcitonin ?( <p className="font-1 pt-1 text-red-800">{formik.errors.otherTests.calcitonin}</p> ):null}
+                         </div>
+                         <div>
+                             <label htmlFor="reverseT3" className="font-1 w-full text-xl">Reverse T3</label>
+                             <input type="number" id="reverseT3" name="otherTests.reverseT3" value={formik.values.otherTests.reverseT3} onChange={formik.handleChange} onBlur={formik.handleBlur} placeholder="value in ng/dL" className="w-full font-1 bg-[#00000000] color-1 border border-black rounded-lg mt-2" required/>
+                             { formik.errors.otherTests?.reverseT3 && formik.touched.otherTests?.reverseT3 ?( <p className="font-1 pt-1 text-red-800">{formik.errors.otherTests.reverseT3}</p> ):null}
+                         </div>
+                     </div>
 
                     <div className="grid gap-4 md:grid-cols-2">
                         <p className="md:col-span-2 font-1 text-2xl mt-5 mb-2 border-b-2 py-3">Symptoms Checklist</p>
@@ -177,11 +191,11 @@ export default function InsertReport(){
                             <input type="range" id="weightChange" name="symptoms.weightChange" min="0" max="10" value={formik.values.symptoms.weightChange} onChange={formik.handleChange} onBlur={formik.handleBlur} className="w-full h-2 background-1 rounded-full cursor-pointer mt-2"/>
                             { formik.errors.symptoms?.weightChange && formik.touched.symptoms?.weightChange ?( <p className="font-1 pt-1 text-red-800">{formik.errors.symptoms.weightChange}</p> ):null}
                         </div>
-                        <div>
-                            <label htmlFor="coldIntolerance" className="font-1 w-full text-xl">Cold Intolerance : {formik.values.symptoms.coldIntolerance}</label>
-                            <input type="range" id="coldIntolerance" name="symptoms.coldIntolerance" min="0" max="10" value={formik.values.symptoms.coldIntolerance} onChange={formik.handleChange} onBlur={formik.handleBlur} className="w-full h-2 background-1 rounded-full cursor-pointer mt-2"/>
-                            { formik.errors.symptoms?.coldIntolerance && formik.touched.symptoms?.coldIntolerance ?( <p className="font-1 pt-1 text-red-800">{formik.errors.symptoms.coldIntolerance}</p> ):null}
-                        </div>
+                         <div>
+                             <label htmlFor="coldIntolerance" className="font-1 w-full text-xl">Temperature Sensitivity : {formik.values.symptoms.coldIntolerance}</label>
+                             <input type="range" id="coldIntolerance" name="symptoms.coldIntolerance" min="0" max="10" value={formik.values.symptoms.coldIntolerance} onChange={formik.handleChange} onBlur={formik.handleBlur} className="w-full h-2 background-1 rounded-full cursor-pointer mt-2"/>
+                             { formik.errors.symptoms?.coldIntolerance && formik.touched.symptoms?.coldIntolerance ?( <p className="font-1 pt-1 text-red-800">{formik.errors.symptoms.coldIntolerance}</p> ):null}
+                         </div>
                         <div>
                             <label htmlFor="hairLoss" className="font-1 w-full text-xl">Hair Loss : {formik.values.symptoms.hairLoss}</label>
                             <input type="range" id="hairLoss" name="symptoms.hairLoss" min="0" max="10" value={formik.values.symptoms.hairLoss} onChange={formik.handleChange} onBlur={formik.handleBlur} className="w-full h-2 background-1 rounded-full cursor-pointer mt-2"/>
