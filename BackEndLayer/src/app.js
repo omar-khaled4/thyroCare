@@ -1,5 +1,6 @@
 const express = require("express");
 const cors = require("cors");
+const connectDB = require("./config/db");
 
 const authRoutes = require("./routes/auth.routes");
 const profileRoutes = require("./routes/profile.routes");
@@ -15,6 +16,16 @@ const app = express();
 // --- Middlewares ---
 app.use(cors());
 app.use(express.json());
+
+// --- DB Connection Middleware (runs before every request) ---
+app.use(async (req, res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Database connection failed" });
+  }
+});
 
 // --- Routes ---
 app.use("/api/auth", authRoutes);
