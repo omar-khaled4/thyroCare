@@ -1,9 +1,10 @@
 const mongoose = require("mongoose");
 
-let isConnected = false;
-
 const connectDB = async () => {
-  if (isConnected) return;
+  // 1 = connected, 2 = connecting
+  if (mongoose.connection.readyState === 1 || mongoose.connection.readyState === 2) {
+    return;
+  }
 
   if (!process.env.MONGODB_URI) {
     throw new Error("MONGODB_URI environment variable is not defined");
@@ -12,10 +13,9 @@ const connectDB = async () => {
   await mongoose.connect(process.env.MONGODB_URI, {
     serverSelectionTimeoutMS: 10000,
     socketTimeoutMS: 45000,
-    bufferCommands: false, // ← KEY FIX: don't buffer, fail fast instead of timing out
+    bufferCommands: false,
   });
 
-  isConnected = true;
   console.log("✅ MongoDB connected");
 };
 
