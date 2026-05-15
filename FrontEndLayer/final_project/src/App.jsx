@@ -17,6 +17,26 @@ import ReportOptions from './components/ReportOptions/ReportOptions';
 import InsertReport from './components/InsertReport/InsertReport';
 import ViewReports from './components/ViewReports/ViewReports';
 
+//CHAINS:
+//POST   /auth/login           { email, password }
+//POST   /auth/register        { firstName, lastName, email, phone, password,
+//                               dateOfBirth, gender }
+//GET    /auth/me              (Bearer) — returns current user profile
+//POST   /profile              — update profile
+//GET    /profile              — get profile
+//GET    /reports              — list reports
+//GET    /reports/{id}         — single report
+//POST   /reports              — create report
+//PUT    /reports/{id}         — update report
+//DELETE /reports/{id}         — delete report
+//GET    /symptoms             — list symptoms
+//POST   /symptoms             — add symptom
+//PUT    /symptoms             — update symptom
+//DELETE /symptoms?date=...    — delete symptom
+//GET    /lab-results/t3, /t4, /tsh — lab results (crud)
+//POST   /chat                 — send AI chat message
+//POST   /predict              — run NN model prediction
+//GET    /predict/history      — prediction history
 
 let x = createBrowserRouter([
   {
@@ -25,7 +45,9 @@ let x = createBrowserRouter([
       { path: "about", element: <AboutUs /> },
       { path: "login", element: <Login /> },
       { path: "signup", element: <SignUp /> },
-      { path: "dashboard", element: <ProtectedRoute><Dashboard /></ProtectedRoute> },
+      {
+        path: "dashboard", element: <ProtectedRoute><Dashboard /></ProtectedRoute>
+      },
       {
         path: "report", element: <ProtectedRoute><Report /></ProtectedRoute>, children:
           [
@@ -34,8 +56,13 @@ let x = createBrowserRouter([
             { path: "view_report", element: <ViewReports /> }
           ]
       },
-      { path: "profile", element: <ProtectedRoute><Profile /></ProtectedRoute> },
-      { path: "chat", element: <AiChat /> },
+      {
+        path: "profile", element: <ProtectedRoute><Profile /></ProtectedRoute>
+      },
+      {
+        // ProtectedRoute added here — unauthenticated users now hit /login
+        path: "chat", element: <ProtectedRoute><AiChat /></ProtectedRoute>
+      },
       { path: "*", element: <NotFound /> },
     ]
   }
