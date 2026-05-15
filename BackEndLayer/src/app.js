@@ -48,6 +48,17 @@ app.get("/", (req, res) => {
   });
 });
 
+// test DB connection
+
+app.get("/api/dbtest", async (req, res) => {
+  try {
+    await connectDB();
+    res.json({ success: true, message: "DB connected!" });
+  } catch (err) {
+    res.json({ success: false, message: err.message });
+  }
+});
+
 // --- Global error handler (MUST be last) ---
 app.use(errorHandler);
 
