@@ -6,6 +6,9 @@ export default function AiChat(){
     // scroll button
     const chatRef = useRef(null);
     const [showScrollBtn, setShowScrollBtn] = useState(false);
+    const [messages, setMessages] = useState([
+        { id: 1, sender: "ai", text: "Hello! I'm Aiva, your thyroid health assistant. How can I help you today?" }
+    ]);
 
     const handleScroll = () => {
         const element = chatRef.current;
@@ -25,6 +28,10 @@ export default function AiChat(){
         scrollToBottom();
     }, []);
 
+    const clearChat = () => {
+        setMessages([]);
+    }
+
 
 
     return <>
@@ -39,134 +46,17 @@ export default function AiChat(){
                             <p className="color-1 text-sm">Your Artificial Intelligence Virtual Assistant for thyroid health</p>
                         </div>
                     </div>
-                    <span onClick={()=>Delete()} className="cursor-pointer text-2xl text-red-600"><i className="fa-solid fa-trash-can"></i></span>
+                    <span onClick={()=>clearChat()} className="cursor-pointer text-2xl text-red-600"><i className="fa-solid fa-trash-can"></i></span>
                 </div>
 
                 <div ref={chatRef} onScroll={handleScroll} className="flex-1 overflow-y-auto px-3 py-4 ">
-
-                    <div className="flex justify-start mb-3">
-                        <div className="bg-[#f1f1f1] p-2 w-[75%] rounded-[15px] rounded-bl-none">
-                            <p>Hello! I'm Aiva , your thyroid health assistant. How can I help you today?</p>
+                    {messages.map(message => (
+                        <div key={message.id} className={`flex justify-${message.sender === 'ai' ? 'start' : 'end'} mb-3`}>
+                            <div className={`${message.sender === 'ai' ? 'bg-[#f1f1f1]' : 'background-1 text-white'} p-2 w-[75%] rounded-[15px] ${message.sender === 'ai' ? 'rounded-bl-none' : 'rounded-br-none'}`}>
+                                <p>{message.text}</p>
+                            </div>
                         </div>
-                    </div>
-
-                    <div className="flex justify-end mb-3">
-                        <div className="background-1 text-white p-2 w-[75%] rounded-[15px] rounded-br-none">
-                            <p>What are normal TSH levels?</p>
-                        </div>
-                    </div>
-                    
-                    <div className="flex justify-start mb-3">
-                        <div className="bg-[#f1f1f1] p-2 w-[75%] rounded-[15px] rounded-bl-none">
-                            <p>Normal TSH levels typically range between 0.4 and 4.0 mIU/L. However, optimal levels may vary depending on individual factors. For most people with treated hypothyroidism, a TSH between 0.5-2.5 mIU/L is often considered ideal.</p>
-                        </div>
-                    </div>
-
-
-
-
-
-
-
-
-
-
-
-
-<div className="flex justify-end mb-3">
-                        <div className="background-1 text-white p-2 w-[75%] rounded-[15px] rounded-br-none">
-                            <p>What are normal TSH levels?</p>
-                        </div>
-                    </div>
-                    
-                    <div className="flex justify-start mb-3">
-                        <div className="bg-[#f1f1f1] p-2 w-[75%] rounded-[15px] rounded-bl-none">
-                            <p>Normal TSH levels typically range between 0.4 and 4.0 mIU/L. However, optimal levels may vary depending on individual factors. For most people with treated hypothyroidism, a TSH between 0.5-2.5 mIU/L is often considered ideal.</p>
-                        </div>
-                    </div>
-                    <div className="flex justify-end mb-3">
-                        <div className="background-1 text-white p-2 w-[75%] rounded-[15px] rounded-br-none">
-                            <p>What are normal TSH levels?</p>
-                        </div>
-                    </div>
-                    
-                    <div className="flex justify-start mb-3">
-                        <div className="bg-[#f1f1f1] p-2 w-[75%] rounded-[15px] rounded-bl-none">
-                            <p>Normal TSH levels typically range between 0.4 and 4.0 mIU/L. However, optimal levels may vary depending on individual factors. For most people with treated hypothyroidism, a TSH between 0.5-2.5 mIU/L is often considered ideal.</p>
-                        </div>
-                    </div>
-                    <div className="flex justify-end mb-3">
-                        <div className="background-1 text-white p-2 w-[75%] rounded-[15px] rounded-br-none">
-                            <p>What are normal TSH levels?</p>
-                        </div>
-                    </div>
-                    
-                    <div className="flex justify-start mb-3">
-                        <div className="bg-[#f1f1f1] p-2 w-[75%] rounded-[15px] rounded-bl-none">
-                            <p>Normal TSH levels typically range between 0.4 and 4.0 mIU/L. However, optimal levels may vary depending on individual factors. For most people with treated hypothyroidism, a TSH between 0.5-2.5 mIU/L is often considered ideal.</p>
-                        </div>
-                    </div>
-                    <div className="flex justify-end mb-3">
-                        <div className="background-1 text-white p-2 w-[75%] rounded-[15px] rounded-br-none">
-                            <p>What are normal TSH levels?</p>
-                        </div>
-                    </div>
-                    
-                    <div className="flex justify-start mb-3">
-                        <div className="bg-[#f1f1f1] p-2 w-[75%] rounded-[15px] rounded-bl-none">
-                            <p>Normal TSH levels typically range between 0.4 and 4.0 mIU/L. However, optimal levels may vary depending on individual factors. For most people with treated hypothyroidism, a TSH between 0.5-2.5 mIU/L is often considered ideal.</p>
-                        </div>
-                    </div>
-                    <div className="flex justify-end mb-3">
-                        <div className="background-1 text-white p-2 w-[75%] rounded-[15px] rounded-br-none">
-                            <p>What are normal TSH levels?</p>
-                        </div>
-                    </div>
-                    
-                    <div className="flex justify-start mb-3">
-                        <div className="bg-[#f1f1f1] p-2 w-[75%] rounded-[15px] rounded-bl-none">
-                            <p>Normal TSH levels typically range between 0.4 and 4.0 mIU/L. However, optimal levels may vary depending on individual factors. For most people with treated hypothyroidism, a TSH between 0.5-2.5 mIU/L is often considered ideal.</p>
-                        </div>
-                    </div>
-                    <div className="flex justify-end mb-3">
-                        <div className="background-1 text-white p-2 w-[75%] rounded-[15px] rounded-br-none">
-                            <p>What are normal TSH levels?</p>
-                        </div>
-                    </div>
-                    
-                    <div className="flex justify-start mb-3">
-                        <div className="bg-[#f1f1f1] p-2 w-[75%] rounded-[15px] rounded-bl-none">
-                            <p>Normal TSH levels typically range between 0.4 and 4.0 mIU/L. However, optimal levels may vary depending on individual factors. For most people with treated hypothyroidism, a TSH between 0.5-2.5 mIU/L is often considered ideal.</p>
-                        </div>
-                    </div>
-                    <div className="flex justify-end mb-3">
-                        <div className="background-1 text-white p-2 w-[75%] rounded-[15px] rounded-br-none">
-                            <p>What are normal TSH levels?</p>
-                        </div>
-                    </div>
-                    
-                    <div className="flex justify-start mb-3">
-                        <div className="bg-[#f1f1f1] p-2 w-[75%] rounded-[15px] rounded-bl-none">
-                            <p>Normal TSH levels typically range between 0.4 and 4.0 mIU/L. However, optimal levels may vary depending on individual factors. For most people with treated hypothyroidism, a TSH between 0.5-2.5 mIU/L is often considered ideal.</p>
-                        </div>
-                    </div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+                    ))}
 
                     {showScrollBtn && (
                         <button onClick={scrollToBottom} className="absolute bottom-20 left-1/2 -translate-x-1/2 bg-[#00B3A1] text-white w-10 h-10 rounded-full shadow-xl flex items-center justify-center hover:scale-110 transition text-xl cursor-pointer">
@@ -178,7 +68,7 @@ export default function AiChat(){
 
                 <div className="z-10 flex justify-between px-3 py-2">
                     <input type="text" className=" w-full p-1 text-sm border border-gray-400 rounded-[10px] h-10 bg-[#00000000] text-gray-400" placeholder="Type your question here ..." required />
-                    <span className="background-1 text-white h-10 w-10 rounded-[10px] flex items-center justify-center text-xl ml-2 cursor-pointer"><i class="fa-solid fa-paper-plane"></i></span>
+                    <span className="background-1 text-white h-10 w-10 rounded-[10px] flex items-center justify-center text-xl ml-2 cursor-pointer"><i className="fa-solid fa-paper-plane"></i></span>
                 </div>
 
             </div>
