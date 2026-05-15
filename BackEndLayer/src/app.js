@@ -1,5 +1,7 @@
 const express = require("express");
 const cors = require("cors");
+const connectDB = require("./config/db");
+
 
 const authRoutes = require("./routes/auth.routes");
 const profileRoutes = require("./routes/profile.routes");
@@ -15,6 +17,17 @@ const app = express();
 // --- Middlewares ---
 app.use(cors());
 app.use(express.json());
+
+// --- DB Connection Middleware (runs before every request) ---
+app.use(async (req, res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (err) {
+    console.error("DB Middleware error:", err.message);
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
 
 // --- Routes ---
 app.use("/api/auth", authRoutes);
@@ -35,6 +48,17 @@ app.get("/", (req, res) => {
     success: true,
     message: "Thyroid Lab API is running. Go to /api",
   });
+});
+
+// test DB connection
+
+app.get("/api/dbtest", async (req, res) => {
+  try {
+    await connectDB();
+    res.json({ success: true, message: "DB connected!" });
+  } catch (err) {
+    res.json({ success: false, message: err.message });
+  }
 });
 
 // --- Global error handler (MUST be last) ---
