@@ -1,8 +1,6 @@
 /**
- * authService.js
- *
- * Auth-related API calls, all routed through the shared `api` Axios instance.
- *
+ * authService.js *
+ * Auth-related API calls, all routed through the shared `api` Axios instance. *
  * Endpoints (Postman collection — ThyroCare.postman_collection.json →
  *   Authentication folder):
  *   POST  /auth/login        { email, password }  →  { token, user }
@@ -10,6 +8,7 @@
  *                              dateOfBirth, gender }  →  { token, user }
  *   GET   /auth/me           (Bearer)            →  { user }
  *   POST  /auth/logout       (Bearer)            →  { success }
+ *   PUT   /auth/update       (Bearer)            →  { user }
  *
  * Every function in this file handles localStorage persistence and throws a
  * plain Error on failure so callers (components / UserContext) can display a
@@ -107,6 +106,24 @@ export async function getMe() {
     localStorage.setItem("user", JSON.stringify(user));
   }
   return Object(user) || null;
+}
+
+/**
+ * PUT /auth/update
+ * Updates the currently-logged-in user's profile.
+ *
+ * @param {Object} userData - The user data to update
+ * @returns {Promise<Object>}  updated user profile object
+ */
+export async function updateProfile(userData) {
+  const { data } = await api.put("/auth/update", userData);
+  
+  // Accept either { user: { … } } or the user object directly
+  const updatedUser = data.user ?? data;
+  if (updatedUser) {
+    localStorage.setItem("user", JSON.stringify(updatedUser));
+  }
+  return updatedUser;
 }
 
 /**

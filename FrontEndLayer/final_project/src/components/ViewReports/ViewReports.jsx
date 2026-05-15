@@ -1,59 +1,50 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import style from "./ViewReports.module.css"
 import { useFormik } from "formik";
-import api from "../../services/api";
+import { getReports, deleteReport, updateReport } from "../../services/reportService";
 
 export default function ViewReports(){
 
-    const data = [
-        { "_id": "507f1f77bcf86cd799439011", "id" : 1  , "date" : "2026-03-10" , "TestingFacility" : "Cairo Medical Center"         ,"TSH" : 2.4 , "FreeT4" : 1.1 , "FreeT3" : 3.0 , "TotalT4" : 8.2 , "TPOAntibodies" : 32 , "ThyroglobulinAntibodies" : 18 ,"TSHReceptorAntibodies": 1.4,"Thyroglobulin": 11,"Calcitonin": 4.2,"ReverseT3": 17,"Fatigue": 5,"WeightChanges": 4,"TemperatureSensitivity": 7,"MoodChanges": 5,"HairSkinChanges": 3},
-        { "_id": "507f1f77bcf86cd799439012", "id" : 2  , "date" : "2026-02-23" , "TestingFacility" : "El Salam Hospital"            ,"TSH" : 3.8 , "FreeT4" : 0.9 , "FreeT3" : 2.7 , "TotalT4" : 7.5 , "TPOAntibodies" : 55 , "ThyroglobulinAntibodies" : 30 ,"TSHReceptorAntibodies": 1.9,"Thyroglobulin": 14,"Calcitonin": 5.0,"ReverseT3": 20,"Fatigue": 7,"WeightChanges": 6,"TemperatureSensitivity": 8,"MoodChanges": 6,"HairSkinChanges": 5},
-        { "_id": "507f1f77bcf86cd799439013", "id" : 3  , "date" : "2026-02-15" , "TestingFacility" : "Ain Shams University Hospital","TSH" : 1.8 , "FreeT4" : 1.3 , "FreeT3" : 3.2 , "TotalT4" : 8.8 , "TPOAntibodies" : 22 , "ThyroglobulinAntibodies" : 12 ,"TSHReceptorAntibodies": 1.1,"Thyroglobulin": 10,"Calcitonin": 3.6,"ReverseT3": 16,"Fatigue": 4,"WeightChanges": 3,"TemperatureSensitivity": 5,"MoodChanges": 4,"HairSkinChanges": 3},
-        { "_id": "507f1f77bcf86cd799439014", "id" : 4  , "date" : "2026-01-02" , "TestingFacility" : "Al Mokhtabar Lab"             ,"TSH" : 4.2 , "FreeT4" : 0.8 , "FreeT3" : 2.5 , "TotalT4" : 7.0 , "TPOAntibodies" : 70 , "ThyroglobulinAntibodies" : 40 ,"TSHReceptorAntibodies": 2.3,"Thyroglobulin": 16,"Calcitonin": 5.4,"ReverseT3": 22,"Fatigue": 9,"WeightChanges": 7,"TemperatureSensitivity": 9,"MoodChanges": 7,"HairSkinChanges": 6},
-        { "_id": "507f1f77bcf86cd799439015", "id" : 5  , "date" : "2026-01-07" , "TestingFacility" : "Cleopatra Hospital"           ,"TSH" : 2.0 , "FreeT4" : 1.2 , "FreeT3" : 3.1 , "TotalT4" : 8.5 , "TPOAntibodies" : 28 , "ThyroglobulinAntibodies" : 15 ,"TSHReceptorAntibodies": 1.3,"Thyroglobulin": 12,"Calcitonin": 4.1,"ReverseT3": 18,"Fatigue": 5,"WeightChanges": 4,"TemperatureSensitivity": 6,"MoodChanges": 4,"HairSkinChanges": 4},
-        { "_id": "507f1f77bcf86cd799439016", "id" : 6  , "date" : "2026-01-28" , "TestingFacility" : "Kasr Al Ainy Hospital"        ,"TSH" : 5.0 , "FreeT4" : 0.7 , "FreeT3" : 2.3 , "TotalT4" : 6.8 , "TPOAntibodies" : 90 , "ThyroglobulinAntibodies" : 50 ,"TSHReceptorAntibodies": 2.8,"Thyroglobulin": 18,"Calcitonin": 6.2,"ReverseT3": 24,"Fatigue": 1,"WeightChanges": 8,"TemperatureSensitivity": 4,"MoodChanges": 8,"HairSkinChanges": 7},
-        { "_id": "507f1f77bcf86cd799439017", "id" : 7  , "date" : "2025-12-14" , "TestingFacility" : "Cairo Lab"                    ,"TSH" : 1.5 , "FreeT4" : 1.4 , "FreeT3" : 3.5 , "TotalT4" : 9.1 , "TPOAntibodies" : 18 , "ThyroglobulinAntibodies" : 9  ,"TSHReceptorAntibodies": 1.0,"Thyroglobulin": 8 ,"Calcitonin": 3.2,"ReverseT3": 15,"Fatigue": 2,"WeightChanges": 2,"TemperatureSensitivity": 3,"MoodChanges": 2,"HairSkinChanges": 2},
-        { "_id": "507f1f77bcf86cd799439018", "id" : 8  , "date" : "2025-12-19" , "TestingFacility" : "El Borg Lab"                  ,"TSH" : 2.9 , "FreeT4" : 1.0 , "FreeT3" : 2.9 , "TotalT4" : 8.0 , "TPOAntibodies" : 40 , "ThyroglobulinAntibodies" : 20 ,"TSHReceptorAntibodies": 1.6,"Thyroglobulin": 13,"Calcitonin": 4.5,"ReverseT3": 19,"Fatigue": 6,"WeightChanges": 5,"TemperatureSensitivity": 6,"MoodChanges": 5,"HairSkinChanges": 4},
-        { "_id": "507f1f77bcf86cd799439019", "id" : 9  , "date" : "2025-12-06" , "TestingFacility" : "International Hospital"       ,"TSH" : 3.1 , "FreeT4" : 1.1 , "FreeT3" : 3.0 , "TotalT4" : 8.3 , "TPOAntibodies" : 35 , "ThyroglobulinAntibodies" : 22 ,"TSHReceptorAntibodies": 1.5,"Thyroglobulin": 12,"Calcitonin": 4.0,"ReverseT3": 18,"Fatigue": 5,"WeightChanges": 4,"TemperatureSensitivity": 6,"MoodChanges": 5,"HairSkinChanges": 3},
-        { "_id": "507f1f77bcf86cd79943901a", "id" : 10 , "date" : "2025-11-30" , "TestingFacility" : "Al Shorouk Hospital"          ,"TSH" : 4.5 , "FreeT4" : 0.9 , "FreeT3" : 2.6 , "TotalT4" : 7.4 , "TPOAntibodies" : 65 , "ThyroglobulinAntibodies" : 38 ,"TSHReceptorAntibodies": 2.1,"Thyroglobulin": 15,"Calcitonin": 5.1,"ReverseT3": 21,"Fatigue": 8,"WeightChanges": 7,"TemperatureSensitivity": 8,"MoodChanges": 6,"HairSkinChanges": 6},
-        { "_id": "507f1f77bcf86cd79943901b", "id" : 11 , "date" : "2025-11-21" , "TestingFacility" : "Dar Al Fouad Hospital"        ,"TSH" : 2.2 , "FreeT4" : 1.2 , "FreeT3" : 3.2 , "TotalT4" : 8.7 , "TPOAntibodies" : 26 , "ThyroglobulinAntibodies" : 14 ,"TSHReceptorAntibodies": 1.2,"Thyroglobulin": 10,"Calcitonin": 3.8,"ReverseT3": 17,"Fatigue": 4,"WeightChanges": 3,"TemperatureSensitivity": 5,"MoodChanges": 4,"HairSkinChanges": 3},
-        { "_id": "507f1f77bcf86cd79943901c", "id" : 12 , "date" : "2025-11-14" , "TestingFacility" : "Al Hayat Lab"                 ,"TSH" : 3.6 , "FreeT4" : 1.0 , "FreeT3" : 2.8 , "TotalT4" : 7.9 , "TPOAntibodies" : 48 , "ThyroglobulinAntibodies" : 27 ,"TSHReceptorAntibodies": 1.8,"Thyroglobulin": 13,"Calcitonin": 4.6,"ReverseT3": 20,"Fatigue": 6,"WeightChanges": 5,"TemperatureSensitivity": 7,"MoodChanges": 5,"HairSkinChanges": 5},
-        { "_id": "507f1f77bcf86cd79943901d", "id" : 13 , "date" : "2025-10-03" , "TestingFacility" : "City Lab"                     ,"TSH" : 1.9 , "FreeT4" : 1.3 , "FreeT3" : 3.3 , "TotalT4" : 9.0 , "TPOAntibodies" : 21 , "ThyroglobulinAntibodies" : 11 ,"TSHReceptorAntibodies": 1.1,"Thyroglobulin": 9 ,"Calcitonin": 3.4,"ReverseT3": 16,"Fatigue": 3,"WeightChanges": 3,"TemperatureSensitivity": 4,"MoodChanges": 3,"HairSkinChanges": 2},
-        { "_id": "507f1f77bcf86cd79943901e", "id" : 14 , "date" : "2025-10-09" , "TestingFacility" : "El Galaa Hospital"            ,"TSH" : 4.0 , "FreeT4" : 0.9 , "FreeT3" : 2.6 , "TotalT4" : 7.2 , "TPOAntibodies" : 72 , "ThyroglobulinAntibodies" : 41 ,"TSHReceptorAntibodies": 2.2,"Thyroglobulin": 16,"Calcitonin": 5.5,"ReverseT3": 22,"Fatigue": 9,"WeightChanges": 7,"TemperatureSensitivity": 9,"MoodChanges": 7,"HairSkinChanges": 6},
-        { "_id": "507f1f77bcf86cd79943901f", "id" : 15 , "date" : "2025-10-22" , "TestingFacility" : "Green Lab"                    ,"TSH" : 2.5 , "FreeT4" : 1.1 , "FreeT3" : 3.0 , "TotalT4" : 8.1 , "TPOAntibodies" : 33 , "ThyroglobulinAntibodies" : 17 ,"TSHReceptorAntibodies": 1.4,"Thyroglobulin": 11,"Calcitonin": 4.3,"ReverseT3": 18,"Fatigue": 5,"WeightChanges": 4,"TemperatureSensitivity": 6,"MoodChanges": 4,"HairSkinChanges": 4},
-        { "_id": "507f1f77bcf86cd799439020", "id" : 16 , "date" : "2025-09-26" , "TestingFacility" : "Future Lab"                   ,"TSH" : 3.3 , "FreeT4" : 1.0 , "FreeT3" : 2.9 , "TotalT4" : 7.8 , "TPOAntibodies" : 44 , "ThyroglobulinAntibodies" : 24 ,"TSHReceptorAntibodies": 1.7,"Thyroglobulin": 13,"Calcitonin": 4.8,"ReverseT3": 19,"Fatigue": 6,"WeightChanges": 5,"TemperatureSensitivity": 6,"MoodChanges": 5,"HairSkinChanges": 4},
-        { "_id": "507f1f77bcf86cd799439021", "id" : 17 , "date" : "2025-09-18" , "TestingFacility" : "Al Amal Hospital"             ,"TSH" : 2.1 , "FreeT4" : 1.2 , "FreeT3" : 3.2 , "TotalT4" : 8.6 , "TPOAntibodies" : 25 , "ThyroglobulinAntibodies" : 13 ,"TSHReceptorAntibodies": 1.2,"Thyroglobulin": 10,"Calcitonin": 3.7,"ReverseT3": 17,"Fatigue": 4,"WeightChanges": 3,"TemperatureSensitivity": 5,"MoodChanges": 4,"HairSkinChanges": 3},
-        { "_id": "507f1f77bcf86cd799439022", "id" : 18 , "date" : "2025-09-08" , "TestingFacility" : "Care Lab"                     ,"TSH" : 4.7 , "FreeT4" : 0.8 , "FreeT3" : 2.4 , "TotalT4" : 7.1 , "TPOAntibodies" : 80 , "ThyroglobulinAntibodies" : 45 ,"TSHReceptorAntibodies": 2.5,"Thyroglobulin": 17,"Calcitonin": 5.9,"ReverseT3": 23,"Fatigue": 9,"WeightChanges": 8,"TemperatureSensitivity": 9,"MoodChanges": 7,"HairSkinChanges": 7},
-        { "_id": "507f1f77bcf86cd799439023", "id" : 19 , "date" : "2025-08-11" , "TestingFacility" : "Elite Hospital"               ,"TSH" : 1.7 , "FreeT4" : 1.3 , "FreeT3" : 3.4 , "TotalT4" : 9.2 , "TPOAntibodies" : 19 , "ThyroglobulinAntibodies" : 9  ,"TSHReceptorAntibodies": 1.0,"Thyroglobulin": 8 ,"Calcitonin": 3.3,"ReverseT3": 15,"Fatigue": 2,"WeightChanges": 2,"TemperatureSensitivity": 3,"MoodChanges": 2,"HairSkinChanges": 2},
-        { "_id": "507f1f77bcf86cd799439024", "id" : 20 , "date" : "2025-08-08" , "TestingFacility" : "Royal Lab"                    ,"TSH" : 3.0 , "FreeT4" : 1.0 , "FreeT3" : 2.9 , "TotalT4" : 8.0 , "TPOAntibodies" : 38 , "ThyroglobulinAntibodies" : 21 ,"TSHReceptorAntibodies": 1.6,"Thyroglobulin": 12,"Calcitonin": 4.4,"ReverseT3": 19,"Fatigue": 5,"WeightChanges": 4,"TemperatureSensitivity": 6,"MoodChanges": 5,"HairSkinChanges": 4}
-    ]
-
-    let[Loading, setLoading] = useState(false)
-    let[viewData,setviewData] = useState(data)
+    let[Loading, setLoading] = useState(true)
+    let[reports, setReports] = useState([])
+    let[viewData,setviewData] = useState([])
     let[ report , setreport ]=useState(null)
+    let[ updateLoading , setupdateLoading] =useState(false)
+
+    // fetch reports on mount
+    useEffect(() => {
+        const fetchReports = async () => {
+            try {
+                const data = await getReports();
+                setReports(data);
+                setviewData(data);
+            } catch (err) {
+                alert(`Failed to load reports: ${err.message}`);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchReports();
+    }, []);
 
     //search
     let[inputValue , setinputValue ]=useState('')
     let change = (event) =>{
         setinputValue(event.target.value)
-        search(event.target.value);
+        search(event.target.value, viewData);
     }
     function clear() { 
         setinputValue('')
-        setviewData(data)
+        setviewData(reports)
     }
 
-    function search(value){
-        var arr = []
-        if( data.length > 0 ){
-            for(var x = 0 ; x < data.length ; x++ ){
-                if(data[x].TestingFacility.toLocaleLowerCase().includes(value.toLocaleLowerCase()) || data[x].date.includes(value) )
-                {
-                    arr.push(data[x])
-                }
-            }
+    function search(value, dataList) {
+        if( dataList.length > 0 ){
+            return dataList.filter(r => 
+                r.TestingFacility.toLocaleLowerCase().includes(value.toLocaleLowerCase()) || r.date.includes(value)
+            )
         }
-        setviewData(arr)
+        return []
     }
 
     //view
@@ -94,12 +85,24 @@ export default function ViewReports(){
             enableReinitialize: true,
         })
 
-    const deleteReport = async (reportId) => {
+    const handleDelete = async (reportId) => {
+        const confirmed = window.confirm('Are you sure you want to delete this report?');
+        if (!confirmed) return;
+
+        // Capture the report being deleted for potential rollback
+        const removed = viewData.find(r => r._id === reportId);
+
+        // Optimistic update — remove from UI immediately
+        setviewData(prev => prev.filter(r => r._id !== reportId));
+
         try {
-            await api.delete(`/reports/${reportId}`);
-            setviewData(prev => prev.filter(report => report._id !== reportId));
-        } catch (error) {
-            console.error("Error deleting report:", error);
+            await deleteReport(reportId);
+        } catch (err) {
+            // Rollback on error
+            if (removed) {
+                setviewData(prev => [...prev, removed]);
+            }
+            alert(`Failed to delete report: ${err.message}`);
         }
     }
 
@@ -111,8 +114,10 @@ export default function ViewReports(){
             <div className="fixed top-0 right-0 left-0 bottom-0 bg-black opacity-50 z-10"></div>
             <div className="fixed top-0 left-0 z-10 h-screen p-4 pt-20 overflow-y-auto bg-gray-100 w-full sm:w-100 font-1">
                 
-                <p className="mb-8 text-xl color-1 text-center uppercase"><i className="fa-regular fa-pen-to-square pr-2"></i> update product </p>
-                <form onSubmit={formik.handleSubmit} className="mb-6">
+                <p className="mb-8 text-xl color-1 text-center uppercase"><i className="fa-regular fa-pen-to-square pr-2"></i> update report </p>
+                <form onSubmit={async (e) => {
+                    await formik.handleSubmit(e);
+                }} className="mb-6">
 
                     <div className="relative mb-6">
                         <input type="date" id="date" name="DateOfTest" value={formik.values.DateOfTest} onChange={formik.handleChange} onBlur={formik.handleBlur} className="block px-2.5 pb-2.5 pt-4 w-full text-sm text-black bg-gray-100 rounded-lg border border-gray-300 focus:outline-none focus:ring-0 focus:border-[#00b3a1] peer" placeholder=" " />
@@ -183,11 +188,11 @@ export default function ViewReports(){
                         <input type="range" id="SkinChanges" name="SkinChanges"  min="0" max="10" value={formik.values.SkinChanges} onChange={formik.handleChange} onBlur={formik.handleBlur} className="w-full h-1 background-1 rounded-full cursor-pointer mt-2"/>
                     </div>
 
-                    <button type="submit" className="text-white justify-center flex items-center bg-amber-500 hover:bg-amber-600 w-full  font-medium rounded-lg text-md px-5 py-2.5 mb-2">Update</button>   
+                    <button type="submit" disabled={updateLoading} className="text-white justify-center flex items-center bg-amber-500 hover:bg-amber-600 w-full  font-medium rounded-lg text-md px-5 py-2.5 mb-2">Update</button>   
                     
                 </form>
                 <button type="button" onClick={()=>update(null)} className="text-white justify-center flex items-center bg-red-600 hover:bg-red-700 w-full  font-medium rounded-lg text-md px-5 py-2.5 mb-2">Cancle</button>
-
+                
             </div>
         </>:null}
 
@@ -226,7 +231,7 @@ export default function ViewReports(){
                 </div>
             </div>
 
-        </>:null}
+        </>:null>
 
 
         <div className="background-DB">
@@ -269,7 +274,7 @@ export default function ViewReports(){
                                         <td className="p-4">{report.id}</td>
                                         <td className="p-4"><p onClick={()=>show(report)} className="inline cursor-pointer hover:text-[#00b3a1]">{report.date}</p></td>
                                         <td className="p-4"><span onClick={()=>update(report)} className="cursor-pointer text-2xl text-amber-400"><i className="fa-regular fa-pen-to-square"></i></span></td>
-                                        <td className="p-4"><span onClick={()=>deleteReport(report._id)} className="cursor-pointer text-2xl text-red-600"><i className="fa-solid fa-trash-can"></i></span></td>
+                                        <td className="p-4"><span onClick={()=>handleDelete(report._id)} className="cursor-pointer text-2xl text-red-600"><i className="fa-solid fa-trash-can"></i></span></td>
                                     </tr>
                                 </tbody>
                             ))}
@@ -277,9 +282,9 @@ export default function ViewReports(){
                         </table>
 
                     </>
-                    :<div className="w-full h-100 flex items-center justify-center font-1 color-1 text-4xl sm:text-5xl"> {inputValue == ''?  <p>there is no products</p>:<p>No Result</p>} </div>
+                    :<div className="w-full h-100 flex items-center justify-center font-1 color-1 text-4xl sm:text-5xl"> {inputValue == ''?  <p>there are no reports</p>:<p>No Result</p>} </div>
                 :<div className="w-full h-100 flex items-center justify-center"><i className="fas fa-spinner fa-spin color-1 text-7xl"></i></div>}
-           
+            
             </div>
 
             <div className="h-15"></div>
