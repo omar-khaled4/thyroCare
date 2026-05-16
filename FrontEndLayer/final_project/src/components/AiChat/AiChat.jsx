@@ -60,6 +60,7 @@ export default function AiChat() {
     if (!trimmed) return;
 
     setSendError(null);
+    setInputValue("");
 
     // 1 · optimistic: append user message immediately
     const newMessages = [...messages, { role: USER_ROLE, content: trimmed }];
@@ -67,13 +68,12 @@ export default function AiChat() {
 
     // 2 · show typing indicator
     setIsTyping(true);
-
     try {
       // 3 · POST /chat
-      const { response } = await postChat(trimmed);
+      const reply = await postChat(trimmed);
 
       // 4 · append AI response
-      setMessages((prev) => [...prev, { role: AI_ROLE, content: response }]);
+      setMessages((prev) => [...prev, { role: AI_ROLE, content: reply }]);
     } catch (err) {
       // 5 · rollback user message and show inline error
       setMessages((prev) => prev.filter((_, i) => i !== messages.length));
@@ -125,10 +125,8 @@ export default function AiChat() {
 
             {messages.map((message, index) => (
               <div key={index} className={`flex justify-${message.role === AI_ROLE ? "start" : "end"} mb-3`}>
-                <div className={`${
-                    message.role === AI_ROLE ? "bg-[#f1f1f1]" : "background-1 text-white"
-                  } p-2 w-[75%] rounded-[15px] ${
-                    message.role === AI_ROLE ? "rounded-bl-none" : "rounded-br-none"
+                <div className={`${message.role === AI_ROLE ? "bg-[#f1f1f1]" : "background-1 text-white"
+                  } p-2 w-[75%] rounded-[15px] ${message.role === AI_ROLE ? "rounded-bl-none" : "rounded-br-none"
                   }`}>
                   <p>{message.content}</p>
                 </div>
@@ -172,9 +170,8 @@ export default function AiChat() {
             />
             <span
               onClick={isTyping ? undefined : handleSend}
-              className={`background-1 text-white h-10 w-10 rounded-[10px] flex items-center justify-center text-xl ml-2 cursor-pointer transition-opacity ${
-                isTyping ? "opacity-40 pointer-events-none" : "hover:bg-[#009284]"
-              }`}
+              className={`background-1 text-white h-10 w-10 rounded-[10px] flex items-center justify-center text-xl ml-2 cursor-pointer transition-opacity ${isTyping ? "opacity-40 pointer-events-none" : "hover:bg-[#009284]"
+                }`}
             >
               {isTyping ? (
                 <i className="fas fa-spinner fa-spin" />

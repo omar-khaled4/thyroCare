@@ -52,6 +52,7 @@ const chat = tryCatch(async (req, res) => {
     });
 
     const data = await response.json();
+    console.log("OpenAI raw response:", JSON.stringify(data, null, 2));
     const reply =
       data.choices?.[0]?.message?.content ||
       "Sorry, I could not generate a response.";

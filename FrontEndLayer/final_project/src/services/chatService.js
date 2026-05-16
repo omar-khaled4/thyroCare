@@ -17,7 +17,8 @@ export async function postChat(message) {
   try {
     const { data } = await api.post("/chat", { message });
     toast.dismiss(toastId);
-    return data;
+    console.log(`the user message is ${message} the response is ${data.data.reply}`);
+    return data.data.reply;
   } catch (err) {
     toast.dismiss(toastId);
     toast.error("Failed to get a response. Please try again.");
