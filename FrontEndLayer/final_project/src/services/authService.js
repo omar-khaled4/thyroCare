@@ -65,10 +65,12 @@ export async function register(userData) {
 export async function getMe() {
   try {
     const { data } = await api.get("/auth/me");
+    console.log("[authService] getMe response:", data);
     const user = data?.user ?? data;
     localStorage.setItem("user", JSON.stringify(user));
     return user;
   } catch (err) {
+    console.error("[authService] getMe failed:", err.message);
     throw err;
   }
 }

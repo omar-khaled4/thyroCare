@@ -5,11 +5,11 @@ const api = axios.create({
   baseURL:
     import.meta.env.VITE_API_URL && import.meta.env.VITE_API_BASE_URL
       ? import.meta.env.VITE_API_URL.replace(/\/?api\/?$/i, "") +
-        "/api"
+      "/api"
       : import.meta.env.VITE_API_BASE_URL
-      ? import.meta.env.VITE_API_BASE_URL.replace(/\/?api\/?$/i, "") +
+        ? import.meta.env.VITE_API_BASE_URL.replace(/\/?api\/?$/i, "") +
         "/api"
-      : "http://localhost:8000/api",
+        : "https://thyrocare.up.railway.app/api",
 });
 
 /* ── Request interceptor: auto-attach Bearer token ── */
@@ -36,6 +36,7 @@ api.interceptors.response.use(
       "An unexpected error occurred";
 
     if (status === 401 || status === 403) {
+      console.warn(`[api] Session expiration triggered by ${error.config.method.toUpperCase()} ${error.config.url}`);
       localStorage.removeItem("userToken");
       localStorage.removeItem("user");
       toast.error("Session expired. Please log in again.");
