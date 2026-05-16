@@ -59,7 +59,7 @@ export default function Login() {
         <div className="pt-35 mx-10 grid gap-4 md:grid-cols-12">
           <div className="md:col-span-5 fixed w-90">
             <p className="text-white font-1 text-5xl hidden md:flex leading-15">
-              When your body speaks , Listening is the first step toward
+              When your body speaks, Listening is the first step toward
               healing
             </p>
           </div>

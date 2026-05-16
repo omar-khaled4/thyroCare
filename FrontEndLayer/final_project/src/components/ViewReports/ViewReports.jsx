@@ -33,13 +33,15 @@ export default function ViewReports(){
     // fetch reports on mount
     useEffect(() => {
         const fetchReports = async () => {
+            console.log("[ViewReports] Initial fetch of reports...");
             try {
                 const data = await getReports(1, 100);
+                console.log("[ViewReports] Reports loaded:", data.length);
                 setReports(data);
                 setviewData(data);
                 setTotalReports(data.length);
             } catch (err) {
-                console.error("Failed to load reports:", err);
+                console.error("[ViewReports] Failed to load reports:", err);
             } finally {
                 setLoading(false);
             }
@@ -59,10 +61,13 @@ export default function ViewReports(){
     }
 
     function search(value, dataList) {
+        console.log(`[ViewReports] Searching for: "${value}" in ${dataList.length} items...`);
         if( dataList.length > 0 ){
-            setviewData(dataList.filter(r => 
+            const filtered = dataList.filter(r => 
                 (r.TestingFacility || "").toLocaleLowerCase().includes(value.toLocaleLowerCase()) || (r.date || "").includes(value)
-            ))
+            );
+            console.log(`[ViewReports] Search complete. Found ${filtered.length} matches.`);
+            setviewData(filtered);
         }
     }
 
@@ -105,8 +110,12 @@ export default function ViewReports(){
         })
 
     const handleDelete = async (reportId) => {
+        console.log(`[ViewReports] Attempting to delete report ${reportId}...`);
         const confirmed = window.confirm('Are you sure you want to delete this report?');
-        if (!confirmed) return;
+        if (!confirmed) {
+            console.log("[ViewReports] Deletion cancelled by user.");
+            return;
+        }
 
         // Capture the report being deleted for potential rollback
         const removed = viewData.find(r => r._id === reportId);
@@ -117,13 +126,14 @@ export default function ViewReports(){
 
         try {
             await deleteReport(reportId);
+            console.log("[ViewReports] Report deleted successfully from backend.");
         } catch (err) {
             // Rollback on error
+            console.error("[ViewReports] Deletion failed, rolling back UI...", err.message);
             if (removed) {
                 setviewData(prev => [...prev, removed]);
                 setTotalReports(prev => prev + 1);
             }
-            console.error("Failed to delete report:", err);
         }
     }
 

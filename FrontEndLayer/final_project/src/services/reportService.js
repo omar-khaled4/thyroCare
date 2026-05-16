@@ -11,11 +11,13 @@ import toast from "react-hot-toast";
  * @param {number} [limit=25]
  */
 export async function getReports(page = 1, limit = 25) {
+  console.log(`[reportService] Fetching reports (page: ${page}, limit: ${limit})...`);
   try {
     const { data } = await api.get("/reports", { params: { page, limit } });
-    // Backend may return an array directly or { items, total, ... }
+    console.log("[reportService] Reports fetched successfully:", data);
     return Array.isArray(data) ? data : data.data || data.items || [];
   } catch (err) {
+    console.error("[reportService] Failed to load reports:", err.message);
     toast.error(`Failed to load reports: ${err.message}`);
     throw err;
   }
@@ -26,11 +28,14 @@ export async function getReports(page = 1, limit = 25) {
  * Creates a new thyroid report.
  */
 export async function createReport(reportData) {
+  console.log("[reportService] Creating new report...", reportData);
   try {
     const { data } = await api.post("/reports", reportData);
+    console.log("[reportService] Report created successfully:", data);
     toast.success("Report submitted successfully!");
     return data;
   } catch (err) {
+    console.error("[reportService] Failed to create report:", err.message);
     toast.error(
       err?.response?.data?.message || "Failed to create report. Please try again."
     );
@@ -43,11 +48,14 @@ export async function createReport(reportData) {
  * Updates an existing report.
  */
 export async function updateReport(id, reportData) {
+  console.log(`[reportService] Updating report ${id}...`, reportData);
   try {
     const { data } = await api.put(`/reports/${id}`, reportData);
+    console.log("[reportService] Report updated successfully:", data);
     toast.success("Report updated successfully!");
     return data;
   } catch (err) {
+    console.error("[reportService] Failed to update report:", err.message);
     toast.error(
       err?.response?.data?.message || "Failed to update report. Please try again."
     );
@@ -60,10 +68,12 @@ export async function updateReport(id, reportData) {
  * Deletes a report by its MongoDB _id.
  */
 export async function deleteReport(id) {
+  console.log(`[reportService] Deleting report ${id}...`);
   try {
     await api.delete(`/reports/${id}`);
+    console.log("[reportService] Report deleted successfully.");
   } catch (err) {
-    // Let the caller show the toast
+    console.error("[reportService] Failed to delete report:", err.message);
     throw err;
   }
 }

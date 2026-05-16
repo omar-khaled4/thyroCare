@@ -5,14 +5,7 @@ import Chart from "react-apexcharts";
 import html2pdf from "html2pdf.js";
 
 /* ── API services (already exist at the paths below) ── */
-import {
-  fetchT3,
-  fetchT4,
-  fetchTSH,
-  fetchSymptoms,
-  fetchProfile,
-  fetchLatestPrediction,
-} from "../../services/dashboardService";
+import { fetchDashboardData } from "../../services/dashboardService";
 
 /* ═══════════════════════════════════════════════════════════════════
  *  Loading-skeleton animation bundled via CSS-in-JS style object
@@ -67,7 +60,7 @@ function SkeletonStatCard() {
   );
 }
 
-function SkeletonText({ width, height, style: extra }: { width?: string; height?: string; style?: React.CSSProperties }) {
+function SkeletonText({ width, height, style: extra }) {
   return (
     <div
       className="skeleton-pulse"
@@ -80,7 +73,7 @@ function SkeletonText({ width, height, style: extra }: { width?: string; height?
  *  Empty state components  (shown when a response returns [])
  * ═══════════════════════════════════════════════════════════════════ */
 
-function EmptyChartState({ message }: { message: string }) {
+function EmptyChartState({ message }) {
   return (
     <div
       style={{
@@ -103,7 +96,7 @@ function EmptyChartState({ message }: { message: string }) {
   );
 }
 
-function EmptyRadarState({ message }: { message: string }) {
+function EmptyRadarState({ message }) {
   return (
     <div
       style={{
@@ -152,14 +145,12 @@ export default function Dashboard() {
    * ──────────────────────────────────────────────────────────────── */
 
   // ── Chart raw data ──
-  const [T3data, setT3data] = useState<Array<{ date: string; t3: number }>>([]);
-  const [T4data, setT4data] = useState<Array<{ date: string; t4: number }>>([]);
-  const [TSHdata, setTSHdata] = useState<Array<{ date: string; tsh: number }>>([]);
+  const [T3data, setT3data] = useState([]);
+  const [T4data, setT4data] = useState([]);
+  const [TSHdata, setTSHdata] = useState([]);
 
   // ── Symptom-tracker raw data ──
-  const [STdata, setSTdata] = useState<
-    Array<{ date: string; fatigue: number; anxiety: number; insomnia: number; hairLoss: number; palpitations: number; coldIntolerance: number }>
-  >([]);
+  const [STdata, setSTdata] = useState([]);
 
   // ── Loaded flags ──
   const [T3loaded, setT3Loaded] = useState(false);
@@ -173,18 +164,7 @@ export default function Dashboard() {
   const [predictionLoaded, setPredictionLoaded] = useState(false);
 
   // ── Profile (info cards) ──
-  const [profile, setProfileState] = useState<{
-    name?: string;
-    medicalInfo?: {
-      condition?: string;
-      status?: string;
-      medication?: string;
-      dosage?: string;
-      refillDaysLeft?: number;
-      doctor?: string;
-      nextAppointment?: string;
-    };
-  } | null>(null);
+  const [profile, setProfileState] = useState(null);
 
   // ────────────────────────────────────────────────────────────────
   //  FETCH — runs once when the dashboard mounts
@@ -493,13 +473,14 @@ export default function Dashboard() {
   // Prediction-derived values (fall back to profile / static defaults)
   const healthScore    = prediction?.healthScore ?? null;   // 0-100 from NN model
   const diagnosis      = prediction?.diagnosis
-                        ?? condition;                       // fall back to profile condition
-  const conditionLabel = diagnosis ?? condition;            // final display value
+                        ?? profile?.medicalInfo?.status
+                        ?? "Stable";                        // fall back to profile status
+  const conditionLabel = diagnosis;                        // final display value
 
   // Medical info extracted with safe defaults
   const med =
     profile?.medicalInfo ??
-    ({} as NonNullable<typeof profile>["medicalInfo"]);
+    ({});
 
   const status           = med.status            ?? "Stable condition";
   const medicationName   = med.medication        ?? "Levothyroxine";
@@ -526,7 +507,7 @@ export default function Dashboard() {
 
   /** Download the dashboard as a PDF via html2pdf.js */
   const handleDownloadPDF = () => {
-    const element = document.querySelector(".background-DB") as HTMLElement;
+    const element = document.querySelector(".background-DB");
     if (!element) return;
 
     const opt = {

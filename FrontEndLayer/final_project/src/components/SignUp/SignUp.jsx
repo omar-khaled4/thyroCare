@@ -3,14 +3,13 @@ import { useFormik } from "formik";
 import * as yup from "yup";
 import { useNavigate } from "react-router-dom";
 import { UserContext } from "../../context/UserContext";
-import { register } from "../../services/authService";
 import toast from "react-hot-toast";
 
 export default function SignUp() {
   let navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [serverError, setServerError] = useState("");
-  const { login: doLogin } = useContext(UserContext);
+  const { register: doRegister } = useContext(UserContext);
 
   async function handleSignup(values) {
     setIsLoading(true);
@@ -19,7 +18,7 @@ export default function SignUp() {
     const toastId = toast.loading("Creating your account…", { id: "auth-register" });
 
     try {
-      await register(values);
+      await doRegister(values);
       toast.success("Account created successfully!", { id: toastId });
       navigate("/");
     } catch (err) {
@@ -86,7 +85,7 @@ export default function SignUp() {
         <div className="pt-35 mx-10 grid gap-4 md:grid-cols-12">
           <div className="md:col-span-5 fixed w-90">
             <p className="text-white font-1 text-5xl hidden md:flex leading-15">
-              When your body speaks , Listening is the first step toward healing
+              When your body speaks, Listening is the first step toward healing
             </p>
           </div>
 

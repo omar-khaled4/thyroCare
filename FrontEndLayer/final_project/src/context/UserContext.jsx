@@ -1,5 +1,5 @@
 import { createContext, useCallback, useEffect, useState } from "react";
-import { getMe, login, logout as authLogout } from "../services/authService";
+import { getMe, login, logout as authLogout, register } from "../services/authService";
 
 export let UserContext = createContext();
 
@@ -9,105 +9,116 @@ export let UserContext = createContext();
  * hydrated session: getMe() returns 401 → interceptor redirects → notreloaded
  * again because the flag is already in localStorage.
  */
-const REHYDRATE_GUARD_KEY = "userContext_rehydrated_session";
+
 
 export default function UserContextProvider(props) {
-  const [userToken, _setuserToken] = useState(() =>
-    localStorage.getItem("userToken")
-  );
+  const [userToken, _setuserToken] = useState(() => {
+    const t = localStorage.getItem("userToken");
+    return (t === "null" || !t) ? null : t;
+  });
   const [user, _setuser] = useState(() => {
-    const raw = localStorage.getItem("user");
-    return raw ? JSON.parse(raw) : null;
+    try {
+      const raw = localStorage.getItem("user");
+      if (!raw || raw === "null") return null;
+      return JSON.parse(raw);
+    } catch (_) {
+      return null;
+    }
   });
   const [isHydrating, setIsHydrating] = useState(true);
 
-  /* ── synchronous setters (used by login/logout in this provider) ── */
+  /* ── synchronous setters ── */
   const setuserToken = useCallback((t) => {
-    if (t) localStorage.setItem("userToken", t);
-    else localStorage.removeItem("userToken");
-    _setuserToken(t);
+    console.log("[UserContext] Setting token:", t ? "EXISTS" : "NULL");
+    if (t && typeof t === "string") {
+      localStorage.setItem("userToken", t);
+      _setuserToken(t);
+    } else {
+      localStorage.removeItem("userToken");
+      _setuserToken(null);
+    }
   }, []);
 
   const setuser = useCallback((u) => {
-    if (u) localStorage.setItem("user", JSON.stringify(u));
-    else localStorage.removeItem("user");
-    _setuser(u);
+    console.log("[UserContext] Setting user:", u ? u.email || "EXISTS" : "NULL");
+    if (u && typeof u === "object") {
+      localStorage.setItem("user", JSON.stringify(u));
+      _setuser(u);
+    } else {
+      localStorage.removeItem("user");
+      _setuser(null);
+    }
   }, []);
 
-  /* ── Rehydrate on mount by calling GET /auth/me ──
-   *
-   * Approach: call `getMe()` and *always* update state from its result so the
-   * rest of the app gets consistent data.
-   *
-   * ─── Scenarios ───────────────────────────────────────────────────────────
-   * no token  ─►  getMe() call is aborted by CORS/network, nothing to do
-   * valid     ─►  setuser(result)
-   * expired    ─►  api interceptor redirects to /login (we stay here)
-   *              manager, the auto-rehydrate guard token...
-   */
+  /* ── Rehydrate ── */
   useEffect(() => {
-    // If we already successfully rehydrated in THIS session, skip.
-    if (sessionStorage.getItem(REHYDRATE_GUARD_KEY)) {
-      setIsHydrating(false);
-      return;
-    }
-
     if (!userToken) {
+      console.log("[UserContext] No token found during rehydration.");
       setIsHydrating(false);
       return;
     }
 
+    console.log("[UserContext] Rehydrating session...");
     let cancelled = false;
 
     getMe()
       .then((me) => {
         if (cancelled) return;
         if (me) {
-          _setuser(me);
-          localStorage.setItem("user", JSON.stringify(me));
+          console.log("[UserContext] Rehydration successful for:", me.email);
+          setuser(me);
         }
       })
       .catch((err) => {
-        /* 401 / auth-failure → the interceptor redirects to /login.
-         * Mark the guard so we don't loop on reload after the redirection. */
+        console.error("[UserContext] Rehydration failed:", err.message);
         if (err?.response?.status === 401) {
-          sessionStorage.setItem(REHYDRATE_GUARD_KEY, "1");
+          setuserToken(null);
+          setuser(null);
         }
       })
       .finally(() => {
         if (!cancelled) setIsHydrating(false);
       });
 
-    return () => {
-      cancelled = true;
-    };
-  }, [userToken]);
+    return () => { cancelled = true; };
+  }, [userToken, setuser, setuserToken]);
 
-  /* ── Context helpers ── */
+  /* ── Handlers ── */
   const handleLogin = useCallback(
     async (credentials) => {
-      const result = await login(credentials);
-      sessionStorage.setItem(REHYDRATE_GUARD_KEY, "1");
-      return result;
+      console.log("[UserContext] Attempting login...");
+      const { token, user } = await login(credentials);
+      console.log("[UserContext] Login successful. Updating state...");
+      setuserToken(token);
+      setuser(user);
+      return { token, user };
     },
-    []
+    [setuser, setuserToken]
+  );
+
+  const handleRegister = useCallback(
+    async (userData) => {
+      console.log("[UserContext] Attempting registration...");
+      const { token, user } = await register(userData);
+      console.log("[UserContext] Registration successful. Updating state...");
+      setuserToken(token);
+      setuser(user);
+      return { token, user };
+    },
+    [setuser, setuserToken]
   );
 
   const handleLogout = useCallback(async () => {
     try {
       await authLogout();
     } catch (_) {
-      /* logout is always best-effort */
     } finally {
-      sessionStorage.removeItem(REHYDRATE_GUARD_KEY);
       setuser(null);
       setuserToken(null);
     }
-  }, []);
+  }, [setuser, setuserToken]);
 
   if (isHydrating) {
-    // Minimal loader so the router doesn't flash unguarded content while
-    // /auth/me resolves.
     return (
       <div className="w-screen h-screen flex items-center justify-center">
         <i className="fas fa-spinner fa-spin text-5xl color-1" />
@@ -123,6 +134,7 @@ export default function UserContextProvider(props) {
         user,
         setuser,
         login: handleLogin,
+        register: handleRegister,
         logout: handleLogout,
         isHydrating,
       }}

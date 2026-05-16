@@ -10,5 +10,15 @@ if (process.env.NODE_ENV !== "production") {
   });
 }
 
+// Keep Railway ML model awake
+setInterval(async () => {
+  try {
+    await fetch(`${process.env.ML_API_URL}/`)
+    console.log("ML model pinged successfully")
+  } catch (err) {
+    console.error("Failed to ping ML model:", err)
+  }
+}, 5 * 60 * 1000) // every 5 minutes
+
 // Vercel serverless export
 module.exports = app;

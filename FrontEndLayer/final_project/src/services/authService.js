@@ -9,16 +9,23 @@ export async function login(credentials) {
   const toastId = toast.loading("Signing in…", { id: "auth-login" });
   try {
     const { data } = await api.post("/auth/login", credentials);
-    const token = data.token || data.accessToken || data.access_token;
-    const user = data.user || data;
-    localStorage.setItem("userToken", token);
+    console.log("[authService] Login response data:", data);
+    
+    const token = data.token || data.userToken || data.accessToken || data.access_token || (data.data && (data.data.token || data.data.userToken || data.data.accessToken));
+    const user = data.user || data.data?.user || data;
+
+    if (!token) {
+      console.warn("[authService] No token found in login response. State will remain unauthenticated.");
+    }
+
+    localStorage.setItem("userToken", token || "");
     localStorage.setItem("user", JSON.stringify(user));
     toast.success(`Welcome back, ${user.firstName || "User"}!`, { id: toastId });
     return { token, user };
   } catch (err) {
     toast.error(
       err?.response?.data?.message ||
-        "Login failed. Please check your credentials and try again.",
+      "Login failed. Please check your credentials and try again.",
       { id: toastId }
     );
     throw err;
@@ -33,9 +40,12 @@ export async function register(userData) {
   const toastId = toast.loading("Creating your account…", { id: "auth-register" });
   try {
     const { data } = await api.post("/auth/register", userData);
-    const token = data.token || data.accessToken || data.access_token;
-    const user = data.user || data;
-    localStorage.setItem("userToken", token);
+    console.log("[authService] Register response data:", data);
+
+    const token = data.token || data.userToken || data.accessToken || data.access_token || (data.data && (data.data.token || data.data.userToken || data.data.accessToken));
+    const user = data.user || data.data?.user || data;
+
+    localStorage.setItem("userToken", token || "");
     localStorage.setItem("user", JSON.stringify(user));
     toast.success("Account created successfully!", { id: toastId });
     return { token, user };
@@ -55,9 +65,9 @@ export async function register(userData) {
 export async function getMe() {
   try {
     const { data } = await api.get("/auth/me");
-    if (data?.user) data = data.user;
-    localStorage.setItem("user", JSON.stringify(data));
-    return data;
+    const user = data?.user ?? data;
+    localStorage.setItem("user", JSON.stringify(user));
+    return user;
   } catch (err) {
     throw err;
   }

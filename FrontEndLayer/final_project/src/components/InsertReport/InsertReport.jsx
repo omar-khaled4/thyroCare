@@ -80,21 +80,25 @@ export default function InsertReport() {
 
   /* ── form submission ── */
   const handleSubmit = async (values) => {
+    console.log("[InsertReport] Form submitted with values:", values);
     setIsLoading(true);
     setError(null);
     setPrediction(null);
 
     try {
       // Step 1: create the report
+      console.log("[InsertReport] Step 1: Creating report in database...");
       const created = await createReport(values);
-
-      console.log("Report created:", created);
+      console.log("[InsertReport] Report created successfully:", created);
 
       // Step 2: automatically run the NN prediction
+      console.log("[InsertReport] Step 2: Running NN model prediction...");
       const user = getCurrentUser();
       const result = await postPredict(values, user);
+      console.log("[InsertReport] NN Prediction successful:", result);
       setPrediction(result);
     } catch (err) {
+      console.error("[InsertReport] Submission failed:", err.message);
       setError(
         err.response?.data?.message || err.message || "Something went wrong. Please try again."
       );

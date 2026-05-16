@@ -1,5 +1,4 @@
 import React, { useContext } from "react";
-import style from "./Navbar.module.css"
 import { Link, NavLink } from "react-router-dom";
 import { UserContext } from './../../context/UserContext';
 
@@ -13,12 +12,12 @@ export default function Navbar() {
             <div className="flex flex-wrap items-center justify-between mx-auto p-3">
 
                 <Link to="" className="flex items-center space-x-3">
-                    <img src="/src/assets/photo_2026-01-26_21-40-13.jpg" className="h-9 md:h-11" />
-                    <span className="self-center text-xl font-1"><span className="color-1">T</span>hyro<span className="color-1">C</span>are</span>
+                    <img src="/src/assets/photo_2026-01-26_21-40-13.jpg" className="h-9 md:h-11 rounded-lg" alt="Logo" />
+                    <span className="self-center text-xl font-1 color-1">ThyroCare</span>
                 </Link>
 
                 <div className="flex items-center md:order-2 space-x-3">
-                    {userToken == null && user == null ?
+                    {!(userToken && user) ?
                         <div className="hidden md:flex space-x-3">
                             <Link to="login" className="text-white text-lg  px-7 py-1 background-1 rounded-full">Log in</Link>
                             <Link to="signup" className="text-white text-lg px-7 py-1 background-2 rounded-full">Sign up</Link>
@@ -42,7 +41,7 @@ export default function Navbar() {
                             <NavLink to="" end className={({ isActive }) => `block py-2 px-3 md:p-0 md:pb-2 font-1 text-lg 
                         ${isActive ? "border-b-2 border-[#00B3A1] color-2" : "color-2"}`}> Home </NavLink>
                         </li>
-                        {userToken != null && user != null ?
+                        {userToken && user ?
                             <>
                                 <li>
                                     <NavLink to="dashboard" className={({ isActive }) => `block py-2 px-3 md:p-0 md:pb-2 font-1 text-lg 
@@ -55,10 +54,10 @@ export default function Navbar() {
                             </> : null
                         }
                         <li>
-                            <NavLink to="about-us" className={({ isActive }) => `block py-2 px-3 md:p-0 md:pb-2 font-1 text-lg 
+                            <NavLink to="about" className={({ isActive }) => `block py-2 px-3 md:p-0 md:pb-2 font-1 text-lg 
                         ${isActive ? "border-b-2 border-[#00B3A1] color-2" : "color-2"}`}> About Us </NavLink>
                         </li>
-                        {userToken == null && user == null ?
+                        {!(userToken && user) ?
                             <li className="flex flex-col gap-3 mt-4 md:hidden">
                                 <Link to="/login" className="text-center text-white px-4 py-2 background-1 rounded-full">Log in</Link>
                                 <Link to="/signup" className="text-center text-white px-4 py-2 background-2 rounded-full">Sign up</Link>
