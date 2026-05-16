@@ -4,9 +4,9 @@ const { respond, tryCatch } = require("../utils/helpers");
  * POST /api/chat  (protected)
  * Body: { message: "What are normal TSH levels?" }
  *
- * This endpoint calls OpenAI API. You need an API key from https://platform.openai.com/api-keys
+ * This endpoint calls GEMINI API. You need an API key from https://aistudio.google.com/
  *
- * If you don't have an OpenAI key yet, set OPENAI_API_KEY="" in .env
+ * If you don't have an OpenAI key yet, set GEMINI_API_KEY="" in .env
  * and the endpoint will return a fallback response.
  */
 const chat = tryCatch(async (req, res) => {
@@ -16,13 +16,13 @@ const chat = tryCatch(async (req, res) => {
     return respond(res, 400, null, "message is required");
   }
 
-  const apiKey = process.env.OPENAI_API_KEY;
+  const apiKey = process.env.GEMINI_API_KEY;
 
   // Fallback if no API key is set
   if (!apiKey) {
     return respond(res, 200, {
       reply:
-        "AI is not configured yet. Please set OPENAI_API_KEY in the .env file.",
+        "AI is not configured yet. Please set GEMINI_API_KEY in the .env file.",
       source: "fallback",
     });
   }
