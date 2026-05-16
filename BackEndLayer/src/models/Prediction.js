@@ -12,9 +12,19 @@ const predictionSchema = new mongoose.Schema(
       required: true,
     },
     // The diagnosis string returned by the NN model
-    prediction: {
+    diagnosis: {
       type: String,
       required: true,
+    },
+    // The probability/certainty of the model
+    confidence: {
+      type: Number,
+      default: 0,
+    },
+    // The calculated health stability score
+    healthScore: {
+      type: Number,
+      default: 0,
     },
     // The full patient_data object sent to the model (for audit / replay)
     inputData: {

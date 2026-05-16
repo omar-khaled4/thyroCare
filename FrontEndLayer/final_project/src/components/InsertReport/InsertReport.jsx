@@ -95,8 +95,20 @@ export default function InsertReport() {
       console.log("[InsertReport] Step 2: Running NN model prediction...");
       const user = getCurrentUser();
       const result = await postPredict(values, user);
-      console.log("[InsertReport] NN Prediction successful:", result);
-      setPrediction(result);
+      
+      console.log("[InsertReport] Received prediction result:", result);
+      
+      // Defensive check: ensure result has the expected fields
+      const normalizedResult = {
+        diagnosis: result?.diagnosis || "Negative",
+        confidence: result?.confidence ?? 0.0,
+        healthScore: result?.healthScore ?? 0,
+        createdAt: result?.createdAt || new Date().toISOString(),
+        ...result
+      };
+      
+      console.log("[InsertReport] Setting prediction state to:", normalizedResult);
+      setPrediction(normalizedResult);
     } catch (err) {
       console.error("[InsertReport] Submission failed:", err.message);
       setError(
