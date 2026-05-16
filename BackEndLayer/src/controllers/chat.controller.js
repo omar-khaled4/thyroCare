@@ -48,6 +48,7 @@ const chat = tryCatch(async (req, res) => {
     );
 
     const data = await response.json();
+    console.log("[ Gemini raw response ]", JSON.stringify(data, null, 2));
     const reply = data.candidates?.[0]?.content?.parts?.[0]?.text
       || "Sorry, I could not generate a response.";
 
