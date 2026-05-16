@@ -122,13 +122,20 @@ export async function fetchLatestPrediction() {
 /* ── Convenience: fetch everything in parallel ── */
 
 export async function fetchDashboardData() {
-  const [t3, t4, tsh, symptoms, profile, latestPrediction] = await Promise.all([
-    fetchLabResultRow("t3"),
-    fetchLabResultRow("t4"),
-    fetchLabResultRow("tsh"),
-    fetchSymptoms(),
-    fetchProfile(),
-    fetchLatestPrediction(),
-  ]);
-  return { t3, t4, tsh, symptoms, profile, latestPrediction };
+  console.log("[dashboardService] Starting parallel dashboard data fetch...");
+  try {
+    const [t3, t4, tsh, symptoms, profile, latestPrediction] = await Promise.all([
+      fetchLabResultRow("t3").then(d => { console.log("[dashboardService] T3 fetched"); return d; }),
+      fetchLabResultRow("t4").then(d => { console.log("[dashboardService] T4 fetched"); return d; }),
+      fetchLabResultRow("tsh").then(d => { console.log("[dashboardService] TSH fetched"); return d; }),
+      fetchSymptoms().then(d => { console.log("[dashboardService] Symptoms fetched"); return d; }),
+      fetchProfile().then(d => { console.log("[dashboardService] Profile fetched"); return d; }),
+      fetchLatestPrediction().then(d => { console.log("[dashboardService] Latest Prediction fetched"); return d; }),
+    ]);
+    console.log("[dashboardService] All dashboard data successfully combined.");
+    return { t3, t4, tsh, symptoms, profile, latestPrediction };
+  } catch (err) {
+    console.error("[dashboardService] Dashboard fetch failed:", err.message);
+    throw err;
+  }
 }

@@ -150,6 +150,14 @@ const predict = tryCatch(async (req, res) => {
     }
 
     nnResponse = await response.json();
+
+    console.log("[predict] NN response:", JSON.stringify(nnResponse));
+    if (!prediction) {
+      return respond(res, 502, null, `NN model response did not include a prediction field. Got: ${JSON.stringify(nnResponse)}`);
+    }
+
+
+
   } catch (err) {
     if (err.name === "TimeoutError" || err.name === "AbortError") {
       return respond(
