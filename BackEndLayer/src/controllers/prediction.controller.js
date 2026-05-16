@@ -129,7 +129,7 @@ const predict = tryCatch(async (req, res) => {
 
   // 3. Call the NN microservice
   const nnUrl = process.env.NN_MODEL_URL || "http://127.0.0.1:8000";
-
+  console.log("[predict] NN_MODEL_URL:", nnUrl);
   let nnResponse;
   try {
     const response = await fetch(`${nnUrl}/predict`, {
@@ -150,14 +150,7 @@ const predict = tryCatch(async (req, res) => {
     }
 
     nnResponse = await response.json();
-
     console.log("[predict] NN response:", JSON.stringify(nnResponse));
-    if (!prediction) {
-      return respond(res, 502, null, `NN model response did not include a prediction field. Got: ${JSON.stringify(nnResponse)}`);
-    }
-
-
-
   } catch (err) {
     if (err.name === "TimeoutError" || err.name === "AbortError") {
       return respond(
