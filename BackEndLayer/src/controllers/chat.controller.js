@@ -53,6 +53,7 @@ const chat = tryCatch(async (req, res) => {
 
     respond(res, 200, { reply, source: "gemini" });
   } catch (err) {
+    console.error("[ Gemini error ]", err);
     respond(res, 200, {
       reply:
         "Sorry, the AI service is temporarily unavailable. Please try again later.",
