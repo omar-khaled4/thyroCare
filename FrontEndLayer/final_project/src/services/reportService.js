@@ -1,60 +1,69 @@
 import api from "./api";
+import toast from "react-hot-toast";
 
 /**
- * Fetch all reports
- * @returns {Promise<Array>} List of reports
- * @throws {Error} If the request fails
+ * GET /reports
+ * Fetches all reports for the current user. Supports optional pagination
+ * via ?page= and ?limit= query params (backend may ignore them if not yet
+ * supported — the caller should still pass them and check data length).
+ *
+ * @param {number} [page=1]
+ * @param {number} [limit=25]
  */
-export const getReports = async () => {
+export async function getReports(page = 1, limit = 25) {
   try {
-    const response = await api.get("/reports");
-    return response.data;
-  } catch (error) {
-    throw error;
+    const { data } = await api.get("/reports", { params: { page, limit } });
+    // Backend may return an array directly or { items, total, ... }
+    return Array.isArray(data) ? data : data.data || data.items || [];
+  } catch (err) {
+    toast.error(`Failed to load reports: ${err.message}`);
+    throw err;
   }
-};
+}
 
 /**
- * Create a new report
- * @param {Object} reportData - Data for the new report
- * @returns {Promise<Object>} Created report
- * @throws {Error} If the request fails
+ * POST /reports
+ * Creates a new thyroid report.
  */
-export const createReport = async (reportData) => {
+export async function createReport(reportData) {
   try {
-    const response = await api.post("/reports", reportData);
-    return response.data;
-  } catch (error) {
-    throw error;
+    const { data } = await api.post("/reports", reportData);
+    toast.success("Report submitted successfully!");
+    return data;
+  } catch (err) {
+    toast.error(
+      err?.response?.data?.message || "Failed to create report. Please try again."
+    );
+    throw err;
   }
-};
+}
 
 /**
- * Update an existing report
- * @param {string|number} id - Report ID
- * @param {Object} reportData - Updated data for the report
- * @returns {Promise<Object>} Updated report
- * @throws {Error} If the request fails
+ * PUT /reports/:id
+ * Updates an existing report.
  */
-export const updateReport = async (id, reportData) => {
+export async function updateReport(id, reportData) {
   try {
-    const response = await api.put(`/reports/${id}`, reportData);
-    return response.data;
-  } catch (error) {
-    throw error;
+    const { data } = await api.put(`/reports/${id}`, reportData);
+    toast.success("Report updated successfully!");
+    return data;
+  } catch (err) {
+    toast.error(
+      err?.response?.data?.message || "Failed to update report. Please try again."
+    );
+    throw err;
   }
-};
+}
 
 /**
- * Delete a report by ID
- * @param {string|number} id - Report ID
- * @returns {Promise<void>}
- * @throws {Error} If the request fails
+ * DELETE /reports/:id
+ * Deletes a report by its MongoDB _id.
  */
-export const deleteReport = async (id) => {
+export async function deleteReport(id) {
   try {
     await api.delete(`/reports/${id}`);
-  } catch (error) {
-    throw error;
+  } catch (err) {
+    // Let the caller show the toast
+    throw err;
   }
-};
+}

@@ -11,15 +11,35 @@ export default function ViewReports(){
     let[ report , setreport ]=useState(null)
     let[ updateLoading , setupdateLoading] =useState(false)
 
+    /* ── Pagination state ── */
+    const ITEMS_PER_PAGE = 5;
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalReports, setTotalReports] = useState(0);
+
+    /* total pages */
+    const totalPages = Math.ceil(totalReports / ITEMS_PER_PAGE);
+
+    /* page slice (comes AFTER viewData is set) */
+    const paginatedData = viewData.slice(
+        (currentPage - 1) * ITEMS_PER_PAGE,
+        currentPage * ITEMS_PER_PAGE
+    );
+
+    /* reset to page 1 whenever searched list changes */
+    useEffect(() => {
+      setCurrentPage(1);
+    }, [viewData]);
+
     // fetch reports on mount
     useEffect(() => {
         const fetchReports = async () => {
             try {
-                const data = await getReports();
+                const data = await getReports(1, 100);
                 setReports(data);
                 setviewData(data);
+                setTotalReports(data.length);
             } catch (err) {
-                alert(`Failed to load reports: ${err.message}`);
+                console.error("Failed to load reports:", err);
             } finally {
                 setLoading(false);
             }
@@ -40,11 +60,10 @@ export default function ViewReports(){
 
     function search(value, dataList) {
         if( dataList.length > 0 ){
-            return dataList.filter(r => 
-                r.TestingFacility.toLocaleLowerCase().includes(value.toLocaleLowerCase()) || r.date.includes(value)
-            )
+            setviewData(dataList.filter(r => 
+                (r.TestingFacility || "").toLocaleLowerCase().includes(value.toLocaleLowerCase()) || (r.date || "").includes(value)
+            ))
         }
-        return []
     }
 
     //view
@@ -94,6 +113,7 @@ export default function ViewReports(){
 
         // Optimistic update — remove from UI immediately
         setviewData(prev => prev.filter(r => r._id !== reportId));
+        setTotalReports(prev => prev - 1);
 
         try {
             await deleteReport(reportId);
@@ -101,11 +121,37 @@ export default function ViewReports(){
             // Rollback on error
             if (removed) {
                 setviewData(prev => [...prev, removed]);
+                setTotalReports(prev => prev + 1);
             }
-            alert(`Failed to delete report: ${err.message}`);
+            console.error("Failed to delete report:", err);
         }
     }
 
+    const handleUpdate = async (values) => {
+        setupdateLoading(true)
+        try {
+            await updateReport(report.id, values);
+            set_update(false);
+        } catch (err) {
+            console.error("Failed to update report:", err);
+        } finally {
+            setupdateLoading(false)
+        }
+    }
+
+    /* ── Pagination helpers ── */
+    function goToPage(page) {
+        if (page < 1 || page > totalPages) return;
+        setCurrentPage(page);
+    }
+
+    /* build page-number array with ellipsis */
+    function getPageNumbers() {
+        if (totalPages <= 7) return Array.from({ length: totalPages }, (_, i) => i + 1);
+        if (currentPage <= 4) return [1, 2, 3, 4, 5, "...", totalPages];
+        if (currentPage >= totalPages - 3) return [1, "...", totalPages - 4, totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
+        return [1, "...", currentPage - 1, currentPage, currentPage + 1, "...", totalPages];
+    }
 
     return <>
 
@@ -115,9 +161,7 @@ export default function ViewReports(){
             <div className="fixed top-0 left-0 z-10 h-screen p-4 pt-20 overflow-y-auto bg-gray-100 w-full sm:w-100 font-1">
                 
                 <p className="mb-8 text-xl color-1 text-center uppercase"><i className="fa-regular fa-pen-to-square pr-2"></i> update report </p>
-                <form onSubmit={async (e) => {
-                    await formik.handleSubmit(e);
-                }} className="mb-6">
+                <form onSubmit={handleUpdate} className="mb-6">
 
                     <div className="relative mb-6">
                         <input type="date" id="date" name="DateOfTest" value={formik.values.DateOfTest} onChange={formik.handleChange} onBlur={formik.handleBlur} className="block px-2.5 pb-2.5 pt-4 w-full text-sm text-black bg-gray-100 rounded-lg border border-gray-300 focus:outline-none focus:ring-0 focus:border-[#00b3a1] peer" placeholder=" " />
@@ -188,10 +232,10 @@ export default function ViewReports(){
                         <input type="range" id="SkinChanges" name="SkinChanges"  min="0" max="10" value={formik.values.SkinChanges} onChange={formik.handleChange} onBlur={formik.handleBlur} className="w-full h-1 background-1 rounded-full cursor-pointer mt-2"/>
                     </div>
 
-                    <button type="submit" disabled={updateLoading} className="text-white justify-center flex items-center bg-amber-500 hover:bg-amber-600 w-full  font-medium rounded-lg text-md px-5 py-2.5 mb-2">Update</button>   
+                    <button type="submit" disabled={updateLoading} className="text-white justify-center flex items-center bg-amber-500 hover:bg-amber-600 w-full  font-medium rounded-lg text-md px-5 py-2.5 mb-2">{updateLoading ? <><i className="fas fa-spinner fa-spin mr-2" /> Updating…</> : "Update"}</button>   
                     
                 </form>
-                <button type="button" onClick={()=>update(null)} className="text-white justify-center flex items-center bg-red-600 hover:bg-red-700 w-full  font-medium rounded-lg text-md px-5 py-2.5 mb-2">Cancle</button>
+                <button type="button" onClick={()=>update(null)} className="text-white justify-center flex items-center bg-red-600 hover:bg-red-700 w-full  font-medium rounded-lg text-md px-5 py-2.5 mb-2">Cancel</button>
                 
             </div>
         </>:null}
@@ -226,12 +270,12 @@ export default function ViewReports(){
                     <p>Fatigue (1-10) : <span className="color-1">{report.Fatigue}</span></p>
                     <p>Weight Changes (1-10) : <span className="color-1">{report.WeightChanges}</span></p>
                     <p>Temperature Sensitivity (1-10) : <span className="color-1">{report.TemperatureSensitivity}</span></p>
-                    <p>MoodChanges (1-10) : <span className="color-1">{report.MoodChanges}</span></p>
+                    <p>Mood Changes (1-10) : <span className="color-1">{report.MoodChanges}</span></p>
                     <p>Hair/Skin Changes (1-10) : <span className="color-1">{report.HairSkinChanges}</span></p>
                 </div>
             </div>
 
-        </>:null>
+        </>:null}
 
 
         <div className="background-DB">
@@ -251,12 +295,9 @@ export default function ViewReports(){
             <div className="background-card relative overflow-x-auto shadow-md sm:rounded-lg mt-10 mx-5 md:mx-15 p-3">
 
                 {!Loading?
-                    viewData.length>0?
+                    paginatedData.length > 0 ?
                     <>
-                        {inputValue ==''?
-                            <p className="font-1 text-center text-3xl my-4">your Reports : <span className="color-1">{viewData.length}</span></p>:
-                            <p className="font-1 text-center text-3xl my-4">Search Result : <span className="color-1">{viewData.length}</span></p>
-                        }
+                        <p className="font-1 text-center text-3xl my-4">your Reports : <span className="color-1">{totalReports}</span></p>
 
                         <table className="w-full font-1 text-center">
                             <thead className="uppercase text-lg md:text-xl">
@@ -268,7 +309,7 @@ export default function ViewReports(){
                                 </tr>
                             </thead>
 
-                            {viewData?.map((report)=>(
+                            {paginatedData?.map((report)=>(
                                 <tbody key={report.id}>
                                     <tr className="border-b border-gray-300 text-lg">
                                         <td className="p-4">{report.id}</td>
@@ -281,9 +322,58 @@ export default function ViewReports(){
 
                         </table>
 
+                        {/* ── Pagination controls ── */}
+                        {totalPages > 1 && (
+                            <div className="flex items-center justify-center gap-2 mt-6 mb-4 font-1">
+                                {/* Previous */}
+                                <button
+                                    onClick={() => goToPage(currentPage - 1)}
+                                    disabled={currentPage === 1}
+                                    className="px-3 py-1 rounded-lg background-1 text-white disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#009284] transition"
+                                >
+                                    &laquo; Prev
+                                </button>
+
+                                {/* Page numbers */}
+                                {getPageNumbers().map((p, idx) =>
+                                    p === "..." ? (
+                                        <span key={`ellipsis-${idx}`} className="px-2 text-gray-500">…</span>
+                                    ) : (
+                                        <button
+                                            key={p}
+                                            onClick={() => goToPage(p)}
+                                            className={`px-3 py-1 rounded-lg transition ${
+                                                currentPage === p
+                                                ? "bg-amber-600 text-white"
+                                                : "background-1 text-white hover:bg-[#009284]"
+                                            }`}
+                                        >
+                                            {p}
+                                        </button>
+                                    )
+                                )}
+
+                                {/* Next */}
+                                <button
+                                    onClick={() => goToPage(currentPage + 1)}
+                                    disabled={currentPage === totalPages}
+                                    className="px-3 py-1 rounded-lg background-1 text-white disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#009284] transition"
+                                >
+                                    Next &raquo;
+                                </button>
+                            </div>
+                        )}
+
                     </>
-                    :<div className="w-full h-100 flex items-center justify-center font-1 color-1 text-4xl sm:text-5xl"> {inputValue == ''?  <p>there are no reports</p>:<p>No Result</p>} </div>
-                :<div className="w-full h-100 flex items-center justify-center"><i className="fas fa-spinner fa-spin color-1 text-7xl"></i></div>}
+                    :
+                    <div className="w-full h-100 flex items-center justify-center font-1 color-1 text-4xl sm:text-5xl">
+                        {inputValue == '' ? <p>there are no reports</p> : <p>No Result</p>}
+                    </div>
+                :
+                    <div className="w-full h-100 flex items-center justify-center">
+                        <i className="fas fa-spinner fa-spin color-1 text-7xl"></i>
+                    </div>
+                }
             
             </div>
 

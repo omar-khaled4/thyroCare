@@ -4,6 +4,7 @@ import * as yup from "yup";
 import { useNavigate } from "react-router-dom";
 import { UserContext } from "../../context/UserContext";
 import { register } from "../../services/authService";
+import toast from "react-hot-toast";
 
 export default function SignUp() {
   let navigate = useNavigate();
@@ -15,12 +16,11 @@ export default function SignUp() {
     setIsLoading(true);
     setServerError("");
 
+    const toastId = toast.loading("Creating your account…", { id: "auth-register" });
+
     try {
-      // authService persists token + user to localStorage
       await register(values);
-      // Re-fetch the full profile (authService.getMe / shared axios /auth/me)
-      // to ensure the "user" stored in state matches what the rest of the app
-      // expects (nested profile shape, roles, etc.).
+      toast.success("Account created successfully!", { id: toastId });
       navigate("/");
     } catch (err) {
       const msg =
@@ -29,6 +29,7 @@ export default function SignUp() {
         err.message ??
         "Registration failed. Please try again.";
       setServerError(msg);
+      toast.error(msg, { id: toastId });
     } finally {
       setIsLoading(false);
     }

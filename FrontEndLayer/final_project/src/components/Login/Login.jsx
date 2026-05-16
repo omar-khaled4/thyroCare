@@ -4,6 +4,7 @@ import * as yup from "yup";
 import { useNavigate } from "react-router-dom";
 import { UserContext } from "../../context/UserContext";
 import { login } from "../../services/authService";
+import toast from "react-hot-toast";
 
 export default function Login() {
   let navigate = useNavigate();
@@ -15,18 +16,20 @@ export default function Login() {
     setIsLoading(true);
     setServerError("");
 
+    const toastId = toast.loading("Signing in…", { id: "auth-login" });
+
     try {
       await doLogin(values);
-      // authService persists token + user; navigate home on success
+      toast.success("Welcome back!", { id: toastId });
       navigate("/");
     } catch (err) {
-      // Axios shape: err.response?.data?.message or err.message
       const msg =
         err?.response?.data?.message ??
         err?.response?.data?.error ??
         err.message ??
         "Login failed. Please check your credentials and try again.";
       setServerError(msg);
+      toast.error(msg, { id: toastId });
     } finally {
       setIsLoading(false);
     }
