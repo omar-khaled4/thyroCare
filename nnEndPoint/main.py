@@ -70,9 +70,13 @@ def get_prediction(patient: PatientData):
 
         pred_probs = model.predict(patient_final)
         pred_class_index = np.argmax(pred_probs, axis=1)[0]
+        confidence = float(np.max(pred_probs))
         predicted_illness = le.inverse_transform([pred_class_index])[0]
 
-        return {"prediction": predicted_illness}
+        return {
+            "prediction": predicted_illness,
+            "confidence": confidence
+        }
 
     except Exception as e:
         import traceback

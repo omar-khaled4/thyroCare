@@ -173,7 +173,8 @@ export async function postPredict(reportData, user) {
     const { data } = await api.post("/predict", { patient_data: patientData });
     toast.dismiss(toastId);
     toast.success("Analysis complete!", { id: "predict" });
-    return data;
+    // The backend uses a 'respond' helper that puts the payload in the 'data' field
+    return data.data || data;
   } catch (err) {
     toast.dismiss(toastId);
     toast.error("Prediction failed. Please check your inputs and try again.");

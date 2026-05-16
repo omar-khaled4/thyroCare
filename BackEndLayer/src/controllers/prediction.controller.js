@@ -167,20 +167,47 @@ const predict = tryCatch(async (req, res) => {
     );
   }
 
-  const prediction = nnResponse.prediction;
-  if (!prediction) {
+  const diagnosis = nnResponse.prediction;
+  const confidence = nnResponse.confidence ?? 0.0;
+
+  if (!diagnosis) {
     return respond(res, 502, null, "NN model response did not include a prediction field");
   }
 
-  // 4. Persist the prediction for history / auditing
+  // 4. Calculate a health stability score (0-100)
+  // Simple heuristic: Normal/Negative = 90-100, Mild = 60-80, Severe = 20-50
+  let healthScore = 95;
+  const d = diagnosis.toLowerCase();
+  if (d.includes("hypo") || d.includes("hyper")) {
+    healthScore = 45;
+  } else if (d.includes("negative") || d.includes("normal")) {
+    healthScore = 92;
+  } else if (d !== "unknown") {
+    healthScore = 65;
+  }
+
+  // 5. Persist the prediction for history / auditing
   const saved = await Prediction.create({
     patientId: userId,
-    prediction,
+    diagnosis,
+    confidence,
+    healthScore,
     inputData: patientData,
   });
 
-  // 5. Return the result
-  respond(res, 200, { prediction, predictionId: saved._id }, "Prediction complete");
+  // 6. Return the result in the format the frontend expects
+  respond(
+    res,
+    200,
+    {
+      diagnosis,
+      confidence,
+      healthScore,
+      predictionId: saved._id,
+      createdAt: saved.createdAt,
+    },
+    "Prediction complete"
+  );
 });
 
 // ──────────────────────────────────────────────────────────────────────────────
