@@ -1,5 +1,6 @@
 import { createContext, useCallback, useEffect, useState } from "react";
 import { getMe, login, logout as authLogout, register } from "../services/authService";
+import api from "../services/api";
 
 export let UserContext = createContext();
 
@@ -27,45 +28,58 @@ export default function UserContextProvider(props) {
   });
   const [isHydrating, setIsHydrating] = useState(true);
 
-  /* ── synchronous setters ── */
+  // ── Sync userToken state with localStorage
   const setuserToken = useCallback((t) => {
-    console.log("[UserContext] Setting token:", t ? "EXISTS" : "NULL");
+    if (t === "null" || t === undefined) t = null;
+    console.log("[UserContext] setuserToken called with:", t ? "Valid Token" : "NULL");
+    
     if (t && typeof t === "string") {
       localStorage.setItem("userToken", t);
       _setuserToken(t);
     } else {
+      console.warn("[UserContext] Clearing token from storage");
       localStorage.removeItem("userToken");
       _setuserToken(null);
     }
   }, []);
 
+  // ── Sync user state with localStorage
   const setuser = useCallback((u) => {
-    console.log("[UserContext] Setting user:", u ? u.email || "EXISTS" : "NULL");
+    if (u === "null" || u === undefined) u = null;
+    
+    // Safety check: Don't set user if it's the whole response envelope instead of the user object
+    if (u && u.success !== undefined && u.data) {
+      console.log("[UserContext] setuser detected envelope, extracting inner data...");
+      u = u.data;
+    }
+
+    console.log("[UserContext] setuser called for:", u?.email || (u ? "Unknown User" : "NULL"));
+    
     if (u && typeof u === "object") {
       localStorage.setItem("user", JSON.stringify(u));
       _setuser(u);
     } else {
+      console.warn("[UserContext] Clearing user from storage");
       localStorage.removeItem("user");
       _setuser(null);
     }
   }, []);
 
-  /* ── Rehydrate ── */
+  // ── Rehydrate user state on mount
   useEffect(() => {
     if (!userToken) {
-      console.log("[UserContext] No token found during rehydration.");
+      console.log("[UserContext] No token to rehydrate.");
       setIsHydrating(false);
       return;
     }
 
-    console.log("[UserContext] Rehydrating session...");
     let cancelled = false;
-
+    console.log("[UserContext] Rehydrating session...");
+    
     getMe()
       .then((me) => {
         if (cancelled) return;
         if (me) {
-          console.log("[UserContext] Rehydration successful for:", me.email);
           setuser(me);
         }
       })
@@ -81,7 +95,7 @@ export default function UserContextProvider(props) {
       });
 
     return () => { cancelled = true; };
-  }, [userToken, setuser, setuserToken]);
+  }, [userToken, setuser]);
 
   /* ── Handlers ── */
   const handleLogin = useCallback(

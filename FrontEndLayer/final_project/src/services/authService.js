@@ -65,8 +65,9 @@ export async function register(userData) {
 export async function getMe() {
   try {
     const { data } = await api.get("/auth/me");
-    console.log("[authService] getMe response:", data);
-    const user = data?.user ?? data;
+    console.log("[authService] getMe response body:", data);
+    // Backend returns { success: true, data: user, message: "" }
+    const user = data.data || data;
     localStorage.setItem("user", JSON.stringify(user));
     return user;
   } catch (err) {

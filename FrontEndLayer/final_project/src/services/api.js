@@ -1,13 +1,16 @@
 import axios from "axios";
 import toast from "react-hot-toast";
 
+const resolvedBaseURL = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL
+  ? (import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL).replace(/\/?api\/?$/i, "") + "/api"
+  : window.location.hostname === "localhost" 
+    ? "http://localhost:5000/api"
+    : "https://thyro-care.vercel.app/api";
+
+console.log(`[api] Resolved API Base URL: ${resolvedBaseURL}`);
+
 const api = axios.create({
-  baseURL:
-    import.meta.env.VITE_API_URL && import.meta.env.VITE_API_BASE_URL
-      ? import.meta.env.VITE_API_URL.replace(/\/?api\/?$/i, "") + "/api"
-      : import.meta.env.VITE_API_BASE_URL
-        ? import.meta.env.VITE_API_BASE_URL.replace(/\/?api\/?$/i, "") + "/api"
-        : "https://thyro-care.vercel.app/api",  // ← your backend, no trailing slash
+  baseURL: resolvedBaseURL,
 });
 
 /* ── Request interceptor: auto-attach Bearer token ── */
@@ -29,7 +32,11 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    const status = error?.response?.status;
+    const { response, config } = error;
+    const status = response ? response.status : null;
+    
+    console.error(`[api] Error Interceptor: ${status} from ${config?.method?.toUpperCase()} ${config?.url}`);
+    
     const message =
       error?.response?.data?.message ||
       error?.response?.data?.error ||
@@ -37,11 +44,13 @@ api.interceptors.response.use(
       "An unexpected error occurred";
 
     if (status === 401 || status === 403) {
-      console.warn(`[api] Session expiration triggered by ${error.config.method.toUpperCase()} ${error.config.url}`);
-      localStorage.removeItem("userToken");
-      localStorage.removeItem("user");
-      toast.error("Session expired. Please log in again.");
-      window.location.href = "/login";
+      console.warn("!!! [api] Session expired or unauthorized !!!");
+      const isAuthPage = window.location.pathname.includes("/login") || window.location.pathname.includes("/signup");
+      if (!isAuthPage) {
+        localStorage.removeItem("userToken");
+        localStorage.removeItem("user");
+        window.location.href = "/login"; 
+      }
     } else if (!error?.config?._toastFired) {
       error.config._toastFired = true;
       toast.error(message);

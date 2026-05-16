@@ -122,17 +122,44 @@ export async function fetchLatestPrediction() {
 /* ── Convenience: fetch everything in parallel ── */
 
 export async function fetchDashboardData() {
-  console.log("[dashboardService] Starting parallel dashboard data fetch...");
+  console.log("[dashboardService] Starting consolidated dashboard data fetch...");
   try {
-    const [t3, t4, tsh, symptoms, profile, latestPrediction] = await Promise.all([
-      fetchLabResultRow("t3").then(d => { console.log("[dashboardService] T3 fetched"); return d; }),
-      fetchLabResultRow("t4").then(d => { console.log("[dashboardService] T4 fetched"); return d; }),
-      fetchLabResultRow("tsh").then(d => { console.log("[dashboardService] TSH fetched"); return d; }),
-      fetchSymptoms().then(d => { console.log("[dashboardService] Symptoms fetched"); return d; }),
-      fetchProfile().then(d => { console.log("[dashboardService] Profile fetched"); return d; }),
-      fetchLatestPrediction().then(d => { console.log("[dashboardService] Latest Prediction fetched"); return d; }),
+    const [reportsRes, profile, latestPrediction] = await Promise.all([
+      api.get("/reports"),
+      fetchProfile(),
+      fetchLatestPrediction()
     ]);
-    console.log("[dashboardService] All dashboard data successfully combined.");
+
+    const reports = Array.isArray(reportsRes.data) ? reportsRes.data : (reportsRes.data?.data || []);
+    console.log(`[dashboardService] Processing ${reports.length} reports for dashboard charts...`);
+
+    // 1. Extract Lab Results
+    const t3 = reports
+      .filter(r => r.thyroidFunction?.freeT3 !== undefined)
+      .map(r => ({ date: r.testDate, t3: r.thyroidFunction.freeT3 }));
+    
+    const t4 = reports
+      .filter(r => r.thyroidFunction?.freeT4 !== undefined)
+      .map(r => ({ date: r.testDate, t4: r.thyroidFunction.freeT4 }));
+    
+    const tsh = reports
+      .filter(r => r.thyroidFunction?.tsh !== undefined)
+      .map(r => ({ date: r.testDate, tsh: r.thyroidFunction.tsh }));
+
+    // 2. Extract Symptoms
+    const symptoms = reports
+      .filter(r => r.symptoms)
+      .map(r => ({
+        date: r.testDate,
+        fatigue: Number(r.symptoms.fatigue) || 0,
+        anxiety: Number(r.symptoms.anxiety) || 0,
+        insomnia: Number(r.symptoms.insomnia) || 0,
+        hairLoss: Number(r.symptoms.hairLoss) || 0,
+        palpitations: Number(r.symptoms.palpitations) || 0,
+        coldIntolerance: Number(r.symptoms.coldIntolerance) || 0,
+      }));
+
+    console.log("[dashboardService] Dashboard data successfully extracted from reports.");
     return { t3, t4, tsh, symptoms, profile, latestPrediction };
   } catch (err) {
     console.error("[dashboardService] Dashboard fetch failed:", err.message);

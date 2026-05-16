@@ -36,10 +36,39 @@ export default function ViewReports(){
             console.log("[ViewReports] Initial fetch of reports...");
             try {
                 const data = await getReports(1, 100);
-                console.log("[ViewReports] Reports loaded:", data.length);
-                setReports(data);
-                setviewData(data);
-                setTotalReports(data.length);
+                // Normalize backend fields to frontend expected names (flat structure)
+                const normalized = data.map(r => ({
+                    ...r,
+                    id: r._id,
+                    date: r.testDate,
+                    TestingFacility: r.testingFacility,
+                    
+                    // Flatten nested objects
+                    TSH: r.thyroidFunction?.tsh,
+                    FreeT3: r.thyroidFunction?.freeT3,
+                    FreeT4: r.thyroidFunction?.freeT4,
+                    TotalT4: r.thyroidFunction?.totalT4,
+                    TotalT3: r.thyroidFunction?.totalT3,
+                    
+                    TPOAntibodies: r.antibodies?.tpo,
+                    ThyroglobulinAntibodies: r.antibodies?.antiTg,
+                    TSHReceptorAntibodies: r.antibodies?.tshr,
+                    
+                    Thyroglobulin: r.otherTests?.thyroglobulin,
+                    Calcitonin: r.otherTests?.calcitonin,
+                    ReverseT3: r.otherTests?.reverseT3,
+                    
+                    Fatigue: r.symptoms?.fatigue,
+                    WeightChanges: r.symptoms?.weightChange,
+                    TemperatureSensitivity: r.symptoms?.coldIntolerance,
+                    HairSkinChanges: r.symptoms?.hairLoss,
+                    MoodChanges: r.symptoms?.anxiety, // mapping anxiety to mood
+                    SkinChanges: r.symptoms?.hairLoss
+                }));
+                console.log("[ViewReports] Reports loaded and normalized:", normalized.length);
+                setReports(normalized);
+                setviewData(normalized);
+                setTotalReports(normalized.length);
             } catch (err) {
                 console.error("[ViewReports] Failed to load reports:", err);
             } finally {
