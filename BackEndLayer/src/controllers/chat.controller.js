@@ -28,36 +28,29 @@ const chat = tryCatch(async (req, res) => {
   }
 
   try {
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model: "gpt-3.5-turbo",
-        messages: [
-          {
-            role: "system",
-            content: `You are Aiva, a thyroid health virtual assistant for the ThyroCare platform.
-            You help patients understand their thyroid test results, symptoms, and general thyroid health.
-            Keep answers concise and easy to understand. Always remind users to consult their doctor for medical decisions.
-            Do not provide diagnoses or prescribe medications.`,
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          system_instruction: {
+            parts: [{
+              text: `You are Aiva, a thyroid health virtual assistant for the ThyroCare platform.
+          You help patients understand their thyroid test results, symptoms, and general thyroid health.
+          Keep answers concise and easy to understand. Always remind users to consult their doctor for medical decisions.
+          Do not provide diagnoses or prescribe medications.` }]
           },
-          { role: "user", content: message },
-        ],
-        max_tokens: 500,
-        temperature: 0.7,
-      }),
-    });
+          contents: [{ parts: [{ text: message }] }],
+        }),
+      }
+    );
 
     const data = await response.json();
-    console.log("OpenAI raw response:", JSON.stringify(data, null, 2));
-    const reply =
-      data.choices?.[0]?.message?.content ||
-      "Sorry, I could not generate a response.";
+    const reply = data.candidates?.[0]?.content?.parts?.[0]?.text
+      || "Sorry, I could not generate a response.";
 
-    respond(res, 200, { reply, source: "openai" });
+    respond(res, 200, { reply, source: "gemini" });
   } catch (err) {
     respond(res, 200, {
       reply:
