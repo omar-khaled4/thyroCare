@@ -9,6 +9,8 @@ const { respond, tryCatch } = require("../utils/helpers");
  * If you don't have an OpenAI key yet, set GEMINI_API_KEY="" in .env
  * and the endpoint will return a fallback response.
  */
+
+
 const chat = tryCatch(async (req, res) => {
   const { message } = req.body;
 
@@ -16,48 +18,56 @@ const chat = tryCatch(async (req, res) => {
     return respond(res, 400, null, "message is required");
   }
 
-  const apiKey = process.env.GEMINI_API_KEY;
+  const apiKey = process.env.GROQ_API_KEY;
 
-  // Fallback if no API key is set
   if (!apiKey) {
     return respond(res, 200, {
-      reply:
-        "AI is not configured yet. Please set GEMINI_API_KEY in the .env file.",
+      reply: "AI is not configured yet. Please set GROQ_API_KEY in the .env file.",
       source: "fallback",
     });
   }
 
   try {
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${process.env.GEMINI_API_KEY}`
-      ,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          system_instruction: {
-            parts: [{
-              text: `You are Aiva, a thyroid health virtual assistant for the ThyroCare platform.
-          You help patients understand their thyroid test results, symptoms, and general thyroid health.
-          Keep answers concise and easy to understand. Always remind users to consult their doctor for medical decisions.
-          Do not provide diagnoses or prescribe medications.` }]
+    const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        model: "llama-3.1-8b-instant", // ✅ smallest & fastest model = lowest token usage
+        messages: [
+          {
+            role: "system",
+            content: `You are Aiva, a thyroid health assistant. Be concise. Max 3 sentences per reply.
+              Help users understand thyroid results and symptoms.
+              Always remind them to consult their doctor. Never diagnose or prescribe.`,
           },
-          contents: [{ parts: [{ text: message }] }],
-        }),
-      }
-    );
+          { role: "user", content: message },
+        ],
+        max_tokens: 200, // ✅ keep replies short = saves token quota
+        temperature: 0.7,
+      }),
+    });
 
     const data = await response.json();
-    console.log("[ Gemini raw response ]", JSON.stringify(data, null, 2));
-    const reply = data.candidates?.[0]?.content?.parts?.[0]?.text
+
+    if (!response.ok) {
+      console.error("Groq error:", JSON.stringify(data, null, 2));
+      return respond(res, 200, {
+        reply: "Sorry, the AI service is temporarily unavailable. Please try again later.",
+        source: "error",
+      });
+    }
+
+    const reply = data.choices?.[0]?.message?.content
       || "Sorry, I could not generate a response.";
 
-    respond(res, 200, { reply, source: "gemini" });
+    respond(res, 200, { reply, source: "groq" });
   } catch (err) {
-    console.error("[ Gemini error ]", err);
+    console.error("Groq catch error:", err);
     respond(res, 200, {
-      reply:
-        "Sorry, the AI service is temporarily unavailable. Please try again later.",
+      reply: "Sorry, the AI service is temporarily unavailable. Please try again later.",
       source: "error",
     });
   }
