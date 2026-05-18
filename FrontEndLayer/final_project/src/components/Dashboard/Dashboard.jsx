@@ -463,19 +463,22 @@ export default function Dashboard() {
    *  DERIVED VALUES — computed from profile / fetched data
    * ──────────────────────────────────────────────────────────────── */
 
-  // Full name from profile (falls back to user?.firstName + user?.lastName)
-  const fullName =
-    (!profile?.name || profile.name.trim() === "") &&
-    user?.firstName
-      ? `${user.firstName} ${user.lastName ?? ""}`.trim()
-      : profile?.name ?? user?.firstName ?? "Patient";
+  // Full name from profile (falls back to user?.firstName and/or user?.lastName)
+  const fullName = (() => {
+    const parts = [];
+    if (user?.firstName) parts.push(user.firstName);
+    if (user?.lastName) parts.push(user.lastName);
+    return parts.join(" ") || "Patient";
+  })();
+
+  const hasReports = T3data.length > 0 || T4data.length > 0 || TSHdata.length > 0 || STdata.length > 0;
 
   // Prediction-derived values (fall back to profile / static defaults)
-  const healthScore    = prediction?.healthScore ?? null;   // 0-100 from NN model
-  const diagnosis      = prediction?.diagnosis
-                        ?? profile?.medicalInfo?.status
-                        ?? "Stable";                        // fall back to profile status
-  const conditionLabel = diagnosis;                        // final display value
+  const healthScore    = hasReports ? (prediction?.healthScore ?? null) : null;   // 0-100 from NN model
+  const diagnosis      = hasReports
+                        ? (prediction?.diagnosis ?? profile?.medicalInfo?.status ?? "Stable")
+                        : null;
+  const conditionLabel = diagnosis ?? "No Reports";
 
   // Medical info extracted with safe defaults
   const med =
@@ -489,17 +492,33 @@ export default function Dashboard() {
   const doctor           = med.doctor            ?? "Dr. Sarah Johnson";
   const nextAppointment  = med.nextAppointment   ?? "";  // ISO / display string
 
-  // Hard-coded lab comparison cards sourced from the latest report /
-  // prediction data once the prediction endpoint is wired.
-  // For now they show the same static placeholder values — a future
-  // step should call GET /lab-results/{type} and pick the last two
-  // records for the "current" / "previous" computation.
-  const tshCurrent       = "2.5";
-  const tshPrevious      = "3.8";
-  const freeT4Current    = "1.1";
-  const freeT4Previous   = "0.9";
-  const freeT3Current    = "3.2";
-  const freeT3Previous   = "3.0";
+  // Dynamically computed comparison values from reports
+  const sortedTSH = [...TSHdata].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  const tshCurrentVal = sortedTSH[0]?.tsh;
+  const tshPreviousVal = sortedTSH[1]?.tsh;
+  const tshCurrent = tshCurrentVal != null ? `${tshCurrentVal} mIU/L` : "—";
+  const tshPrevious = tshPreviousVal != null ? `${tshPreviousVal} mIU/L` : "—";
+  const tshChange = (tshCurrentVal != null && tshPreviousVal != null)
+    ? (tshCurrentVal - tshPreviousVal).toFixed(1)
+    : "—";
+
+  const sortedT4 = [...T4data].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  const freeT4CurrentVal = sortedT4[0]?.t4;
+  const freeT4PreviousVal = sortedT4[1]?.t4;
+  const freeT4Current = freeT4CurrentVal != null ? `${freeT4CurrentVal} ng/dL` : "—";
+  const freeT4Previous = freeT4PreviousVal != null ? `${freeT4PreviousVal} ng/dL` : "—";
+  const freeT4Change = (freeT4CurrentVal != null && freeT4PreviousVal != null)
+    ? (freeT4CurrentVal - freeT4PreviousVal >= 0 ? "+" : "") + (freeT4CurrentVal - freeT4PreviousVal).toFixed(1)
+    : "—";
+
+  const sortedT3 = [...T3data].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  const freeT3CurrentVal = sortedT3[0]?.t3;
+  const freeT3PreviousVal = sortedT3[1]?.t3;
+  const freeT3Current = freeT3CurrentVal != null ? `${freeT3CurrentVal} pg/mL` : "—";
+  const freeT3Previous = freeT3PreviousVal != null ? `${freeT3PreviousVal} pg/mL` : "—";
+  const freeT3Change = (freeT3CurrentVal != null && freeT3PreviousVal != null)
+    ? (freeT3CurrentVal - freeT3PreviousVal >= 0 ? "+" : "") + (freeT3CurrentVal - freeT3PreviousVal).toFixed(1)
+    : "—";
 
   /* ────────────────────────────────────────────────────────────────
    *  HANDLERS
@@ -537,6 +556,11 @@ export default function Dashboard() {
               Welcome,{" "}
               <span className="color-1">{fullName}</span>
             </p>
+            {diagnosis && (
+              <p className="font-1 text-xl text-gray-500 mt-3 mb-1">
+                Diagnosis: <span className="color-1 font-bold">{diagnosis}</span>
+              </p>
+            )}
             <p className="font-1 text-3xl">
               {prediction === null ? (
                 <>
@@ -568,20 +592,21 @@ export default function Dashboard() {
           <div className="md:col-span-4 flex items-center justify-center">
             {ProfileLoaded ? (
               (() => {
-                const gaugeValue = healthScore != null ? Math.round(healthScore) : 82;
+                const gaugeValue = healthScore != null ? Math.round(healthScore) : (hasReports ? 82 : 0);
                 const size = 180;
                 const strokeWidth = 14;
                 const radius = (size - strokeWidth) / 2;
                 const circumference = 2 * Math.PI * radius;
                 const offset = circumference - (gaugeValue / 100) * circumference;
 
-                let strokeColor = "#e17100";
-                let textColor = "text-amber-600";
-                if (healthScore != null) {
-                  if (healthScore >= 75) {
+                let strokeColor = "rgba(0,0,0,0.1)";
+                let textColor = "text-gray-400";
+                if (hasReports) {
+                  const scoreVal = healthScore != null ? healthScore : 82;
+                  if (scoreVal >= 75) {
                     strokeColor = "#16a34a";
                     textColor = "text-green-600";
-                  } else if (healthScore >= 50) {
+                  } else if (scoreVal >= 50) {
                     strokeColor = "#e17100";
                     textColor = "text-amber-600";
                   } else {
@@ -653,9 +678,13 @@ export default function Dashboard() {
               <div>
                 <p className="font-1 text-xl">{conditionLabel}</p>
                 <p className="font-1 text-lg">
-                  {prediction ? `Confidence: ${Math.round((prediction.confidence ?? 0) * 100)}%` : status}
+                  {prediction
+                    ? `Confidence: ${Math.round((prediction.confidence ?? 0) * 100)}%`
+                    : (hasReports ? status : "No reports submitted")}
                 </p>
-                <p className="font-1 color-1 text-[15px]">Last updated: Today</p>
+                <p className="font-1 color-1 text-[15px]">
+                  Last updated: {hasReports ? "Today" : "Never"}
+                </p>
               </div>
             </div>
           </div>
@@ -831,14 +860,14 @@ export default function Dashboard() {
           <div className="background-card p-5">
             <p className="text-center font-1 text-2xl">TSH</p>
             <p className="font-1 text-xl mt-4">
-              Current : <span className="color-1">{tshCurrent} mIU/L</span>
+              Current : <span className="color-1">{tshCurrent}</span>
             </p>
             <p className="font-1 text-xl mt-2">
-              Previous : <span className="color-1">{tshPrevious} mIU/L</span>
+              Previous : <span className="color-1">{tshPrevious}</span>
             </p>
             <p className="font-1 text-xl mt-2">
-              Change : <span className="text-amber-600">
-                {(Number(tshCurrent) - Number(tshPrevious)).toFixed(1)}
+              Change : <span className={tshChange !== "—" ? "text-amber-600" : "text-gray-400"}>
+                {tshChange}
               </span>
             </p>
           </div>
@@ -846,14 +875,14 @@ export default function Dashboard() {
           <div className="background-card p-5">
             <p className="text-center font-1 text-2xl">Free T4</p>
             <p className="font-1 text-xl mt-4">
-              Current : <span className="color-1">{freeT4Current} ng/dL</span>
+              Current : <span className="color-1">{freeT4Current}</span>
             </p>
             <p className="font-1 text-xl mt-2">
-              Previous : <span className="color-1">{freeT4Previous} ng/dL</span>
+              Previous : <span className="color-1">{freeT4Previous}</span>
             </p>
             <p className="font-1 text-xl mt-2">
-              Change : <span className="text-amber-600">
-                +{(Number(freeT4Current) - Number(freeT4Previous)).toFixed(1)}
+              Change : <span className={freeT4Change !== "—" ? "text-amber-600" : "text-gray-400"}>
+                {freeT4Change}
               </span>
             </p>
           </div>
@@ -861,14 +890,14 @@ export default function Dashboard() {
           <div className="background-card p-5">
             <p className="text-center font-1 text-2xl">Free T3</p>
             <p className="font-1 text-xl mt-4">
-              Current : <span className="color-1">{freeT3Current} pg/mL</span>
+              Current : <span className="color-1">{freeT3Current}</span>
             </p>
             <p className="font-1 text-xl mt-2">
-              Previous : <span className="color-1">{freeT3Previous} pg/mL</span>
+              Previous : <span className="color-1">{freeT3Previous}</span>
             </p>
             <p className="font-1 text-xl mt-2">
-              Change : <span className="text-amber-600">
-                +{(Number(freeT3Current) - Number(freeT3Previous)).toFixed(1)}
+              Change : <span className={freeT3Change !== "—" ? "text-amber-600" : "text-gray-400"}>
+                {freeT3Change}
               </span>
             </p>
           </div>
