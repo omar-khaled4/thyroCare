@@ -38,4 +38,3 @@ router.delete("/history/:id", deletePrediction);
 
 module.exports = router;
 
-export const maxDuration = 60; // seconds
