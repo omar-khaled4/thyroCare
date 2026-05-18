@@ -1,5 +1,11 @@
 const mongoose = require("mongoose");
 
+const recommendationSchema = new mongoose.Schema({
+  priority: { type: String, enum: ["high", "medium", "low"] },
+  action: { type: String },
+  reason: { type: String },
+}, { _id: false });
+
 /**
  * Stores every prediction made by the NN model for a patient.
  * Allows viewing history and auditing model outputs.
@@ -26,6 +32,7 @@ const predictionSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    recommendations: { type: [recommendationSchema], default: [] },
     // The full patient_data object sent to the model (for audit / replay)
     inputData: {
       type: mongoose.Schema.Types.Mixed,
