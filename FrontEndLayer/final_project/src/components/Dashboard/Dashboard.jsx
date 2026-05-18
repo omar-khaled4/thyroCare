@@ -538,8 +538,24 @@ export default function Dashboard() {
               <span className="color-1">{fullName}</span>
             </p>
             <p className="font-1 text-3xl">
-              Your thyroid levels are{" "}
-              <span className="text-amber-600">critical</span> today.
+              {prediction === null ? (
+                <>
+                  Your thyroid levels are{" "}
+                  <span className="text-amber-600">critical</span> today.
+                </>
+              ) : healthScore >= 75 ? (
+                <>
+                  Your thyroid levels <span className="text-green-600">look good</span> today.
+                </>
+              ) : healthScore >= 50 ? (
+                <>
+                  Your thyroid levels <span className="text-amber-600">need monitoring</span> today.
+                </>
+              ) : (
+                <>
+                  Your thyroid levels <span className="text-red-600">are critical</span> today.
+                </>
+              )}
             </p>
             <button
               onClick={handleDownloadPDF}
@@ -558,6 +574,22 @@ export default function Dashboard() {
                 const radius = (size - strokeWidth) / 2;
                 const circumference = 2 * Math.PI * radius;
                 const offset = circumference - (gaugeValue / 100) * circumference;
+
+                let strokeColor = "#e17100";
+                let textColor = "text-amber-600";
+                if (healthScore != null) {
+                  if (healthScore >= 75) {
+                    strokeColor = "#16a34a";
+                    textColor = "text-green-600";
+                  } else if (healthScore >= 50) {
+                    strokeColor = "#e17100";
+                    textColor = "text-amber-600";
+                  } else {
+                    strokeColor = "#dc2626";
+                    textColor = "text-red-600";
+                  }
+                }
+
                 return (
                   <div className="relative">
                     <svg width={size} height={size}>
@@ -570,7 +602,7 @@ export default function Dashboard() {
                         cy={size / 2}
                       />
                       <circle
-                        stroke="#e17100"
+                        stroke={strokeColor}
                         fill="transparent"
                         strokeWidth={strokeWidth}
                         strokeLinecap="round"
@@ -587,7 +619,7 @@ export default function Dashboard() {
                       />
                     </svg>
                     <div className="absolute inset-0 flex flex-col items-center justify-center">
-                      <span className="text-3xl font-bold text-amber-600">{gaugeValue}%</span>
+                      <span className={`text-3xl font-bold ${textColor}`}>{gaugeValue}%</span>
                       <span className="text-sm text-gray-600 mt-1">
                         Health Stability
                       </span>
@@ -847,26 +879,56 @@ export default function Dashboard() {
          * derive from the prediction endpoint response. */}
         <div className="background-card mt-10 mx-5 md:mx-20 p-5">
           <p className="text-center font-1 text-2xl">Recommended Actions</p>
-          <p className="font-1 text-xl mt-4">
-            <span className="background-1 inline-block w-7 h-7 text-center text-white rounded-full mr-1">1</span>
-            Continue current medication dosage as prescribed{" "}
-          </p>
-          <p className="font-1 text-xl mt-2">
-            <span className="background-1 inline-block w-7 h-7 text-center text-white rounded-full mr-1">2</span>
-            Schedule next blood test in 3 months{" "}
-          </p>
-          <p className="font-1 text-xl mt-2">
-            <span className="background-1 inline-block w-7 h-7 text-center text-white rounded-full mr-1">3</span>
-            Increase water intake to help with dry skin symptoms{" "}
-          </p>
-          <p className="font-1 text-xl mt-2">
-            <span className="background-1 inline-block w-7 h-7 text-center text-white rounded-full mr-1">4</span>
-            Consider adding selenium-rich foods to your diet{" "}
-          </p>
-          <p className="font-1 text-xl mt-2">
-            <span className="background-1 inline-block w-7 h-7 text-center text-white rounded-full mr-1">5</span>
-            Schedule a follow-up with your endocrinologist{" "}
-          </p>
+          {!predictionLoaded ? (
+            <div className="mt-4 flex flex-col gap-4">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="flex items-start gap-3">
+                  <SkeletonText width={28} height={28} style={{ borderRadius: "50%", flexShrink: 0 }} />
+                  <div className="flex-grow">
+                    <SkeletonText width="70%" height={20} />
+                    <SkeletonText width="45%" height={14} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : !prediction || (prediction.recommendations ?? []).length === 0 ? (
+            <p className="font-1 text-gray-400 italic mt-4">
+              No recommendations available yet. Submit a thyroid report to get 
+              personalized recommendations.
+            </p>
+          ) : (
+            (prediction.recommendations ?? []).map((item, index) => {
+              let badgeColorClass = "";
+              if (item.priority === "high") {
+                badgeColorClass = "bg-red-100 text-red-600 border border-red-200";
+              } else if (item.priority === "medium") {
+                badgeColorClass = "bg-amber-100 text-amber-600 border border-amber-200";
+              } else {
+                badgeColorClass = "bg-green-100 text-green-600 border border-green-200";
+              }
+
+              return (
+                <div key={index} className="flex items-start gap-4 p-3 rounded-lg hover:bg-black/5 transition duration-200 mt-2">
+                  <span className="background-1 inline-flex items-center justify-center w-7 h-7 text-center text-white rounded-full font-bold flex-shrink-0">
+                    {index + 1}
+                  </span>
+                  <div className="flex-grow">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-1 text-xl text-gray-800 font-semibold">{item.action}</span>
+                      <span className={`px-2 py-0.5 text-xs font-semibold rounded-full capitalize ${badgeColorClass}`}>
+                        {item.priority}
+                      </span>
+                    </div>
+                    {item.reason && (
+                      <p className="font-1 text-sm text-gray-500 mt-1">
+                        {item.reason}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              );
+            })
+          )}
         </div>
 
         <div className="h-15" />
