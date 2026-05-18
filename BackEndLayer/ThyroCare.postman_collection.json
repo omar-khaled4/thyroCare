@@ -624,7 +624,7 @@
 			]
 		},
 		{
-			"name": "Predictions (NN Model)",
+			"name": "Predictions (LLM Model)",
 			"item": [
 				{
 					"name": "Run Prediction",
@@ -633,7 +633,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n  \"patient_data\": {\r\n    \"HeightCm\": 161.2,\r\n    \"WeightKg\": 70.5,\r\n    \"BMI\": 27.2,\r\n    \"SmokingStatus\": \"Never\",\r\n    \"AlcoholUse\": \"Moderate\",\r\n    \"PhysicalActivity\": \"Moderate\",\r\n    \"DietaryIodine\": \"Adequate\",\r\n    \"Pregnant\": 0,\r\n    \"Postpartum_6mo\": 0,\r\n    \"FamilyHistoryThyroid\": 1,\r\n    \"PriorThyroidDisease\": 0,\r\n    \"NeckRadiationHistory\": 0,\r\n    \"ThyroidSurgeryHistory\": 0,\r\n    \"Diabetes\": 0,\r\n    \"Hypertension\": 0,\r\n    \"Dyslipidemia\": 0,\r\n    \"CKD\": 0,\r\n    \"CAD\": 0,\r\n    \"DepressionAnxietyDx\": 0,\r\n    \"OtherAutoimmuneDx\": 0,\r\n    \"OnAmiodarone\": 0,\r\n    \"OnLithium\": 0,\r\n    \"OnInterferon\": 0,\r\n    \"OnGlucocorticoids\": 0,\r\n    \"OnBiotinSupplement\": 0,\r\n    \"RecentIodineContrast\": 0,\r\n    \"SBP\": 120,\r\n    \"DBP\": 80,\r\n    \"HeartRate\": 72,\r\n    \"TempC\": 36.6,\r\n    \"ESR_mm_hr\": 12,\r\n    \"CRP_mg_L\": 2,\r\n    \"TotalChol_mg_dL\": 190,\r\n    \"LDL_mg_dL\": 110,\r\n    \"HDL_mg_dL\": 55,\r\n    \"Triglycerides_mg_dL\": 130,\r\n    \"HbA1c_pct\": 5.5,\r\n    \"VitaminD_25OH_ng_mL\": 30,\r\n    \"Ferritin_ng_mL\": 80,\r\n    \"Goiter\": 0,\r\n    \"ThyroidNodules\": 0,\r\n    \"TenderThyroid\": 0,\r\n    \"ThyroidVolume_mL\": 15,\r\n    \"OnLevothyroxine\": 0,\r\n    \"LevothyroxineDose_mcg\": 0,\r\n    \"OnAntithyroidDrug\": 0,\r\n    \"AntithyroidDrugType\": \"Methimazole\",\r\n    \"OnBetaBlocker\": 0,\r\n    \"SymptomScore\": 3,\r\n    \"WeightGain\": 0,\r\n    \"WeightLoss\": 0,\r\n    \"HeatIntolerance\": 0,\r\n    \"Tremor\": 0,\r\n    \"Constipation\": 0,\r\n    \"Diarrhea\": 0,\r\n    \"DrySkin\": 0,\r\n    \"Depression\": 0,\r\n    \"MenstrualIrregularity\": 0,\r\n    \"Infertility\": 0,\r\n    \"NeckSwelling\": 0,\r\n    \"EyeSymptoms\": 0\r\n  }\r\n}",
+							"raw": "{}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -649,7 +649,7 @@
 								"predict"
 							]
 						},
-						"description": "Sends patient clinical data to the NN model and returns a thyroid diagnosis prediction.\n\nAge, Gender, TSH, FreeT3, FreeT4, TPOAb, TgAb, TRAb, Fatigue, Anxiety, Insomnia, HairLoss, Palpitations, and ColdIntolerance are automatically enriched from the patient's MongoDB records.\n\nAll other fields must be provided in the patient_data body."
+						"description": "Runs the thyroid prediction using the LLM microservice. No patient clinical data is required in the request body; instead, the backend automatically retrieves and orchestrates patient details (Age, Gender) from the Profile, the latest thyroid lab results from Reports, and symptoms from the Symptoms collection in MongoDB."
 					},
 					"response": []
 				},
@@ -688,7 +688,7 @@
 								"{{predictionId}}"
 							]
 						},
-						"description": "Returns a single prediction record by its MongoDB ID, including the full inputData object that was sent to the NN model."
+						"description": "Returns a single prediction record by its MongoDB ID, including the full inputData object that was sent to the LLM model."
 					},
 					"response": []
 				},
