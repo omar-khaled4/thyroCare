@@ -1,16 +1,8 @@
-import { createContext, useCallback, useEffect, useState } from "react";
+import { createContext, useCallback, useEffect, useRef, useState } from "react";
 import { getMe, login, logout as authLogout, register } from "../services/authService";
 import api from "../services/api";
 
 export let UserContext = createContext();
-
-/**
- * Key used for the per-user "was auto-rehydrated this session?" guard.
- * Prevents an infinite redirect loop when the app boots an expired-but-still-
- * hydrated session: getMe() returns 401 → interceptor redirects → notreloaded
- * again because the flag is already in localStorage.
- */
-
 
 export default function UserContextProvider(props) {
   const [userToken, _setuserToken] = useState(() => {
@@ -32,7 +24,7 @@ export default function UserContextProvider(props) {
   const setuserToken = useCallback((t) => {
     if (t === "null" || t === undefined) t = null;
     console.log("[UserContext] setuserToken called with:", t ? "Valid Token" : "NULL");
-    
+
     if (t && typeof t === "string") {
       localStorage.setItem("userToken", t);
       _setuserToken(t);
@@ -46,15 +38,14 @@ export default function UserContextProvider(props) {
   // ── Sync user state with localStorage
   const setuser = useCallback((u) => {
     if (u === "null" || u === undefined) u = null;
-    
-    // Safety check: Don't set user if it's the whole response envelope instead of the user object
+
     if (u && u.success !== undefined && u.data) {
       console.log("[UserContext] setuser detected envelope, extracting inner data...");
       u = u.data;
     }
 
     console.log("[UserContext] setuser called for:", u?.email || (u ? "Unknown User" : "NULL"));
-    
+
     if (u && typeof u === "object") {
       localStorage.setItem("user", JSON.stringify(u));
       _setuser(u);
@@ -65,37 +56,43 @@ export default function UserContextProvider(props) {
     }
   }, []);
 
-  // ── Rehydrate user state on mount
+  // ── Rehydrate user state ONCE on mount only
+  // Do NOT add userToken to deps — that causes an infinite loop where
+  // a failed getMe() clears the token, which re-triggers getMe(), which fails again.
+  const hasHydrated = useRef(false);
+
   useEffect(() => {
-    if (!userToken) {
+    if (hasHydrated.current) return;
+    hasHydrated.current = true;
+
+    const token = localStorage.getItem("userToken");
+    if (!token || token === "null") {
       console.log("[UserContext] No token to rehydrate.");
       setIsHydrating(false);
       return;
     }
 
-    let cancelled = false;
     console.log("[UserContext] Rehydrating session...");
-    
+
     getMe()
       .then((me) => {
-        if (cancelled) return;
         if (me) {
           setuser(me);
         }
       })
       .catch((err) => {
         console.error("[UserContext] Rehydration failed:", err.message);
+        // Only clear token on 401 — not on network errors or other failures
         if (err?.response?.status === 401) {
+          console.warn("[UserContext] Token is invalid — clearing session");
           setuserToken(null);
           setuser(null);
         }
       })
       .finally(() => {
-        if (!cancelled) setIsHydrating(false);
+        setIsHydrating(false);
       });
-
-    return () => { cancelled = true; };
-  }, [userToken, setuser]);
+  }, []); // ← empty array: runs ONCE on mount only
 
   /* ── Handlers ── */
   const handleLogin = useCallback(

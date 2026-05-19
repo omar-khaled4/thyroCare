@@ -99,7 +99,7 @@ export default function AiChat() {
           {/* ── header ── */}
           <div className="z-10 sticky top-0 left-0 right-0 bg-[#f1f1f1] border-b border-gray-400 flex justify-between px-5 py-2 items-center rounded-t-[22px]">
             <div className="flex justify-between items-center">
-              <img src="/src/assets/AI-girl.png" className="h-12 rounded-full" alt="Aiva avatar" />
+              <img src="/assets/AI-girl.png" className="h-12 rounded-full" alt="Aiva avatar" />
               <div className="ml-3">
                 <p className="text-2xl">Aiva</p>
                 <p className="color-1 text-sm">Your Artificial Intelligence Virtual Assistant for thyroid health</p>

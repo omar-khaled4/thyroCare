@@ -163,15 +163,15 @@ export default function Profile(){
         </> : null}
 
 
-        <div className="bg-[url(/src/assets/image-3.png)] w-full h-100 bg-cover bg-position-[50%_15%]"></div>
+        <div className="bg-[url(/assets/image-3.png)] w-full h-100 bg-cover bg-position-[50%_15%]"></div>
 
         <div className="mx-15 md:mb-25 flex gap-x-6 flex-wrap md:flex-nowrap justify-center md:justify-between items-start">
 
             <div className="bg-white w-75 relative -top-25 rounded-4xl shadow-[6px_6px_25px_rgba(0,0,0,0.25)]">
                 <div className="w-full h-full flex flex-wrap items-center justify-center my-7">
                     {user?.gender === "female"?
-                        <img src="src/assets/girl.png" className="w-35 rounded-full"/>:
-                        <img src="src/assets/boy.png" className="w-35 rounded-full"/>
+                        <img src="/assets/girl.png" className="w-35 rounded-full"/>:
+                        <img src="/assets/boy.png" className="w-35 rounded-full"/>
                     }
                     <p className="w-full mt-4 font-1 text-center text-3xl">{user?.firstName} {user?.lastName}</p>
                     <p className="w-full font-1 color-1 text-center">Hypothyroidism Patient</p>

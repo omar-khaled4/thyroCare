@@ -3,6 +3,7 @@ import style from "./Dashboard.module.css";
 import { UserContext } from "./../../context/UserContext";
 import Chart from "react-apexcharts";
 import html2pdf from "html2pdf.js";
+import { downloadMedicalReport } from "../../services/pdfService";
 
 /* ── API services (already exist at the paths below) ── */
 import { fetchDashboardData } from "../../services/dashboardService";
@@ -180,14 +181,10 @@ export default function Dashboard() {
       setT3data(Array.isArray(data.t3) ? data.t3 : []);
       setT4data(Array.isArray(data.t4) ? data.t4 : []);
       setTSHdata(Array.isArray(data.tsh) ? data.tsh : []);
-
       setSTdata(Array.isArray(data.symptoms) ? data.symptoms : []);
-
       setProfileState(data.profile ?? null);
       setPrediction(data.latestPrediction ?? null);
 
-      /* Delayed flag flip so the skeleton shows for at least 400 ms
-       * to prevent a confusing flash on fast connections. */
       setTimeout(() => {
         if (cancelled) return;
         setT3Loaded(true);
@@ -197,8 +194,16 @@ export default function Dashboard() {
         setProfileLoaded(true);
         setPredictionLoaded(true);
       }, 400);
+    }).catch(() => {
+      if (cancelled) return;
+      // Even if fetch fails, flip all loaded flags so skeletons show empty state
+      setT3Loaded(true);
+      setT4Loaded(true);
+      setTSHLoaded(true);
+      setSymptomsLoaded(true);
+      setProfileLoaded(true);
+      setPredictionLoaded(true);
     });
-
     return () => { cancelled = true; };
   }, []);
 
@@ -224,7 +229,7 @@ export default function Dashboard() {
   /* ────────────────────────────────────────────────────────────────
    *  T3 CHART
    * ──────────────────────────────────────────────────────────────── */
-  const [T3range, setT3Range] = useState("6m"); // 1m | 6m | 1y | all
+  const [T3range, setT3Range] = useState("all"); // 1m | 6m | 1y | all
 
   /** Filter T3raw[] by selected range → T3filteredData */
   const T3filteredData = useMemo(() => {
@@ -289,7 +294,7 @@ export default function Dashboard() {
   /* ────────────────────────────────────────────────────────────────
    *  T4 CHART
    * ──────────────────────────────────────────────────────────────── */
-  const [T4range, setT4Range] = useState("6m");
+  const [T4range, setT4Range] = useState("all");
 
   const T4filteredData = useMemo(() => {
     const T4sorted = [...T4data].sort(
@@ -351,7 +356,7 @@ export default function Dashboard() {
   /* ────────────────────────────────────────────────────────────────
    *  TSH CHART  (typo fix: ysxis → yaxis — retained from original)
    * ──────────────────────────────────────────────────────────────── */
-  const [TSHrange, setTSHRange] = useState("6m");
+  const [TSHrange, setTSHRange] = useState("all");
 
   const TSHfilteredData = useMemo(() => {
     const TSHsorted = [...TSHdata].sort(
@@ -423,18 +428,18 @@ export default function Dashboard() {
 
   const STseries = STlast
     ? [
-        {
-          name: "Severity (0-10)",
-          data: [
-            Number(STlast.fatigue) || 0,
-            Number(STlast.anxiety) || 0,
-            Number(STlast.insomnia) || 0,
-            Number(STlast.hairLoss) || 0,
-            Number(STlast.palpitations) || 0,
-            Number(STlast.coldIntolerance) || 0,
-          ],
-        },
-      ]
+      {
+        name: "Severity (0-10)",
+        data: [
+          Number(STlast.fatigue) || 0,
+          Number(STlast.anxiety) || 0,
+          Number(STlast.insomnia) || 0,
+          Number(STlast.hairLoss) || 0,
+          Number(STlast.palpitations) || 0,
+          Number(STlast.coldIntolerance) || 0,
+        ],
+      },
+    ]
     : [];
 
   const SToptions = {
@@ -474,10 +479,10 @@ export default function Dashboard() {
   const hasReports = T3data.length > 0 || T4data.length > 0 || TSHdata.length > 0 || STdata.length > 0;
 
   // Prediction-derived values (fall back to profile / static defaults)
-  const healthScore    = hasReports ? (prediction?.healthScore ?? null) : null;   // 0-100 from NN model
-  const diagnosis      = hasReports
-                        ? (prediction?.diagnosis ?? profile?.medicalInfo?.status ?? "Stable")
-                        : null;
+  const healthScore = hasReports ? (prediction?.healthScore ?? null) : null;   // 0-100 from NN model
+  const diagnosis = hasReports
+    ? (prediction?.diagnosis ?? profile?.medicalInfo?.status ?? "Stable")
+    : null;
   const conditionLabel = diagnosis ?? "No Reports";
 
   // Medical info extracted with safe defaults
@@ -485,12 +490,12 @@ export default function Dashboard() {
     profile?.medicalInfo ??
     ({});
 
-  const status           = med.status            ?? "Stable condition";
-  const medicationName   = med.medication        ?? "Levothyroxine";
-  const dosage           = med.dosage            ?? "75 mcg daily";
-  const refillDaysLeft   = med.refillDaysLeft    ?? 12;
-  const doctor           = med.doctor            ?? "Dr. Sarah Johnson";
-  const nextAppointment  = med.nextAppointment   ?? "";  // ISO / display string
+  const status = med.status ?? "Stable condition";
+  const medicationName = med.medication ?? "Levothyroxine";
+  const dosage = med.dosage ?? "75 mcg daily";
+  const refillDaysLeft = med.refillDaysLeft ?? 12;
+  const doctor = med.doctor ?? "Dr. Sarah Johnson";
+  const nextAppointment = med.nextAppointment ?? "";  // ISO / display string
 
   // Dynamically computed comparison values from reports
   const sortedTSH = [...TSHdata].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
@@ -525,19 +530,14 @@ export default function Dashboard() {
    * ──────────────────────────────────────────────────────────────── */
 
   /** Download the dashboard as a PDF via html2pdf.js */
+  const [pdfLoading, setPdfLoading] = useState(false);
   const handleDownloadPDF = () => {
-    const element = document.querySelector(".background-DB");
-    if (!element) return;
-
-    const opt = {
-      margin:       0.5,
-      filename:     `thyrocare-dashboard-${new Date().toISOString().split("T")[0]}.pdf`,
-      image:        { type: "jpeg", quality: 0.98 },
-      html2canvas:  { scale: 2 },
-      jsPDF:        { unit: "in", format: "letter", orientation: "portrait" },
-    };
-
-    html2pdf().set(opt).from(element).save();
+    downloadMedicalReport({
+      user,
+      prediction,
+      onStart: () => setPdfLoading(true),
+      onEnd: () => setPdfLoading(false),
+    });
   };
 
   /* ────────────────────────────────────────────────────────────────
@@ -562,10 +562,11 @@ export default function Dashboard() {
               </p>
             )}
             <p className="font-1 text-3xl">
-              {prediction === null ? (
+              {!hasReports || prediction === null ? (
                 <>
-                  Your thyroid levels are{" "}
-                  <span className="text-amber-600">critical</span> today.
+                  <span className="text-gray-400 text-2xl italic">
+                    Insert a report to know your thyroid levels.
+                  </span>
                 </>
               ) : healthScore >= 75 ? (
                 <>
@@ -583,9 +584,10 @@ export default function Dashboard() {
             </p>
             <button
               onClick={handleDownloadPDF}
-              className="background-1 w-33 py-2 mt-6 text-white font-1 rounded-full cursor-pointer"
+              disabled={pdfLoading}
+              className="background-1 w-33 py-2 mt-6 text-white font-1 rounded-full cursor-pointer disabled:opacity-60"
             >
-              Download PDF
+              {pdfLoading ? "Generating..." : "Download PDF"}
             </button>
           </div>
           {/* Health Stability circle — profile-loaded only */}
@@ -678,7 +680,7 @@ export default function Dashboard() {
               <div>
                 <p className="font-1 text-xl">{conditionLabel}</p>
                 <p className="font-1 text-lg">
-                  {prediction
+                  {prediction && hasReports
                     ? `Confidence: ${Math.round((prediction.confidence ?? 0) * 100)}%`
                     : (hasReports ? status : "No reports submitted")}
                 </p>
@@ -742,11 +744,10 @@ export default function Dashboard() {
                   <button
                     key={r}
                     onClick={() => setT3Range(r)}
-                    className={`px-3 py-1 rounded-lg ${
-                      T3range === r
-                        ? "bg-amber-600"
-                        : "background-1"
-                    } text-white hover:bg-amber-600! transition duration-300`}
+                    className={`px-3 py-1 rounded-lg ${T3range === r
+                      ? "bg-amber-600"
+                      : "background-1"
+                      } text-white hover:bg-amber-600! transition duration-300`}
                   >
                     {r.toUpperCase()}
                   </button>
@@ -771,11 +772,10 @@ export default function Dashboard() {
                   <button
                     key={r}
                     onClick={() => setT4Range(r)}
-                    className={`px-3 py-1 rounded-lg ${
-                      T4range === r
-                        ? "bg-amber-600"
-                        : "background-1"
-                    } text-white hover:bg-amber-600! transition duration-300`}
+                    className={`px-3 py-1 rounded-lg ${T4range === r
+                      ? "bg-amber-600"
+                      : "background-1"
+                      } text-white hover:bg-amber-600! transition duration-300`}
                   >
                     {r.toUpperCase()}
                   </button>
@@ -800,11 +800,10 @@ export default function Dashboard() {
                   <button
                     key={r}
                     onClick={() => setTSHRange(r)}
-                    className={`px-3 py-1 rounded-lg ${
-                      TSHrange === r
-                        ? "bg-amber-600"
-                        : "background-1"
-                    } text-white hover:bg-amber-600! transition duration-300`}
+                    className={`px-3 py-1 rounded-lg ${TSHrange === r
+                      ? "bg-amber-600"
+                      : "background-1"
+                      } text-white hover:bg-amber-600! transition duration-300`}
                   >
                     {r.toUpperCase()}
                   </button>
@@ -825,7 +824,9 @@ export default function Dashboard() {
             <p className="text-center font-1 text-2xl">Symptom Tracker</p>
             <div className="mt-4">
               <div className="flex mb-4 justify-center">
-                {SymptomsLoaded && STavailableMonths.length > 0 ? (
+                {!SymptomsLoaded ? (
+                  <SkeletonText width={180} height={40} />
+                ) : STavailableMonths.length > 0 ? (
                   <select
                     value={STselectedMonth}
                     onChange={(e) => setSTSelectedMonth(e.target.value)}
@@ -837,9 +838,7 @@ export default function Dashboard() {
                       </option>
                     ))}
                   </select>
-                ) : (
-                  <SkeletonText width={180} height={40} />
-                )}
+                ) : null}
               </div>
               {!SymptomsLoaded ? (
                 <SkeletonRadar />
@@ -922,7 +921,7 @@ export default function Dashboard() {
             </div>
           ) : !prediction || (prediction.recommendations ?? []).length === 0 ? (
             <p className="font-1 text-gray-400 italic mt-4">
-              No recommendations available yet. Submit a thyroid report to get 
+              No recommendations available yet. Submit a thyroid report to get
               personalized recommendations.
             </p>
           ) : (

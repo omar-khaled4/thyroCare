@@ -10,7 +10,7 @@ export default function AboutUs(){
 
         <div className="mx-10 mt-7">
             <p className="font-5 text-7xl text-center">About Us</p>
-            <img src="src/assets/image-1.png" className="mt-7 w-full rounded-4xl" />
+            <img src="/assets/image-1.png" className="mt-7 w-full rounded-4xl" />
         </div>
 
         <div className="grid gap-4 grid-cols-2 md:grid-cols-12 mx-10 mt-10 mb-35">

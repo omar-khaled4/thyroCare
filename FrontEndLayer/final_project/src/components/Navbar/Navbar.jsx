@@ -12,7 +12,7 @@ export default function Navbar() {
             <div className="flex flex-wrap items-center justify-between mx-auto p-3">
 
                 <Link to="" className="flex items-center space-x-3">
-                    <img src="/src/assets/photo_2026-01-26_21-40-13.jpg" className="h-9 md:h-11 rounded-lg" alt="Logo" />
+                    <img src="/assets/photo_2026-01-26_21-40-13.jpg" className="h-9 md:h-11 rounded-lg" alt="Logo" />
                     <span className="self-center text-xl font-1 color-1">ThyroCare</span>
                 </Link>
 
@@ -24,8 +24,8 @@ export default function Navbar() {
                         </div> :
                         <div>
                             {user.gender === "female" ?
-                                <Link to="profile"><img src="/src/assets/girl.png" className="w-10 rounded-full" /></Link> :
-                                <Link to="profile"><img src="/src/assets/boy.png" className="w-10 rounded-full" /></Link>
+                                <Link to="profile"><img src="/assets/girl.png" className="w-10 rounded-full" /></Link> :
+                                <Link to="profile"><img src="/assets/boy.png" className="w-10 rounded-full" /></Link>
                             }
                         </div>
                     }

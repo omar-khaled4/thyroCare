@@ -9,7 +9,7 @@ export default function Home(){
 
     return <>
 
-        <div className=" bg-[url(assets/home-background.png)] h-screen bg-cover bg-position-[79%_40%]">
+        <div className=" bg-[url(/assets/home-background.png)] h-screen bg-cover bg-position-[79%_40%]">
             <div className="relative top-25 px-4 w-full md:w-140 md:mx-10 md:px-0 md:top-40">
                 <p className="font-3 color-2 text-2xl line-1">INSPIRING BETTER THYROID HEALTH</p>
                 <p className="color-1 font-4 font-extrabold! mt-7 text-4xl md:text-6xl">Healthy thyroid,</p>
@@ -31,7 +31,7 @@ export default function Home(){
 
                 <div className="bg-gray-100 border-2 border-gray-200 rounded-xl shadow-lg overflow-hidden">
                     <div className="relative">
-                        <img src="src/assets/shutterstock_159016388-640x480.jpg" alt="Feature Image" className="w-full h-full object-contain"/>
+                        <img src="/assets/shutterstock_159016388-640x480.jpg" alt="Feature Image" className="w-full h-full object-contain"/>
                         <div className="absolute hov left-4 -bottom-6 w-12 h-12 flex items-center justify-center rounded-full shadow-md ">
                             <i className="fa-solid fa-plus text-2xl "></i>
                         </div>
@@ -44,7 +44,7 @@ export default function Home(){
 
                 <div className="bg-gray-100 border-2 border-gray-200 rounded-xl shadow-lg overflow-hidden">
                     <div className="relative">
-                        <img src="src/assets/shutterstock_157746134-640x480.jpg" alt="Feature Image" className="w-full h-full object-contain"/>
+                        <img src="/assets/shutterstock_157746134-640x480.jpg" alt="Feature Image" className="w-full h-full object-contain"/>
                         <div className="absolute hov left-4 -bottom-6 w-12 h-12 flex items-center justify-center rounded-full shadow-md ">
                             <i className="fa-solid fa-plus text-2xl "></i>
                         </div>
@@ -57,7 +57,7 @@ export default function Home(){
 
                 <div className="bg-gray-100 border-2 border-gray-200 rounded-xl shadow-lg overflow-hidden">
                     <div className="relative">
-                        <img src="src/assets/photo_2026-01-26_22-30-21.jpg" alt="Feature Image" className="w-full h-full object-contain"/>
+                        <img src="/assets/photo_2026-01-26_22-30-21.jpg" alt="Feature Image" className="w-full h-full object-contain"/>
                         <div className="absolute hov left-4 -bottom-6 w-12 h-12 flex items-center justify-center rounded-full shadow-md ">
                             <i className="fa-solid fa-plus text-2xl "></i>
                         </div>
@@ -71,7 +71,7 @@ export default function Home(){
             </div>
         </div>
 
-        <div className="relative bg-[url(src/assets/bgn-team-members.jpg)] h-screen bg-cover bg-right md:bg-left text-center md:text-left">
+        <div className="relative bg-[url(/assets/bgn-team-members.jpg)] h-screen bg-cover bg-right md:bg-left text-center md:text-left">
             <div className="absolute px-10 w-full top-20 md:w-[60%] md:top-40 md:right-0">
                 <p className="font-3 color-2 text-2xl line-1">INTRODUCING OUR TEAM</p>
                 <p className="color-1 font-4 font-extrabold! mt-7 text-4xl md:text-6xl">Great passion</p>
@@ -82,7 +82,7 @@ export default function Home(){
                         <p className="color-1 font-4 text-xl! font-bold!">CHASE FRANKLIN</p>
                         <p className=" font-4 text-[15px] text-right">Fonder & CEO</p>
                     </div>
-                    <img src="src/assets/img-cardiology-signature.png" className="w-20 h-20 object-contain"/>
+                    <img src="/assets/img-cardiology-signature.png" className="w-20 h-20 object-contain"/>
                 </div>
             </div>
         </div>
@@ -96,7 +96,7 @@ export default function Home(){
                     <p className="font-1 text-md leading-7 font-light! mt-4">Our platform helps you easily track and monitor your thyroid test results over time, giving you a clear view of your health progress. Based on your condition and results, we provide personalized guidance to support better thyroid management. In addition, our built-in chatbot is always available to answer your questions, explain your condition, and help you understand your treatment anytime you need.</p>
                 </div>
                 <div className="flex items-center md:col-span-5">
-                    <img src="src/assets/premium_photo-1661779717978-d7937fa08250.avif" className="w-full rounded-[60px] object-contain"/>
+                    <img src="/assets/premium_photo-1661779717978-d7937fa08250.avif" className="w-full rounded-[60px] object-contain"/>
                 </div>                
             </div>
         </div>
@@ -104,21 +104,21 @@ export default function Home(){
         <div className="bg-[#f4fcff] py-15">
             <div className="mx-10 grid gap-4 md:grid-cols-12 md:grid-rows-2">
                 <div className="relative md:row-span-2 md:col-span-8">
-                    <img src="src/assets/photo_3_2026-01-26_21-57-15.jpg" className="rounded-[50px] w-full"/>
+                    <img src="/assets/photo_3_2026-01-26_21-57-15.jpg" className="rounded-[50px] w-full"/>
                     <div className="absolute top-0">
                         <p className="font-1 text-2xl sm:text-5xl bg-[#f4fcff] rounded-r-[50px] pb-2 pr-5">Data analysis at the</p>
                         <p className="font-1 text-2xl sm:text-5xl bg-[#f4fcff] rounded-r-[50px] pb-2 pr-5 inline">highest level</p>
                     </div>
                 </div>
                 <div className="relative md:col-span-4">
-                    <img src="src/assets/photo_2026-01-26_22-08-52.jpg" className="rounded-[50px] w-full"/>
+                    <img src="/assets/photo_2026-01-26_22-08-52.jpg" className="rounded-[50px] w-full"/>
                     <div className="absolute top-1/2 -translate-y-1/2 left-3">
                         <p className="font-1 color-2 text-4xl pb-2">The best</p>
                         <p className="font-1 color-2 text-4xl">Team</p>
                     </div>
                 </div>
                 <div className="relative md:col-span-4">
-                    <img src="src/assets/photo_2_2026-01-26_21-57-15.jpg" className="rounded-[50px] w-full"/>
+                    <img src="/assets/photo_2_2026-01-26_21-57-15.jpg" className="rounded-[50px] w-full"/>
                     <div className="absolute top-1/2 -translate-y-1/2 right-3">
                         <p className="font-1 text-white text-4xl pb-2 text-center">99.98%</p>
                         <p className="font-1 text-white text-4xl">Accuracy</p>
@@ -134,7 +134,7 @@ export default function Home(){
 
                 <div className="bg-gray-100 border-2 border-gray-200 rounded-xl shadow-lg overflow-hidden">
                     <div className="relative">
-                        <img src="src/assets/img-team-member-01.jpg" alt="Feature Image" className="w-full h-full object-contain"/>
+                        <img src="/assets/img-team-member-01.jpg" alt="Feature Image" className="w-full h-full object-contain"/>
                         <div className="absolute hov left-1/2 -translate-x-1/2 -bottom-6 w-12 h-12 flex items-center justify-center rounded-full shadow-md ">
                             <i className="fa-solid fa-plus text-2xl "></i>
                         </div>
@@ -149,7 +149,7 @@ export default function Home(){
 
                 <div className="bg-gray-100 border-2 border-gray-200 rounded-xl shadow-lg overflow-hidden">
                     <div className="relative">
-                        <img src="src/assets/img-team-member-02.jpg" alt="Feature Image" className="w-full h-full object-contain"/>
+                        <img src="/assets/img-team-member-02.jpg" alt="Feature Image" className="w-full h-full object-contain"/>
                         <div className="absolute hov left-1/2 -translate-x-1/2 -bottom-6 w-12 h-12 flex items-center justify-center rounded-full shadow-md ">
                             <i className="fa-solid fa-plus text-2xl "></i>
                         </div>
@@ -164,7 +164,7 @@ export default function Home(){
 
                 <div className="bg-gray-100 border-2 border-gray-200 rounded-xl shadow-lg overflow-hidden">
                     <div className="relative">
-                        <img src="src/assets/img-team-member-03.jpg" alt="Feature Image" className="w-full h-full object-contain"/>
+                        <img src="/assets/img-team-member-03.jpg" alt="Feature Image" className="w-full h-full object-contain"/>
                         <div className="absolute hov left-1/2 -translate-x-1/2 -bottom-6 w-12 h-12 flex items-center justify-center rounded-full shadow-md ">
                             <i className="fa-solid fa-plus text-2xl "></i>
                         </div>
@@ -179,7 +179,7 @@ export default function Home(){
 
                 <div className="bg-gray-100 border-2 border-gray-200 rounded-xl shadow-lg overflow-hidden">
                     <div className="relative">
-                        <img src="src/assets/img-team-member-04.jpg" alt="Feature Image" className="w-full h-full object-contain"/>
+                        <img src="/assets/img-team-member-04.jpg" alt="Feature Image" className="w-full h-full object-contain"/>
                         <div className="absolute hov left-1/2 -translate-x-1/2 -bottom-6 w-12 h-12 flex items-center justify-center rounded-full shadow-md ">
                             <i className="fa-solid fa-plus text-2xl "></i>
                         </div>
@@ -195,7 +195,7 @@ export default function Home(){
             </div>
         </div>
 
-        <div className="relative bg-[url(src/assets/bgn-newsletter-subscribe.jpg)] h-screen bg-cover bg-right text-center md:text-left">
+        <div className="relative bg-[url(/assets/bgn-newsletter-subscribe.jpg)] h-screen bg-cover bg-right text-center md:text-left">
             <div className="md:hidden absolute inset-0 bg-[#000000]/60"></div>
             <div className="absolute px-10 w-full md:w-[60%] top-40 md:left-0">
                 <p className="font-3 text-white md:text-[#444444] text-2xl line-1">GET THE NOTIFICATION</p>
