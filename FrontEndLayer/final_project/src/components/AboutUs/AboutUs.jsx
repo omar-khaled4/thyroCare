@@ -1,7 +1,7 @@
 import React from "react";
 import style from "./AboutUs.module.css"
 
-export default function AboutUs(){
+export default function AboutUs() {
     return <>
         <div className="grid gap-8 md:grid-cols-12 mx-10 mt-35">
             <p className="md:col-span-5 flex items-center justify-center font-5 text-7xl">ThyroCare</p>
@@ -21,7 +21,7 @@ export default function AboutUs(){
             <div className="md:col-span-3 md:col-start-4">
                 <p className="font-5 text-[16px] color-2">Location</p>
                 <p className="font-5 text-xl font-medium">Computer & Artificial Intelligence</p>
-                <p className="font-5 text-xl font-medium">Helwan University</p>
+                <p className="font-5 text-xl font-medium">Capital University</p>
             </div>
             <p className="font-5 color-2 text-[16px] text-center col-span-2 md:col-span-5 md:col-start-8 md:text-left">Our website is designed to help thyroid patients track their test results over time, understand changes in their condition, and receive personalized guidance based on their health data. By combining technology with healthcare awareness, we aim to bridge the gap between medical information and everyday life, empowering patients to feel more confident and in control of their health journey.</p>
         </div>
