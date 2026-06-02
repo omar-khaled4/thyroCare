@@ -16,6 +16,9 @@ import ProtectedRoute from './components/ProtectedRoute/ProtectedRoute';
 import ReportOptions from './components/ReportOptions/ReportOptions';
 import InsertReport from './components/InsertReport/InsertReport';
 import ViewReports from './components/ViewReports/ViewReports';
+import ForgotPassword from './components/ForgotPassword/ForgotPassword';
+import ResetPassword from './components/ResetPassword/ResetPassword';
+import VerifyEmail from './components/VerifyEmail/VerifyEmail';
 
 //CHAINS:
 //POST   /auth/login           { email, password }
@@ -45,6 +48,9 @@ let x = createBrowserRouter([
       { path: "about", element: <AboutUs /> },
       { path: "login", element: <Login /> },
       { path: "signup", element: <SignUp /> },
+      { path: "forgot-password", element: <ForgotPassword /> },
+      { path: "reset-password", element: <ResetPassword /> },
+      { path: "verify-email", element: <VerifyEmail /> },
       {
         path: "dashboard", element: <ProtectedRoute><Dashboard /></ProtectedRoute>
       },
@@ -66,7 +72,7 @@ let x = createBrowserRouter([
       { path: "*", element: <NotFound /> },
     ]
   }
-])
+]);
 
 function App() {
 

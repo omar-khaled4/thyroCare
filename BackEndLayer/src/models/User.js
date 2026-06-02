@@ -17,6 +17,9 @@ const userSchema = new mongoose.Schema(
     },
     password: { type: String, required: true, minlength: 6 },
     role: { type: String, enum: ["patient", "admin"], default: "patient" },
+    isEmailVerified: { type: Boolean, default: false },
+    emailVerificationToken: { type: String, default: null },
+    emailVerificationExpires: { type: Date, default: null },
     profile: {
       phone: String,
       birthday: String,

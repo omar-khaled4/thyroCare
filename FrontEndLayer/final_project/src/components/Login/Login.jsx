@@ -3,13 +3,14 @@ import { useFormik } from "formik";
 import * as yup from "yup";
 import { useNavigate } from "react-router-dom";
 import { UserContext } from "../../context/UserContext";
-import { login } from "../../services/authService";
+import { login, resendVerification } from "../../services/authService";
 import toast from "react-hot-toast";
 
 export default function Login() {
   let navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [serverError, setServerError] = useState("");
+  const [showResendVerification, setShowResendVerification] = useState(false);
   const { login: doLogin } = useContext(UserContext);
 
   async function handleLogin(values) {
@@ -29,9 +30,28 @@ export default function Login() {
         err.message ??
         "Login failed. Please check your credentials and try again.";
       setServerError(msg);
+      if (err?.response?.status === 403) {
+        setShowResendVerification(true);
+      }
       toast.error(msg, { id: toastId });
     } finally {
       setIsLoading(false);
+    }
+  }
+
+  async function handleResendVerification() {
+    const toastId = toast.loading("Sending verification email…");
+    try {
+      await resendVerification(formik.values.email);
+      toast.success("Verification email sent!", { id: toastId });
+      setShowResendVerification(false);
+    } catch (err) {
+      const msg =
+        err?.response?.data?.message ??
+        err?.response?.data?.error ??
+        err.message ??
+        "Failed to send verification email.";
+      toast.error(msg, { id: toastId });
     }
   }
 
@@ -120,11 +140,29 @@ export default function Login() {
                   ) : null}
                 </div>
 
+                {/* Forgot Password? link */}
+                <div className="text-right text-sm mt-2">
+                  <a href="#" className="text-white font-1 hover:underline">
+                    Forgot Password?
+                  </a>
+                </div>
+
                 {/* Server-side error message */}
                 {serverError && (
                   <p className="font-1 pt-2 text-red-600 bg-red-100/20 rounded p-2">
                     {serverError}
                   </p>
+                )}
+
+                {/* Resend Verification Email button */}
+                {showResendVerification && (
+                  <button
+                    type="button"
+                    onClick={handleResendVerification}
+                    className="bg-white font-1 text-lg w-full mb-4 py-2 rounded-lg cursor-pointer"
+                  >
+                    Resend Verification Email
+                  </button>
                 )}
 
                 {isLoading ? (

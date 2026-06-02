@@ -10,7 +10,7 @@ export async function login(credentials) {
   try {
     const { data } = await api.post("/auth/login", credentials);
     console.log("[authService] Login response data:", data);
-    
+
     const token = data.token || data.userToken || data.accessToken || data.access_token || (data.data && (data.data.token || data.data.userToken || data.data.accessToken));
     const user = data.user || data.data?.user || data;
 
@@ -59,6 +59,94 @@ export async function register(userData) {
 }
 
 /**
+ * POST /auth/forgot-password
+ * Sends a password reset email to the user.
+ */
+export async function forgotPassword(email) {
+  const toastId = toast.loading("Sending reset link…", { id: "auth-forgot" });
+  try {
+    const { data } = await api.post("/auth/forgot-password", { email });
+    toast.success(
+      data?.message || "Reset link sent! Please check your email.",
+      { id: toastId }
+    );
+    return data;
+  } catch (err) {
+    toast.error(
+      err?.response?.data?.message || "Failed to send reset link. Please try again.",
+      { id: toastId }
+    );
+    throw err;
+  }
+}
+
+/**
+ * POST /auth/reset-password
+ * Resets the user's password using the token from the email.
+ */
+export async function resetPassword(token, newPassword) {
+  const toastId = toast.loading("Resetting password…", { id: "auth-reset" });
+  try {
+    const { data } = await api.post("/auth/reset-password", { token, newPassword });
+    toast.success(
+      data?.message || "Password reset successfully! You can now log in.",
+      { id: toastId }
+    );
+    return data;
+  } catch (err) {
+    toast.error(
+      err?.response?.data?.message || "Failed to reset password. The link may have expired.",
+      { id: toastId }
+    );
+    throw err;
+  }
+}
+
+/**
+ * GET /auth/verify-email?token=xxx
+ * Verifies the user's email address.
+ */
+export async function verifyEmail(token) {
+  const toastId = toast.loading("Verifying your email…", { id: "auth-verify" });
+  try {
+    const { data } = await api.get(`/auth/verify-email?token=${token}`);
+    toast.success(
+      data?.message || "Email verified successfully!",
+      { id: toastId }
+    );
+    return data;
+  } catch (err) {
+    toast.error(
+      err?.response?.data?.message || "Email verification failed. The link may have expired.",
+      { id: toastId }
+    );
+    throw err;
+  }
+}
+
+/**
+ * POST /auth/resend-verification
+ * Resends the verification email.
+ */
+export async function resendVerification(email) {
+  const toastId = toast.loading("Resending verification email…", { id: "auth-resend" });
+  try {
+    const { data } = await api.post("/auth/resend-verification", { email });
+    toast.success(
+      data?.message || "Verification email sent! Check your inbox.",
+      { id: toastId }
+    );
+    return data;
+  } catch (err) {
+    toast.error(
+      err?.response?.data?.message || "Failed to resend verification email.",
+      { id: toastId }
+    );
+    throw err;
+  }
+}
+
+/**
  * GET /auth/me
  * Refreshes the user object from the backend. Persists to localStorage.
  */
@@ -80,14 +168,10 @@ export async function getMe() {
  * POST /auth/logout (best-effort)
  */
 export async function logout() {
-  try {
-    await api.post("/auth/logout");
-  } catch (_) {
-    // Ignore network errors during logout
-  } finally {
-    clearAuth();
-  }
+  // JWT is stateless — no backend call needed
+  clearAuth();
 }
+
 
 /**
  * Utility: clear all auth artefacts without touching the network
@@ -98,14 +182,15 @@ export function clearAuth() {
 }
 
 /**
- * PUT /auth/update
+ * PUT /profile
  * Updates the logged-in user's profile.
  */
 export async function updateProfile(values) {
   try {
-    const { data } = await api.put("/auth/update", values);
+    const { data } = await api.put("/profile", values);
     toast.success("Profile updated successfully!");
-    return data;
+    const user = data.data || data;
+    return user;
   } catch (err) {
     toast.error(
       err?.response?.data?.message || "Failed to update profile. Please try again."
