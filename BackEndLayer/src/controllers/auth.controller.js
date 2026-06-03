@@ -25,9 +25,9 @@ const register = tryCatch(async (req, res) => {
     isEmailVerified: false,
   });
 
-  // Send verification email
+  // Send verification email (don't block registration if email fails)
   const verifyUrl = `${process.env.FRONTEND_URL}/verify-email?token=${verificationToken}`;
-  await sendEmail({
+  sendEmail({
     to: email,
     subject: "ThyroCare — Verify Your Email",
     html: `
@@ -42,6 +42,9 @@ const register = tryCatch(async (req, res) => {
       <p>This link expires in 24 hours.</p>
       <p>If you didn't create an account, please ignore this email.</p>
     `,
+  }).catch((err) => {
+    console.error("[register] Failed to send verification email:", err.message);
+    // Don't throw — user can resend verification from the verify page
   });
 
   const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {

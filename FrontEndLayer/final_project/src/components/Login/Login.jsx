@@ -1,7 +1,7 @@
 import React, { useContext, useState } from "react";
 import { useFormik } from "formik";
 import * as yup from "yup";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { UserContext } from "../../context/UserContext";
 import { login, resendVerification } from "../../services/authService";
 import toast from "react-hot-toast";
@@ -142,9 +142,9 @@ export default function Login() {
 
                 {/* Forgot Password? link */}
                 <div className="text-right text-sm mt-2">
-                  <a href="#" className="text-white font-1 hover:underline">
+                  <Link to="/forgot-password" className="text-white font-1 hover:underline">
                     Forgot Password?
-                  </a>
+                  </Link>
                 </div>
 
                 {/* Server-side error message */}

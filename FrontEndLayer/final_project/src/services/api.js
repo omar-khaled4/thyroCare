@@ -54,12 +54,15 @@ api.interceptors.response.use(
       error.message ||
       "An unexpected error occurred";
 
+    const isAuthPage =
+      window.location.pathname.includes("/login") ||
+      window.location.pathname.includes("/signup") ||
+      window.location.pathname.includes("/forgot-password") ||
+      window.location.pathname.includes("/reset-password") ||
+      window.location.pathname.includes("/verify-email");
+
     if (status === 401 || status === 403) {
       console.warn("!!! [api] Session expired or unauthorized !!!");
-
-      const isAuthPage =
-        window.location.pathname.includes("/login") ||
-        window.location.pathname.includes("/signup");
 
       // Check if this is an optional/non-critical endpoint
       const isOptional = OPTIONAL_ENDPOINTS.some((ep) =>
@@ -71,16 +74,18 @@ api.interceptors.response.use(
         console.warn(
           `[api] Optional endpoint ${config?.url} returned ${status} — skipping logout`
         );
+      } else if (!isAuthPage && !isLoggingOut) {
+        // Core auth failure — logout once
+        isLoggingOut = true;
+        console.warn("[api] Core endpoint returned 401 — logging out");
+        localStorage.removeItem("userToken");
+        localStorage.removeItem("user");
+        window.location.href = "/login";
       }
-    } else if (!isAuthPage && !isLoggingOut) {
-      // Core auth failure — logout once
-      isLoggingOut = true;
-      console.warn("[api] Core endpoint returned 401 — logging out");
-      localStorage.removeItem("userToken");
-      localStorage.removeItem("user");
-      window.location.href = "/login";
-    } else if (!error?.config?._toastFired) {
-      error.config._toastFired = true;
+    } else if (!isAuthPage && !error?.config?._toastFired) {
+      if (error.config) {
+        error.config._toastFired = true;
+      }
       toast.error(message);
     }
 

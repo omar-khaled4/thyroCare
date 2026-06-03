@@ -20,7 +20,7 @@ export default function SignUp() {
     try {
       await doRegister(values);
       toast.success("Account created successfully!", { id: toastId });
-      navigate("/");
+      navigate(`/verify-email?email=${encodeURIComponent(values.email)}`);
     } catch (err) {
       const msg =
         err?.response?.data?.message ??
