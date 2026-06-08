@@ -15,20 +15,33 @@ const ResetPassword = () => {
 
   if (!token) {
     return (
-      <div className="flex min-h-screen bg-gray-50 dark:bg-gray-900">
-        <div className="hidden md:block w-1/2 bg-white dark:bg-gray-800"></div>
-        <div className="flex-1 flex items-center justify-center p-6">
-          <div className="w-full max-w-md space-y-8">
-            <div>
-              <h2 className="text-center text-2xl font-bold">Reset Password</h2>
-              <p className="text-center text-sm text-gray-600 dark:text-gray-400">
-                Invalid or expired reset link
+      <div className="background-image w-full min-h-screen">
+        <div className="pt-35 mx-10 grid gap-4 md:grid-cols-12">
+          <div className="md:col-span-5 fixed w-90">
+            <p className="text-white font-1 text-5xl hidden md:flex leading-15">
+              When your body speaks, Listening is the first step toward healing
+            </p>
+          </div>
+          <div className="md:col-span-6 md:col-start-7 lg:col-span-5 lg:col-start-8">
+            <div className="w-full backdrop-blur-[10px] bg-white/10 rounded-[50px] border border-white mb-4">
+              <p className="text-white font-1 text-center text-2xl py-3 border-b-2 mx-5">
+                Reset Password
               </p>
-            </div>
-            <div className="text-center">
-              <Link to="/login" className="font-medium text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300">
-                Go back to login
-              </Link>
+              <div className="m-5 text-white font-1 text-center">
+                <div className="text-5xl mb-4">⚠️</div>
+                <p className="text-lg text-red-300 font-bold mb-2">
+                  Invalid or expired reset link
+                </p>
+                <p className="text-sm opacity-80 mb-6">
+                  The link may have expired or is invalid. Please request a new one.
+                </p>
+                <Link
+                  to="/forgot-password"
+                  className="inline-block bg-white text-black font-semibold font-1 py-2 px-6 rounded-lg hover:bg-opacity-90 transition-all"
+                >
+                  Request New Link
+                </Link>
+              </div>
             </div>
           </div>
         </div>
@@ -43,7 +56,7 @@ const ResetPassword = () => {
       .matches(/[A-Z]/, 'Must contain at least one uppercase letter')
       .matches(/[a-z]/, 'Must contain at least one lowercase letter')
       .matches(/\d/, 'Must contain at least one number')
-      .matches(/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/, 'Must contain at least one special character'),
+      .matches(/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/, 'Must contain at least one special character'),
     confirmPassword: Yup.string()
       .required('Please confirm your password')
       .oneOf([Yup.ref('newPassword'), null], 'Passwords must match')
@@ -68,71 +81,89 @@ const ResetPassword = () => {
   };
 
   return (
-    <div className="flex min-h-screen bg-gray-50 dark:bg-gray-900">
-      <div className="hidden md:block w-1/2 bg-white dark:bg-gray-800"></div>
-      <div className="flex-1 flex items-center justify-center p-6">
-        <div className="w-full max-w-md space-y-8">
-          <div>
-            <h2 className="text-center text-2xl font-bold">Reset Password</h2>
-            <p className="text-center text-sm text-gray-600 dark:text-gray-400">
-              Enter your new password below
+    <div className="background-image w-full min-h-screen">
+      <div className="pt-35 mx-10 grid gap-4 md:grid-cols-12">
+        <div className="md:col-span-5 fixed w-90">
+          <p className="text-white font-1 text-5xl hidden md:flex leading-15">
+            When your body speaks, Listening is the first step toward healing
+          </p>
+        </div>
+        <div className="md:col-span-6 md:col-start-7 lg:col-span-5 lg:col-start-8">
+          <div className="w-full backdrop-blur-[10px] bg-white/10 rounded-[50px] border border-white mb-4">
+            <p className="text-white font-1 text-center text-2xl py-3 border-b-2 mx-5">
+              Reset Password
             </p>
+
+            <Formik
+              initialValues={{ newPassword: '', confirmPassword: '' }}
+              validationSchema={validationSchema}
+              onSubmit={handleSubmit}
+            >
+              {({ isSubmitting }) => (
+                <Form className="m-5">
+                  <div className="mt-4">
+                    <label htmlFor="newPassword" className="text-white font-1 w-full text-lg">
+                      New Password
+                    </label>
+                    <Field
+                      id="newPassword"
+                      name="newPassword"
+                      type="password"
+                      autoComplete="new-password"
+                      required
+                      className="w-full font-1 bg-[#00000000] text-white rounded-lg"
+                    />
+                    <ErrorMessage
+                      name="newPassword"
+                      component="p"
+                      className="font-1 pt-1 text-red-800"
+                    />
+                    <p className="font-1 pt-1 text-white/50 text-xs">
+                      8+ chars, 1 uppercase, 1 lowercase, 1 number, 1 special character
+                    </p>
+                  </div>
+
+                  <div className="mt-4">
+                    <label htmlFor="confirmPassword" className="text-white font-1 w-full text-lg">
+                      Confirm Password
+                    </label>
+                    <Field
+                      id="confirmPassword"
+                      name="confirmPassword"
+                      type="password"
+                      autoComplete="new-password"
+                      required
+                      className="w-full font-1 bg-[#00000000] text-white rounded-lg"
+                    />
+                    <ErrorMessage
+                      name="confirmPassword"
+                      component="p"
+                      className="font-1 pt-1 text-red-800"
+                    />
+                  </div>
+
+                  {serverError && (
+                    <p className="font-1 pt-2 text-red-600 bg-red-100/20 rounded p-2 mt-4">
+                      {serverError}
+                    </p>
+                  )}
+
+                  {isLoading ? (
+                    <p className="bg-white font-1 text-lg w-full my-8 py-2 rounded-lg cursor-pointer text-center">
+                      <i className="fas fa-spinner fa-spin text-black"></i>
+                    </p>
+                  ) : (
+                    <button
+                      type="submit"
+                      className="bg-white font-1 text-lg w-full my-8 py-2 rounded-lg cursor-pointer"
+                    >
+                      Reset Password
+                    </button>
+                  )}
+                </Form>
+              )}
+            </Formik>
           </div>
-          <Formik
-            initialValues={{ newPassword: '', confirmPassword: '' }}
-            validationSchema={validationSchema}
-            onSubmit={handleSubmit}
-          >
-            {({ isSubmitting }) => (
-              <form>
-                <div className="space-y-4">
-                  <label htmlFor="newPassword" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                    New Password
-                  </label>
-                  <Field
-                    id="newPassword"
-                    name="newPassword"
-                    type="password"
-                    autoComplete="new-password"
-                    required
-                    className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 py-2 px-4 text-sm font-medium text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                  />
-                  <ErrorMessage
-                    name="newPassword"
-                    component="div"
-                    className="text-sm text-red-600 dark:text-red-400"
-                  />
-
-                  <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Confirm Password
-                  </label>
-                  <Field
-                    id="confirmPassword"
-                    name="confirmPassword"
-                    type="password"
-                    autoComplete="new-password"
-                    required
-                    className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 py-2 px-4 text-sm font-medium text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                  />
-                  <ErrorMessage
-                    name="confirmPassword"
-                    component="div"
-                    className="text-sm text-red-600 dark:text-red-400"
-                  />
-
-                  {serverError && <p className="text-sm text-red-600 dark:text-red-400">{serverError}</p>}
-
-                  <button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="flex w-full justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-                  >
-                    {isSubmitting ? 'Resetting...' : 'Reset Password'}
-                  </button>
-                </div>
-              </form>
-            )}
-          </Formik>
         </div>
       </div>
     </div>

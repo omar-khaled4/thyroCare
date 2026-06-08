@@ -63,8 +63,7 @@ export default function Login() {
       .matches(/^[a-zA-Z]{3,}/, "email must start with 3 char at least"),
     password: yup
       .string()
-      .min(6, " min lenght is 6 ")
-      .required(" password is required "),
+      .required("Password is required"),
   });
 
   const formik = useFormik({

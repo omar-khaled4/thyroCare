@@ -180,12 +180,29 @@ const forgotPassword = tryCatch(async (req, res) => {
 
   await ResetToken.create({ userId: user._id, token, expiresAt });
 
-  respond(
-    res,
-    200,
-    { token },
-    "Reset token generated (in production, email it)",
-  );
+  // Send actual reset email
+  const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${token}`;
+  sendEmail({
+    to: email,
+    subject: "ThyroCare — Reset Your Password",
+    html: `
+      <h2>Hello ${user.firstName},</h2>
+      <p>You requested to reset your password.</p>
+      <p>Click the link below to set a new password:</p>
+      <a href="${resetUrl}" style="
+        display: inline-block; padding: 12px 24px;
+        background-color: #00b3a1; color: white;
+        text-decoration: none; border-radius: 8px;
+        font-weight: bold;
+      ">Reset Password</a>
+      <p>This link expires in 1 hour.</p>
+      <p>If you didn't request this, please ignore this email.</p>
+    `,
+  }).catch((err) => {
+    console.error("[forgotPassword] Failed to send reset email:", err.message);
+  });
+
+  respond(res, 200, null, "Reset link sent to your email. Please check your inbox.");
 });
 
 /**

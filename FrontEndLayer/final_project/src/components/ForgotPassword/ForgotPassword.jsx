@@ -8,27 +8,18 @@ import { forgotPassword } from "../../services/authService";
 export default function ForgotPassword() {
   const [isLoading, setIsLoading] = useState(false);
   const [serverError, setServerError] = useState("");
-  const [resetToken, setResetToken] = useState("");
   const [isSuccess, setIsSuccess] = useState(false);
+  const [sentEmail, setSentEmail] = useState("");
 
   async function handleForgotPassword(values) {
     setIsLoading(true);
     setServerError("");
-    setResetToken("");
     setIsSuccess(false);
 
-    const toastId = toast.loading("Sending reset link…", { id: "auth-forgot" });
-
     try {
-      const response = await forgotPassword(values.email);
-      // The forgotPassword service returns response which contains data.token
-      const token = response?.data?.token || response?.token;
-
-      if (token) {
-        setResetToken(token);
-      }
+      await forgotPassword(values.email);
+      setSentEmail(values.email);
       setIsSuccess(true);
-      toast.success("Reset link generated successfully!", { id: toastId });
     } catch (err) {
       const msg =
         err?.response?.data?.message ??
@@ -36,7 +27,6 @@ export default function ForgotPassword() {
         err.message ??
         "Failed to request password reset. Please try again.";
       setServerError(msg);
-      toast.error(msg, { id: toastId });
     } finally {
       setIsLoading(false);
     }
@@ -45,9 +35,8 @@ export default function ForgotPassword() {
   const validationSchema = yup.object().shape({
     email: yup
       .string()
-      .email(" not valid email ")
-      .required(" email is required ")
-      .matches(/^[a-zA-Z]{3,}/, "email must start with 3 char at least"),
+      .email("Not a valid email")
+      .required("Email is required"),
   });
 
   const formik = useFormik({
@@ -62,8 +51,7 @@ export default function ForgotPassword() {
         <div className="pt-35 mx-10 grid gap-4 md:grid-cols-12">
           <div className="md:col-span-5 fixed w-90">
             <p className="text-white font-1 text-5xl hidden md:flex leading-15">
-              When your body speaks, Listening is the first step toward
-              healing
+              When your body speaks, Listening is the first step toward healing
             </p>
           </div>
 
@@ -75,26 +63,22 @@ export default function ForgotPassword() {
 
               {isSuccess ? (
                 <div className="m-5 text-white font-1 text-center">
-                  <p className="text-lg text-green-300 font-bold mb-4">
-                    Reset Token Generated!
+                  <div className="text-5xl mb-4">📧</div>
+                  <p className="text-lg text-green-300 font-bold mb-2">
+                    Reset link sent!
                   </p>
                   <p className="text-sm mb-6 opacity-90 leading-relaxed">
-                    In a production environment, a reset link would be emailed to you. For development, you can use the direct link below:
+                    We sent a password reset link to:
                   </p>
-
-                  {resetToken && (
-                    <div className="bg-white/10 rounded-2xl p-4 mb-6 border border-white/20">
-                      <Link
-                        to={`/reset-password?token=${resetToken}`}
-                        className="inline-block bg-white text-black font-semibold font-1 py-2 px-6 rounded-lg hover:bg-opacity-90 transition-all"
-                      >
-                        Reset Password
-                      </Link>
-                    </div>
-                  )}
-
+                  <p className="text-white font-bold mb-6">{sentEmail}</p>
+                  <p className="text-sm opacity-80 mb-6">
+                    Check your inbox and spam folder. The link expires in 1 hour.
+                  </p>
                   <div className="border-t border-white/20 pt-4 mt-6">
-                    <Link to="/login" className="text-white hover:underline text-sm">
+                    <Link
+                      to="/login"
+                      className="text-white hover:underline text-sm"
+                    >
                       Back to login
                     </Link>
                   </div>
@@ -102,7 +86,8 @@ export default function ForgotPassword() {
               ) : (
                 <form onSubmit={formik.handleSubmit} className="m-5">
                   <p className="text-white font-1 text-sm mb-6 opacity-90 leading-relaxed">
-                    Enter the email address associated with your account and we will generate a password reset token.
+                    Enter the email address associated with your account and we
+                    will send you a link to reset your password.
                   </p>
 
                   <div>
@@ -130,7 +115,6 @@ export default function ForgotPassword() {
                     ) : null}
                   </div>
 
-                  {/* Server-side error message */}
                   {serverError && (
                     <p className="font-1 pt-2 text-red-600 bg-red-100/20 rounded p-2 mt-4">
                       {serverError}
@@ -146,12 +130,15 @@ export default function ForgotPassword() {
                       type="submit"
                       className="bg-white font-1 text-lg w-full my-8 py-2 rounded-lg cursor-pointer"
                     >
-                      Submit
+                      Send Reset Link
                     </button>
                   )}
 
                   <div className="text-center mt-4">
-                    <Link to="/login" className="text-white font-1 hover:underline text-sm">
+                    <Link
+                      to="/login"
+                      className="text-white font-1 hover:underline text-sm"
+                    >
                       Back to login
                     </Link>
                   </div>
