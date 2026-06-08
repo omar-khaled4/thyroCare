@@ -3,13 +3,13 @@ import style from "./ViewReports.module.css"
 import { useFormik } from "formik";
 import { getReports, deleteReport, updateReport } from "../../services/reportService";
 
-export default function ViewReports(){
+export default function ViewReports() {
 
-    let[Loading, setLoading] = useState(true)
-    let[reports, setReports] = useState([])
-    let[viewData,setviewData] = useState([])
-    let[ report , setreport ]=useState(null)
-    let[ updateLoading , setupdateLoading] =useState(false)
+    let [Loading, setLoading] = useState(true)
+    let [reports, setReports] = useState([])
+    let [viewData, setviewData] = useState([])
+    let [report, setreport] = useState(null)
+    let [updateLoading, setupdateLoading] = useState(false)
 
     /* ── Pagination state ── */
     const ITEMS_PER_PAGE = 5;
@@ -27,7 +27,7 @@ export default function ViewReports(){
 
     /* reset to page 1 whenever searched list changes */
     useEffect(() => {
-      setCurrentPage(1);
+        setCurrentPage(1);
     }, [viewData]);
 
     // fetch reports on mount
@@ -42,22 +42,22 @@ export default function ViewReports(){
                     id: r._id,
                     date: r.testDate,
                     TestingFacility: r.testingFacility,
-                    
+
                     // Flatten nested objects
                     TSH: r.thyroidFunction?.tsh,
                     FreeT3: r.thyroidFunction?.freeT3,
                     FreeT4: r.thyroidFunction?.freeT4,
                     TotalT4: r.thyroidFunction?.totalT4,
                     TotalT3: r.thyroidFunction?.totalT3,
-                    
+
                     TPOAntibodies: r.antibodies?.tpo,
                     ThyroglobulinAntibodies: r.antibodies?.antiTg,
                     TSHReceptorAntibodies: r.antibodies?.tshr,
-                    
+
                     Thyroglobulin: r.otherTests?.thyroglobulin,
                     Calcitonin: r.otherTests?.calcitonin,
                     ReverseT3: r.otherTests?.reverseT3,
-                    
+
                     Fatigue: r.symptoms?.fatigue,
                     WeightChanges: r.symptoms?.weightChange,
                     TemperatureSensitivity: r.symptoms?.coldIntolerance,
@@ -79,20 +79,20 @@ export default function ViewReports(){
     }, []);
 
     //search
-    let[inputValue , setinputValue ]=useState('')
-    let change = (event) =>{
+    let [inputValue, setinputValue] = useState('')
+    let change = (event) => {
         setinputValue(event.target.value)
         search(event.target.value, viewData);
     }
-    function clear() { 
+    function clear() {
         setinputValue('')
         setviewData(reports)
     }
 
     function search(value, dataList) {
         console.log(`[ViewReports] Searching for: "${value}" in ${dataList.length} items...`);
-        if( dataList.length > 0 ){
-            const filtered = dataList.filter(r => 
+        if (dataList.length > 0) {
+            const filtered = dataList.filter(r =>
                 (r.TestingFacility || "").toLocaleLowerCase().includes(value.toLocaleLowerCase()) || (r.date || "").includes(value)
             );
             console.log(`[ViewReports] Search complete. Found ${filtered.length} matches.`);
@@ -101,42 +101,42 @@ export default function ViewReports(){
     }
 
     //view
-    let[_show , set_show]=useState(false)
-    let show =(report)=>{
+    let [_show, set_show] = useState(false)
+    let show = (report) => {
         setreport(report)
         set_show(prev => !prev)
     }
 
     //update
-    let[_update , set_update]=useState(false)
-    let update =(report)=>{
+    let [_update, set_update] = useState(false)
+    let update = (report) => {
         setreport(report)
         set_update(prev => !prev)
     }
 
     let formik = useFormik({
-            initialValues :{
-                id:report?.id,
-                DateOfTest:report?.date,
-                TestingFacility :report?.TestingFacility,
-                TSH:report?.TSH,
-                FreeT4:report?.FreeT4,
-                FreeT3:report?.FreeT3,
-                TotalT4:report?.TotalT4,
-                TPOAntibodies:report?.TPOAntibodies,
-                ThyroglobulinAntibodies:report?.ThyroglobulinAntibodies,
-                TSHReceptorAntibodies:report?.TSHReceptorAntibodies,
-                Thyroglobulin:report?.Thyroglobulin,
-                Calcitonin:report?.Calcitonin,
-                ReverseT3:report?.ReverseT3,
-                Fatigue:report?.Fatigue,
-                WeightChanges:report?.WeightChanges,
-                TemperatureSensitivity:report?.TemperatureSensitivity,
-                MoodChanges:report?.MoodChanges,
-                SkinChanges:report?.HairSkinChanges,
-            },
-            enableReinitialize: true,
-        })
+        initialValues: {
+            id: report?.id,
+            DateOfTest: report?.date,
+            TestingFacility: report?.TestingFacility,
+            TSH: report?.TSH,
+            FreeT4: report?.FreeT4,
+            FreeT3: report?.FreeT3,
+            TotalT4: report?.TotalT4,
+            TPOAntibodies: report?.TPOAntibodies,
+            ThyroglobulinAntibodies: report?.ThyroglobulinAntibodies,
+            TSHReceptorAntibodies: report?.TSHReceptorAntibodies,
+            Thyroglobulin: report?.Thyroglobulin,
+            Calcitonin: report?.Calcitonin,
+            ReverseT3: report?.ReverseT3,
+            Fatigue: report?.Fatigue,
+            WeightChanges: report?.WeightChanges,
+            TemperatureSensitivity: report?.TemperatureSensitivity,
+            MoodChanges: report?.MoodChanges,
+            SkinChanges: report?.HairSkinChanges,
+        },
+        enableReinitialize: true,
+    })
 
     const handleDelete = async (reportId) => {
         console.log(`[ViewReports] Attempting to delete report ${reportId}...`);
@@ -194,11 +194,11 @@ export default function ViewReports(){
 
     return <>
 
-        {_update?<>
+        {_update ? <>
 
             <div className="fixed top-0 right-0 left-0 bottom-0 bg-black opacity-50 z-10"></div>
             <div className="fixed top-0 left-0 z-10 h-screen p-4 pt-20 overflow-y-auto bg-gray-100 w-full sm:w-100 font-1">
-                
+
                 <p className="mb-8 text-xl color-1 text-center uppercase"><i className="fa-regular fa-pen-to-square pr-2"></i> update report </p>
                 <form onSubmit={handleUpdate} className="mb-6">
 
@@ -252,39 +252,39 @@ export default function ViewReports(){
                     </div>
                     <div className="relative mb-6">
                         <label htmlFor="Fatigue" className="text-gray-500 w-full text-sm">Fatigue : {formik.values.Fatigue}</label>
-                        <input type="range" id="Fatigue" name="Fatigue"  min="0" max="10" value={formik.values.Fatigue} onChange={formik.handleChange} onBlur={formik.handleBlur} className="w-full h-1 background-1 rounded-full cursor-pointer mt-2"/>
+                        <input type="range" id="Fatigue" name="Fatigue" min="0" max="10" value={formik.values.Fatigue} onChange={formik.handleChange} onBlur={formik.handleBlur} className="w-full h-1 background-1 rounded-full cursor-pointer mt-2" />
                     </div>
                     <div className="relative mb-6">
                         <label htmlFor="WeightChanges" className="text-gray-500 w-full text-sm">Weight Changes : {formik.values.WeightChanges}</label>
-                        <input type="range" id="WeightChanges" name="WeightChanges"  min="0" max="10" value={formik.values.WeightChanges} onChange={formik.handleChange} onBlur={formik.handleBlur} className="w-full h-1 background-1 rounded-full cursor-pointer mt-2"/>
+                        <input type="range" id="WeightChanges" name="WeightChanges" min="0" max="10" value={formik.values.WeightChanges} onChange={formik.handleChange} onBlur={formik.handleBlur} className="w-full h-1 background-1 rounded-full cursor-pointer mt-2" />
                     </div>
                     <div className="relative mb-6">
                         <label htmlFor="TemperatureSensitivity" className="text-gray-500 w-full text-sm">Temperature Sensitivity : {formik.values.TemperatureSensitivity}</label>
-                        <input type="range" id="TemperatureSensitivity" name="TemperatureSensitivity"  min="0" max="10" value={formik.values.TemperatureSensitivity} onChange={formik.handleChange} onBlur={formik.handleBlur} className="w-full h-1 background-1 rounded-full cursor-pointer mt-2"/>
+                        <input type="range" id="TemperatureSensitivity" name="TemperatureSensitivity" min="0" max="10" value={formik.values.TemperatureSensitivity} onChange={formik.handleChange} onBlur={formik.handleBlur} className="w-full h-1 background-1 rounded-full cursor-pointer mt-2" />
                     </div>
                     <div className="relative mb-6">
                         <label htmlFor="MoodChanges" className="text-gray-500 w-full text-sm">Mood Changes : {formik.values.MoodChanges}</label>
-                        <input type="range" id="MoodChanges" name="MoodChanges"  min="0" max="10" value={formik.values.MoodChanges} onChange={formik.handleChange} onBlur={formik.handleBlur} className="w-full h-1 background-1 rounded-full cursor-pointer mt-2"/>
+                        <input type="range" id="MoodChanges" name="MoodChanges" min="0" max="10" value={formik.values.MoodChanges} onChange={formik.handleChange} onBlur={formik.handleBlur} className="w-full h-1 background-1 rounded-full cursor-pointer mt-2" />
                     </div>
                     <div className="relative mb-6">
                         <label htmlFor="SkinChanges" className="text-gray-500 w-full text-sm">Skin Changes : {formik.values.SkinChanges}</label>
-                        <input type="range" id="SkinChanges" name="SkinChanges"  min="0" max="10" value={formik.values.SkinChanges} onChange={formik.handleChange} onBlur={formik.handleBlur} className="w-full h-1 background-1 rounded-full cursor-pointer mt-2"/>
+                        <input type="range" id="SkinChanges" name="SkinChanges" min="0" max="10" value={formik.values.SkinChanges} onChange={formik.handleChange} onBlur={formik.handleBlur} className="w-full h-1 background-1 rounded-full cursor-pointer mt-2" />
                     </div>
 
-                    <button type="submit" disabled={updateLoading} className="text-white justify-center flex items-center bg-amber-500 hover:bg-amber-600 w-full  font-medium rounded-lg text-md px-5 py-2.5 mb-2">{updateLoading ? <><i className="fas fa-spinner fa-spin mr-2" /> Updating…</> : "Update"}</button>   
-                    
+                    <button type="submit" disabled={updateLoading} className="text-white justify-center flex items-center bg-amber-500 hover:bg-amber-600 w-full  font-medium rounded-lg text-md px-5 py-2.5 mb-2">{updateLoading ? <><i className="fas fa-spinner fa-spin mr-2" /> Updating…</> : "Update"}</button>
+
                 </form>
-                <button type="button" onClick={()=>update(null)} className="text-white justify-center flex items-center bg-red-600 hover:bg-red-700 w-full  font-medium rounded-lg text-md px-5 py-2.5 mb-2">Cancel</button>
-                
+                <button type="button" onClick={() => update(null)} className="text-white justify-center flex items-center bg-red-600 hover:bg-red-700 w-full  font-medium rounded-lg text-md px-5 py-2.5 mb-2">Cancel</button>
+
             </div>
-        </>:null}
+        </> : null}
 
 
-        {_show?<>
+        {_show ? <>
 
-            <div onClick={()=>show(null)} className="fixed top-0 right-0 left-0 bottom-0 bg-black opacity-50 z-10"></div>
+            <div onClick={() => show(null)} className="fixed top-0 right-0 left-0 bottom-0 bg-black opacity-50 z-10"></div>
             <div className="fixed max-h-[calc(100vh-100px)] z-20 mt-10 top-1/2 -translate-y-1/2 bg-gray-100 justify-self-center w-11/12 md:w-3/4 p-4 rounded-xl font-1 text-2xl overflow-y-auto">
-                <button onClick={()=>show(null)} type="button" className="color-1 hover:text-black! rounded-lg w-8 h-8 absolute top-4 right-4 cursor-pointer">
+                <button onClick={() => show(null)} type="button" className="color-1 hover:text-black! rounded-lg w-8 h-8 absolute top-4 right-4 cursor-pointer">
                     <i className="fa-solid fa-xmark text-2xl"></i>
                 </button>
 
@@ -314,7 +314,7 @@ export default function ViewReports(){
                 </div>
             </div>
 
-        </>:null}
+        </> : null}
 
 
         <div className="background-DB">
@@ -325,95 +325,96 @@ export default function ViewReports(){
                     <i className="fa-solid fa-magnifying-glass color-1"></i>
                 </div>
                 <input type="search" value={inputValue} onChange={change} className="block w-full p-3 ps-10 text-sm color-1 font-1 border border-[#00b3a1] rounded-lg bg-[#00000000]" placeholder="Date , Testing Facility" required />
-                {inputValue== '' ?
-                    <button type="submit" className="text-black absolute inset-e-2.5 bottom-1 background-1 font-1 rounded-lg text-sm px-4 py-2 cursor-pointer">Search</button>:
-                    <button type="submit" onClick={()=>clear()} className="text-black absolute inset-e-2.5 bottom-1 background-1 font-1 rounded-lg text-sm px-4 py-2 cursor-pointer">Clear</button>
+                {inputValue == '' ?
+                    <button type="submit" className="text-black absolute inset-e-2.5 bottom-1 background-1 font-1 rounded-lg text-sm px-4 py-2 cursor-pointer">Search</button> :
+                    <button type="submit" onClick={() => clear()} className="text-black absolute inset-e-2.5 bottom-1 background-1 font-1 rounded-lg text-sm px-4 py-2 cursor-pointer">Clear</button>
                 }
             </div>
 
             <div className="background-card relative overflow-x-auto shadow-md sm:rounded-lg mt-10 mx-5 md:mx-15 p-3">
 
-                {!Loading?
+                {!Loading ?
                     paginatedData.length > 0 ?
-                    <>
-                        <p className="font-1 text-center text-3xl my-4">your Reports : <span className="color-1">{totalReports}</span></p>
+                        <>
+                            <p className="font-1 text-center text-3xl my-4">your Reports : <span className="color-1">{totalReports}</span></p>
 
-                        <table className="w-full font-1 text-center">
-                            <thead className="uppercase text-lg md:text-xl">
-                                <tr>
-                                    <th scope="col" className="py-2 px-3">id</th>
-                                    <th scope="col" className="py-2 px-3">date</th>
-                                    <th scope="col" className="py-2 px-3">edit</th>
-                                    <th scope="col" className="py-2 px-3">delete</th>
-                                </tr>
-                            </thead>
-
-                            {paginatedData?.map((report)=>(
-                                <tbody key={report.id}>
-                                    <tr className="border-b border-gray-300 text-lg">
-                                        <td className="p-4">{report.id}</td>
-                                        <td className="p-4"><p onClick={()=>show(report)} className="inline cursor-pointer hover:text-[#00b3a1]">{report.date}</p></td>
-                                        <td className="p-4"><span onClick={()=>update(report)} className="cursor-pointer text-2xl text-amber-400"><i className="fa-regular fa-pen-to-square"></i></span></td>
-                                        <td className="p-4"><span onClick={()=>handleDelete(report._id)} className="cursor-pointer text-2xl text-red-600"><i className="fa-solid fa-trash-can"></i></span></td>
+                            <table className="w-full font-1 text-center">
+                                <thead className="uppercase text-lg md:text-xl">
+                                    <tr>
+                                        <th scope="col" className="py-2 px-3">id</th>
+                                        <th scope="col" className="py-2 px-3">date</th>
+                                        <th scope="col" className="py-2 px-3">View</th>
+                                        <th scope="col" className="py-2 px-3">edit</th>
+                                        <th scope="col" className="py-2 px-3">delete</th>
                                     </tr>
-                                </tbody>
-                            ))}
+                                </thead>
 
-                        </table>
+                                {paginatedData?.map((report) => (
+                                    <tbody key={report.id}>
+                                        <tr className="border-b border-gray-300 text-lg">
+                                            <td className="p-4">{report.id}</td>
+                                            <td className="p-4">{report.date}</td>
+                                            <td className="p-4"><span onClick={() => show(report)} className="cursor-pointer text-2xl text-blue-400"><i className="fa-regular fa-eye"></i></span></td>
+                                            <td className="p-4"><span onClick={() => update(report)} className="cursor-pointer text-2xl text-amber-400"><i className="fa-regular fa-pen-to-square"></i></span></td>
+                                            <td className="p-4"><span onClick={() => handleDelete(report._id)} className="cursor-pointer text-2xl text-red-600"><i className="fa-solid fa-trash-can"></i></span></td>
+                                        </tr>
+                                    </tbody>
+                                ))}
 
-                        {/* ── Pagination controls ── */}
-                        {totalPages > 1 && (
-                            <div className="flex items-center justify-center gap-2 mt-6 mb-4 font-1">
-                                {/* Previous */}
-                                <button
-                                    onClick={() => goToPage(currentPage - 1)}
-                                    disabled={currentPage === 1}
-                                    className="px-3 py-1 rounded-lg background-1 text-white disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#009284] transition"
-                                >
-                                    &laquo; Prev
-                                </button>
+                            </table>
 
-                                {/* Page numbers */}
-                                {getPageNumbers().map((p, idx) =>
-                                    p === "..." ? (
-                                        <span key={`ellipsis-${idx}`} className="px-2 text-gray-500">…</span>
-                                    ) : (
-                                        <button
-                                            key={p}
-                                            onClick={() => goToPage(p)}
-                                            className={`px-3 py-1 rounded-lg transition ${
-                                                currentPage === p
-                                                ? "bg-amber-600 text-white"
-                                                : "background-1 text-white hover:bg-[#009284]"
-                                            }`}
-                                        >
-                                            {p}
-                                        </button>
-                                    )
-                                )}
+                            {/* ── Pagination controls ── */}
+                            {totalPages > 1 && (
+                                <div className="flex items-center justify-center gap-2 mt-6 mb-4 font-1">
+                                    {/* Previous */}
+                                    <button
+                                        onClick={() => goToPage(currentPage - 1)}
+                                        disabled={currentPage === 1}
+                                        className="px-3 py-1 rounded-lg background-1 text-white disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#009284] transition"
+                                    >
+                                        &laquo; Prev
+                                    </button>
 
-                                {/* Next */}
-                                <button
-                                    onClick={() => goToPage(currentPage + 1)}
-                                    disabled={currentPage === totalPages}
-                                    className="px-3 py-1 rounded-lg background-1 text-white disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#009284] transition"
-                                >
-                                    Next &raquo;
-                                </button>
-                            </div>
-                        )}
+                                    {/* Page numbers */}
+                                    {getPageNumbers().map((p, idx) =>
+                                        p === "..." ? (
+                                            <span key={`ellipsis-${idx}`} className="px-2 text-gray-500">…</span>
+                                        ) : (
+                                            <button
+                                                key={p}
+                                                onClick={() => goToPage(p)}
+                                                className={`px-3 py-1 rounded-lg transition ${currentPage === p
+                                                    ? "bg-amber-600 text-white"
+                                                    : "background-1 text-white hover:bg-[#009284]"
+                                                    }`}
+                                            >
+                                                {p}
+                                            </button>
+                                        )
+                                    )}
 
-                    </>
+                                    {/* Next */}
+                                    <button
+                                        onClick={() => goToPage(currentPage + 1)}
+                                        disabled={currentPage === totalPages}
+                                        className="px-3 py-1 rounded-lg background-1 text-white disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#009284] transition"
+                                    >
+                                        Next &raquo;
+                                    </button>
+                                </div>
+                            )}
+
+                        </>
+                        :
+                        <div className="w-full h-100 flex items-center justify-center font-1 color-1 text-4xl sm:text-5xl">
+                            {inputValue == '' ? <p>there are no reports</p> : <p>No Result</p>}
+                        </div>
                     :
-                    <div className="w-full h-100 flex items-center justify-center font-1 color-1 text-4xl sm:text-5xl">
-                        {inputValue == '' ? <p>there are no reports</p> : <p>No Result</p>}
-                    </div>
-                :
                     <div className="w-full h-100 flex items-center justify-center">
                         <i className="fas fa-spinner fa-spin color-1 text-7xl"></i>
                     </div>
                 }
-            
+
             </div>
 
             <div className="h-15"></div>
