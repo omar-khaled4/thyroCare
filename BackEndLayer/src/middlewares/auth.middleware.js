@@ -21,6 +21,10 @@ const auth = async (req, res, next) => {
       return respond(res, 401, null, "User no longer exists");
     }
 
+    if (!user.isEmailVerified) {
+      return respond(res, 403, null, "Please verify your email address first");
+    }
+
     req.user = { id: user._id, role: user.role };
     next();
   } catch (err) {

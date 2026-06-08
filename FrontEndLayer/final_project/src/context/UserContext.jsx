@@ -110,13 +110,11 @@ export default function UserContextProvider(props) {
   const handleRegister = useCallback(
     async (userData) => {
       console.log("[UserContext] Attempting registration...");
-      const { token, user } = await register(userData);
-      console.log("[UserContext] Registration successful. Updating state...");
-      setuserToken(token);
-      setuser(user);
-      return { token, user };
+      const { user } = await register(userData);
+      console.log("[UserContext] Registration successful. Not setting login state (email verification required).");
+      return { user };
     },
-    [setuser, setuserToken]
+    []
   );
 
   const handleLogout = useCallback(async () => {

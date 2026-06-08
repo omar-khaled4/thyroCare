@@ -42,13 +42,10 @@ export async function register(userData) {
     const { data } = await api.post("/auth/register", userData);
     console.log("[authService] Register response data:", data);
 
-    const token = data.token || data.userToken || data.accessToken || data.access_token || (data.data && (data.data.token || data.data.userToken || data.data.accessToken));
     const user = data.user || data.data?.user || data;
 
-    localStorage.setItem("userToken", token || "");
-    localStorage.setItem("user", JSON.stringify(user));
     toast.success("Account created successfully!", { id: toastId });
-    return { token, user };
+    return { user };
   } catch (err) {
     toast.error(
       err?.response?.data?.message || "Registration failed. Please try again.",

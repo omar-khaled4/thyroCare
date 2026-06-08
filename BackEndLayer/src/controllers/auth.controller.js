@@ -47,11 +47,7 @@ const register = tryCatch(async (req, res) => {
     // Don't throw — user can resend verification from the verify page
   });
 
-  const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
-    expiresIn: process.env.JWT_EXPIRES_IN,
-  });
-
-  respond(res, 201, { user, token }, "Registered successfully. Please check your email to verify your account.");
+  respond(res, 201, { user }, "Registered successfully. Please check your email to verify your account.");
 });
 
 
