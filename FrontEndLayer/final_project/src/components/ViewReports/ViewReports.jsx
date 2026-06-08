@@ -349,11 +349,11 @@ export default function ViewReports() {
                                     </tr>
                                 </thead>
 
-                                {paginatedData?.map((report) => (
-                                    <tbody key={report.id}>
+                                {paginatedData?.map((report, index) => (
+                                    <tbody key={index + 1}>
                                         <tr className="border-b border-gray-300 text-lg">
-                                            <td className="p-4">{report.id}</td>
-                                            <td className="p-4">{report.date}</td>
+                                            <td className="p-4">{index + 1}</td>
+                                            <td className="p-4">{new Date(report.date).toLocaleString()}</td>
                                             <td className="p-4"><span onClick={() => show(report)} className="cursor-pointer text-2xl text-blue-400"><i className="fa-regular fa-eye"></i></span></td>
                                             <td className="p-4"><span onClick={() => update(report)} className="cursor-pointer text-2xl text-amber-400"><i className="fa-regular fa-pen-to-square"></i></span></td>
                                             <td className="p-4"><span onClick={() => handleDelete(report._id)} className="cursor-pointer text-2xl text-red-600"><i className="fa-solid fa-trash-can"></i></span></td>
