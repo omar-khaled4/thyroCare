@@ -9,13 +9,13 @@ export async function login(credentials) {
   const toastId = toast.loading("Signing in…", { id: "auth-login" });
   try {
     const { data } = await api.post("/auth/login", credentials);
-    console.log("[authService] Login response data:", data);
+    
 
     const token = data.token || data.userToken || data.accessToken || data.access_token || (data.data && (data.data.token || data.data.userToken || data.data.accessToken));
     const user = data.user || data.data?.user || data;
 
     if (!token) {
-      console.warn("[authService] No token found in login response. State will remain unauthenticated.");
+      
     }
 
     localStorage.setItem("userToken", token || "");
@@ -40,7 +40,7 @@ export async function register(userData) {
   const toastId = toast.loading("Creating your account…", { id: "auth-register" });
   try {
     const { data } = await api.post("/auth/register", userData);
-    console.log("[authService] Register response data:", data);
+    
 
     const user = data.user || data.data?.user || data;
 
@@ -150,13 +150,13 @@ export async function resendVerification(email) {
 export async function getMe() {
   try {
     const { data } = await api.get("/auth/me");
-    console.log("[authService] getMe response body:", data);
+    
     // Backend returns { success: true, data: user, message: "" }
     const user = data.data || data;
     localStorage.setItem("user", JSON.stringify(user));
     return user;
   } catch (err) {
-    console.error("[authService] getMe failed:", err.message);
+    
     throw err;
   }
 }

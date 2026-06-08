@@ -24,7 +24,7 @@ app.use(async (req, res, next) => {
     await connectDB();
     next();
   } catch (err) {
-    console.error("DB Middleware error:", err.message);
+    
     res.status(500).json({ success: false, message: err.message });
   }
 });

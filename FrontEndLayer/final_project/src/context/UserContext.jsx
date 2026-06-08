@@ -23,13 +23,13 @@ export default function UserContextProvider(props) {
   // ── Sync userToken state with localStorage
   const setuserToken = useCallback((t) => {
     if (t === "null" || t === undefined) t = null;
-    console.log("[UserContext] setuserToken called with:", t ? "Valid Token" : "NULL");
+    
 
     if (t && typeof t === "string") {
       localStorage.setItem("userToken", t);
       _setuserToken(t);
     } else {
-      console.warn("[UserContext] Clearing token from storage");
+      
       localStorage.removeItem("userToken");
       _setuserToken(null);
     }
@@ -40,17 +40,17 @@ export default function UserContextProvider(props) {
     if (u === "null" || u === undefined) u = null;
 
     if (u && u.success !== undefined && u.data) {
-      console.log("[UserContext] setuser detected envelope, extracting inner data...");
+      
       u = u.data;
     }
 
-    console.log("[UserContext] setuser called for:", u?.email || (u ? "Unknown User" : "NULL"));
+    
 
     if (u && typeof u === "object") {
       localStorage.setItem("user", JSON.stringify(u));
       _setuser(u);
     } else {
-      console.warn("[UserContext] Clearing user from storage");
+      
       localStorage.removeItem("user");
       _setuser(null);
     }
@@ -67,12 +67,12 @@ export default function UserContextProvider(props) {
 
     const token = localStorage.getItem("userToken");
     if (!token || token === "null") {
-      console.log("[UserContext] No token to rehydrate.");
+      
       setIsHydrating(false);
       return;
     }
 
-    console.log("[UserContext] Rehydrating session...");
+    
 
     getMe()
       .then((me) => {
@@ -81,10 +81,10 @@ export default function UserContextProvider(props) {
         }
       })
       .catch((err) => {
-        console.error("[UserContext] Rehydration failed:", err.message);
+        
         // Only clear token on 401 — not on network errors or other failures
         if (err?.response?.status === 401) {
-          console.warn("[UserContext] Token is invalid — clearing session");
+          
           setuserToken(null);
           setuser(null);
         }
@@ -97,9 +97,9 @@ export default function UserContextProvider(props) {
   /* ── Handlers ── */
   const handleLogin = useCallback(
     async (credentials) => {
-      console.log("[UserContext] Attempting login...");
+      
       const { token, user } = await login(credentials);
-      console.log("[UserContext] Login successful. Updating state...");
+      
       setuserToken(token);
       setuser(user);
       return { token, user };
@@ -109,9 +109,9 @@ export default function UserContextProvider(props) {
 
   const handleRegister = useCallback(
     async (userData) => {
-      console.log("[UserContext] Attempting registration...");
+      
       const { user } = await register(userData);
-      console.log("[UserContext] Registration successful. Not setting login state (email verification required).");
+      
       return { user };
     },
     []

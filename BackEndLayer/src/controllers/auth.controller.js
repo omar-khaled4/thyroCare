@@ -43,7 +43,7 @@ const register = tryCatch(async (req, res) => {
       <p>If you didn't create an account, please ignore this email.</p>
     `,
   }).catch((err) => {
-    console.error("[register] Failed to send verification email:", err.message);
+    
     // Don't throw — user can resend verification from the verify page
   });
 
@@ -199,7 +199,7 @@ const forgotPassword = tryCatch(async (req, res) => {
       <p>If you didn't request this, please ignore this email.</p>
     `,
   }).catch((err) => {
-    console.error("[forgotPassword] Failed to send reset email:", err.message);
+    
   });
 
   respond(res, 200, null, "Reset link sent to your email. Please check your inbox.");

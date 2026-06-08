@@ -22,7 +22,7 @@ export default function Profile(){
                     setuser(userData)
                 }
             } catch (error) {
-                console.error("Failed to fetch user profile:", error)
+                
                 setFeedback({ message: "Failed to load profile", type: "error" })
             } finally {
                 setIsLoading(false)
@@ -53,7 +53,7 @@ export default function Profile(){
             setFeedback({ message: "Profile updated successfully!", type: "success" })
             setupdate(false)
         } catch (error) {
-            console.error("Failed to update profile:", error)
+            
             setFeedback({ 
                 message: error.response?.data?.message || "Failed to update profile", 
                 type: "error" 

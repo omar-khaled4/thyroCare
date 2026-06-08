@@ -53,7 +53,7 @@ const chat = tryCatch(async (req, res) => {
     const data = await response.json();
 
     if (!response.ok) {
-      console.error("Groq error:", JSON.stringify(data, null, 2));
+      
       return respond(res, 200, {
         reply: "Sorry, the AI service is temporarily unavailable. Please try again later.",
         source: "error",
@@ -65,7 +65,7 @@ const chat = tryCatch(async (req, res) => {
 
     respond(res, 200, { reply, source: "groq" });
   } catch (err) {
-    console.error("Groq catch error:", err);
+    
     respond(res, 200, {
       reply: "Sorry, the AI service is temporarily unavailable. Please try again later.",
       source: "error",

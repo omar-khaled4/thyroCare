@@ -115,7 +115,7 @@ const predict = tryCatch(async (req, res) => {
 
   // 3. Call the LLM microservice
   const llmUrl = process.env.NN_MODEL_URL || "http://127.0.0.1:8000";
-  console.log("[predict] LLM_URL:", llmUrl);
+  
 
   let llmResponse;
   try {
@@ -137,7 +137,7 @@ const predict = tryCatch(async (req, res) => {
     }
 
     llmResponse = await response.json();
-    console.log("[predict] LLM response:", JSON.stringify(llmResponse));
+    
   } catch (err) {
     if (err.name === "TimeoutError" || err.name === "AbortError") {
       return respond(res, 504, null, "The prediction service timed out. Please try again.");

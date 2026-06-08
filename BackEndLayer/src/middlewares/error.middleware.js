@@ -4,7 +4,7 @@ const { respond } = require("../utils/helpers");
  * Global error handler — must be the last middleware in app.js
  */
 const errorHandler = (err, req, res, next) => {
-  console.error("ERROR:", err.message);
+  
 
   // Mongoose duplicate key error
   if (err.code === 11000) {

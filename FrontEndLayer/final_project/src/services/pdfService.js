@@ -247,7 +247,7 @@ export async function downloadMedicalReport({ user, prediction, onStart, onEnd }
         }, 800);
 
     } catch (err) {
-        console.error("[downloadMedicalReport] Failed:", err);
+        
         alert("Failed to generate report. Please try again.");
     } finally {
         onEnd?.();

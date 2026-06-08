@@ -8,7 +8,7 @@ export async function fetchLabResult(type) {
     const { data } = await api.get(`/lab-results/${type}`);
     return data;
   } catch (err) {
-    console.error(`Failed to load ${type} results:`, err);
+    
     return [];
   }
 }
@@ -81,11 +81,11 @@ export async function fetchSymptoms() {
 export async function fetchProfile() {
   try {
     const { data } = await api.get("/auth/me");
-    console.log("[fetchProfile] Raw response:", data);
+    
     // Backend returns { success: true, data: user, message: "" }
     return data.data || data;
   } catch (err) {
-    console.error("[fetchProfile] Failed:", err.message);
+    
     return null;
   }
 }
@@ -95,8 +95,8 @@ export async function fetchProfile() {
 export async function fetchPredictionHistory() {
   try {
     const res = await api.get("/predict/history");
-    console.log("[fetchPredictionHistory] Raw API response:", res);
-    console.log("[fetchPredictionHistory] res.data:", res.data);
+    
+    
 
     // Handle both { data: [...] } and plain array responses
     const arr = Array.isArray(res.data)
@@ -105,23 +105,23 @@ export async function fetchPredictionHistory() {
         ? res.data.data
         : [];
 
-    console.log("[fetchPredictionHistory] Parsed array length:", arr.length);
-    console.log("[fetchPredictionHistory] First item:", arr[0]);
+    
+    
     return arr;
   } catch (err) {
-    console.error("[fetchPredictionHistory] Failed:", err.message);
+    
     return [];
   }
 }
 
 export async function fetchLatestPrediction() {
-  console.log("[fetchLatestPrediction] Fetching latest prediction...");
+  
   const all = await fetchPredictionHistory();
 
-  console.log("[fetchLatestPrediction] All predictions count:", all.length);
+  
 
   if (!all.length) {
-    console.warn("[fetchLatestPrediction] No predictions found — returning null");
+    
     return null;
   }
 
@@ -132,12 +132,12 @@ export async function fetchLatestPrediction() {
   );
 
   const latest = sorted[0];
-  console.log("[fetchLatestPrediction] Latest prediction object:", latest);
-  console.log("[fetchLatestPrediction] diagnosis:", latest?.diagnosis);
-  console.log("[fetchLatestPrediction] healthScore:", latest?.healthScore);
-  console.log("[fetchLatestPrediction] severity:", latest?.severity);
-  console.log("[fetchLatestPrediction] recommendations:", latest?.recommendations);
-  console.log("[fetchLatestPrediction] recommendations length:", latest?.recommendations?.length);
+  
+  
+  
+  
+  
+  
 
   return latest;
 }
@@ -145,7 +145,7 @@ export async function fetchLatestPrediction() {
 /* ── Convenience: fetch everything in parallel ── */
 
 export async function fetchDashboardData() {
-  console.log("[dashboardService] Starting consolidated dashboard data fetch...");
+  
   try {
     const [reportsRes, profile, latestPrediction] = await Promise.all([
       api.get("/reports"),
@@ -153,14 +153,14 @@ export async function fetchDashboardData() {
       fetchLatestPrediction()
     ]);
 
-    console.log("[dashboardService] latestPrediction received:", latestPrediction);
-    console.log("[dashboardService] latestPrediction.recommendations:", latestPrediction?.recommendations);
+    
+    
 
     const reports = Array.isArray(reportsRes.data)
       ? reportsRes.data
       : reportsRes.data?.data || [];
 
-    console.log(`[dashboardService] Processing ${reports.length} reports for dashboard charts...`);
+    
 
     const t3 = reports
       .filter(r => r.thyroidFunction?.freeT3 !== undefined)
@@ -187,12 +187,12 @@ export async function fetchDashboardData() {
       }));
 
     const result = { t3, t4, tsh, symptoms, profile, latestPrediction };
-    console.log("[dashboardService] Final data being returned to Dashboard:", result);
-    console.log("[dashboardService] latestPrediction in result:", result.latestPrediction);
+    
+    
 
     return result;
   } catch (err) {
-    console.error("[dashboardService] Dashboard fetch failed:", err.message);
+    
     throw err;
   }
 }
