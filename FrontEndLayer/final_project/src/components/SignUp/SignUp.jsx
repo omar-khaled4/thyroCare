@@ -56,8 +56,12 @@ export default function SignUp() {
       .required(" phone is required "),
     password: yup
       .string()
-      .min(6, " min lenght is 6 ")
-      .required(" password is required "),
+      .min(8, "Password must be at least 8 characters")
+      .matches(/[A-Z]/, "Must contain at least one uppercase letter")
+      .matches(/[a-z]/, "Must contain at least one lowercase letter")
+      .matches(/\d/, "Must contain at least one number")
+      .matches(/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/, "Must contain at least one special character")
+      .required("Password is required"),
     dateOfBirth: yup.string().required(" Date of birth is required "),
     gender: yup
       .string()
@@ -217,6 +221,9 @@ export default function SignUp() {
                       {formik.errors.password}
                     </p>
                   ) : null}
+                  <p className="font-1 pt-1 text-white/50 text-xs">
+                    8+ chars, 1 uppercase, 1 lowercase, 1 number, 1 special character
+                  </p>
                 </div>
 
                 <div className="grid gap-1 grid-cols-2 mt-4">

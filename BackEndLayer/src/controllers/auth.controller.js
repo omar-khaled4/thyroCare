@@ -198,8 +198,14 @@ const resetPassword = tryCatch(async (req, res) => {
   if (!token || !newPassword) {
     return respond(res, 400, null, "token and newPassword are required");
   }
-  if (newPassword.length < 6) {
-    return respond(res, 400, null, "Password must be at least 6 characters");
+  const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).{8,}$/;
+  if (!passwordRegex.test(newPassword)) {
+    return respond(
+      res,
+      400,
+      null,
+      "Password must be at least 8 characters and include at least one uppercase letter, one lowercase letter, one number, and one special character."
+    );
   }
 
   const resetDoc = await ResetToken.findOne({

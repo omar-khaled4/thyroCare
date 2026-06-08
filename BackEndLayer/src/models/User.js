@@ -15,7 +15,17 @@ const userSchema = new mongoose.Schema(
       lowercase: true,
       trim: true,
     },
-    password: { type: String, required: true, minlength: 6 },
+    password: {
+      type: String,
+      required: true,
+      validate: {
+        validator: function (v) {
+          return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).{8,}$/.test(v);
+        },
+        message:
+          "Password must be at least 8 characters and include at least one uppercase letter, one lowercase letter, one number, and one special character.",
+      },
+    },
     role: { type: String, enum: ["patient", "admin"], default: "patient" },
     isEmailVerified: { type: Boolean, default: false },
     emailVerificationToken: { type: String, default: null },
