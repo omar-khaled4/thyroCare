@@ -341,7 +341,7 @@ export default function ViewReports() {
                             <table className="w-full font-1 text-center">
                                 <thead className="uppercase text-lg md:text-xl">
                                     <tr>
-                                        <th scope="col" className="py-2 px-3">id</th>
+                                        <th scope="col" className="py-2 px-3">No.</th>
                                         <th scope="col" className="py-2 px-3">date</th>
                                         <th scope="col" className="py-2 px-3">View</th>
                                         <th scope="col" className="py-2 px-3">edit</th>
