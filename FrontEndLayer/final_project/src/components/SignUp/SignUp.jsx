@@ -51,8 +51,7 @@ export default function SignUp() {
     email: yup
       .string()
       .email("Please enter a valid email")
-      .required("Email is required")
-      .matches(/^[a-zA-Z]{3,}/, "Email must start with 3 letters at least"),
+      .required("Email is required"),
     phone: yup
       .string()
       .matches(/^01[0125][0-9]{8}$/, "Enter a valid Egyptian phone number")
