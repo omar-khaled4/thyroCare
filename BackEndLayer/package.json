@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node src/server.js",
     "dev": "node src/server.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest"
   },
   "keywords": [],
   "author": "",
@@ -21,5 +21,10 @@
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.3.3",
     "nodemailer": "^8.0.10"
+  },
+  "devDependencies": {
+    "jest": "^30.4.2",
+    "jest-mock": "^30.4.1",
+    "supertest": "^7.2.2"
   }
 }
