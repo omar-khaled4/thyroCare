@@ -12,7 +12,10 @@ const { respond, tryCatch } = require("../utils/helpers");
 const register = tryCatch(async (req, res) => {
   const { firstName, lastName, email, phone, password, dateOfBirth, gender } = req.body;
 
-  // ... existing validation ...
+  const userExists = await User.findOne({ email });
+  if (userExists) {
+    return respond(res, 400, null, "email already exists");
+  }
 
   // Generate verification token
   const verificationToken = crypto.randomBytes(32).toString("hex");
@@ -43,7 +46,7 @@ const register = tryCatch(async (req, res) => {
       <p>If you didn't create an account, please ignore this email.</p>
     `,
   }).catch((err) => {
-    
+
     // Don't throw — user can resend verification from the verify page
   });
 
@@ -199,7 +202,7 @@ const forgotPassword = tryCatch(async (req, res) => {
       <p>If you didn't request this, please ignore this email.</p>
     `,
   }).catch((err) => {
-    
+
   });
 
   respond(res, 200, null, "Reset link sent to your email. Please check your inbox.");
