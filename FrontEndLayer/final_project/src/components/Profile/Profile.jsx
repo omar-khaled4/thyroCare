@@ -1,249 +1,332 @@
 import React, { useContext, useState, useEffect } from "react";
-import style from "./Profile.module.css"
 import { UserContext } from "../../context/UserContext";
 import { Link, useNavigate } from "react-router-dom";
 import { useFormik } from "formik";
 import { getMe, updateProfile } from "../../services/authService";
 
-export default function Profile(){
+export default function Profile() {
+    const { userToken, setuserToken, user, setuser } = useContext(UserContext);
+    const navigate = useNavigate();
 
-    let { userToken , setuserToken , user , setuser } = useContext(UserContext)
-    let navigate = useNavigate()
-
-    const [isLoading, setIsLoading] = useState(true)
-    const [feedback, setFeedback] = useState({ message: "", type: "" })
+    const [isLoading, setIsLoading] = useState(true);
+    const [feedback, setFeedback] = useState({ message: "", type: "" });
+    const [showEdit, setShowEdit] = useState(false);
 
     useEffect(() => {
         const fetchUserProfile = async () => {
-            setIsLoading(true)
+            setIsLoading(true);
             try {
-                const userData = await getMe()
-                if (userData) {
-                    setuser(userData)
-                }
+                const userData = await getMe();
+                if (userData) setuser(userData);
             } catch (error) {
-                
-                setFeedback({ message: "Failed to load profile", type: "error" })
+                setFeedback({ message: "Failed to load profile", type: "error" });
             } finally {
-                setIsLoading(false)
+                setIsLoading(false);
             }
-        }
+        };
         if (userToken) {
-            fetchUserProfile()
+            fetchUserProfile();
         } else {
-            setIsLoading(false)
+            setIsLoading(false);
         }
-    }, [userToken, setuser])
+    }, [userToken, setuser]);
 
-    function signout(){
+    function signout() {
         localStorage.removeItem("userToken");
         setuserToken(null);
         localStorage.removeItem("user");
         setuser(null);
-        navigate("/")
+        navigate("/");
     }
-
-    let[update , setupdate]=useState(false)
 
     const handleProfileUpdate = async (values) => {
-        setFeedback({ message: "", type: "" })
+        setFeedback({ message: "", type: "" });
         try {
-            const updatedUser = await updateProfile(values)
-            setuser(updatedUser)
-            setFeedback({ message: "Profile updated successfully!", type: "success" })
-            setupdate(false)
+            const updatedUser = await updateProfile(values);
+            setuser(updatedUser);
+            setFeedback({ message: "Profile updated successfully!", type: "success" });
+            setTimeout(() => {
+                setShowEdit(false);
+                setFeedback({ message: "", type: "" });
+            }, 1000);
         } catch (error) {
-            
-            setFeedback({ 
-                message: error.response?.data?.message || "Failed to update profile", 
-                type: "error" 
-            })
+            setFeedback({
+                message: error.response?.data?.message || "Failed to update profile",
+                type: "error",
+            });
         }
-    }
+    };
 
-    let formik = useFormik({
-        initialValues :{
-            firstName :user?.firstName || "",
-            lastName :user?.lastName || "",
-            email:user?.email || "",
-            phone:user?.phone || "",
-            password:"",
-            dateOfBirth:user?.dateOfBirth || "",
-            gender:user?.gender || "",
-            address:user?.address || "",
-            emergencyContact:user?.emergencyContact || "",
-            primaryCondition:user?.primaryCondition || "",
-            diagnosisDate:user?.diagnosisDate || "",
-            currentMedications:user?.currentMedications || "",
-            allergies:user?.allergies || "",
-            primaryEndocrinologist:user?.primaryEndocrinologist || "",
+    const formik = useFormik({
+        initialValues: {
+            firstName: user?.firstName || "",
+            lastName: user?.lastName || "",
+            email: user?.email || "",
+            phone: user?.phone || "",
+            dateOfBirth: user?.dateOfBirth || "",
+            gender: user?.gender || "",
+            address: user?.address || "",
+            emergencyContact: user?.emergencyContact || "",
+            primaryCondition: user?.primaryCondition || "",
+            diagnosisDate: user?.diagnosisDate || "",
+            currentMedications: user?.currentMedications || "",
+            allergies: user?.allergies || "",
+            primaryEndocrinologist: user?.primaryEndocrinologist || "",
         },
         enableReinitialize: true,
-        onSubmit: handleProfileUpdate
-    })
+        onSubmit: handleProfileUpdate,
+    });
 
-    return <>
+    const inputClass =
+        "w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-gray-800 font-5 text-sm outline-none transition-all duration-200 placeholder:text-gray-400 focus:border-[#00B3A1] focus:ring-2 focus:ring-[#00B3A1]/20";
 
-{update ? <>
-            <div className="fixed top-0 right-0 left-0 bottom-0 bg-black opacity-50 z-10"></div>
-            <div className="fixed top-0 left-0 z-10 h-screen p-4 pt-20 overflow-y-auto bg-gray-100 w-full sm:w-100 font-1">
-                
-                <p className="mb-8 text-xl color-1 text-center uppercase"><i className="fa-regular fa-pen-to-square pr-2"></i> update your info </p>
-                <form onSubmit={formik.handleSubmit} className="mb-6">
-                    {feedback.message && (
-                        <div className={`p-3 mb-4 rounded-lg ${feedback.type === "success" ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}>
-                            {feedback.message}
-                        </div>
-                    )}
+    const personalFields = [
+        { key: "firstName", label: "First Name", type: "text" },
+        { key: "lastName", label: "Last Name", type: "text" },
+        { key: "email", label: "Email", type: "email" },
+        { key: "phone", label: "Phone", type: "tel" },
+        { key: "dateOfBirth", label: "Date of Birth", type: "date" },
+        { key: "gender", label: "Gender", type: "select" },
+        { key: "address", label: "Address", type: "text" },
+        { key: "emergencyContact", label: "Emergency Contact", type: "text" },
+    ];
 
-                    <div className="relative mb-6">
-                        <input type="text" id="firstName" name="firstName" value={formik.values.firstName} onChange={formik.handleChange} onBlur={formik.handleBlur} className="block px-2.5 pb-2.5 pt-4 w-full text-sm text-black bg-gray-100 rounded-lg border border-gray-300 focus:outline-none focus:ring-0 focus:border-[#00b3a1] peer" placeholder=" " />
-                        <label htmlFor="firstName" className="absolute text-sm text-gray-500 duration-300 transform -translate-y-4 scale-75 top-2 z-10 origin-left bg-gray-100 px-2 peer-focus:px-2 peer-focus:text-[#00b3a1] peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-90 peer-focus:-translate-y-4 rtl:peer-focus:translate-x-1/4 rtl:peer-focus:left-auto inset-s-1">First Name</label>
-                    </div>
-                    <div className="relative mb-6">
-                        <input type="text" id="lastName" name="lastName" value={formik.values.lastName} onChange={formik.handleChange} onBlur={formik.handleBlur} className="block px-2.5 pb-2.5 pt-4 w-full text-sm text-black bg-gray-100 rounded-lg border border-gray-300 focus:outline-none focus:ring-0 focus:border-[#00b3a1] peer" placeholder=" " />
-                        <label htmlFor="lastName" className="absolute text-sm text-gray-500 duration-300 transform -translate-y-4 scale-75 top-2 z-10 origin-left bg-gray-100 px-2 peer-focus:px-2 peer-focus:text-[#00b3a1] peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-90 peer-focus:-translate-y-4 rtl:peer-focus:translate-x-1/4 rtl:peer-focus:left-auto inset-s-1">Last Name</label>
-                    </div>
-                    <div className="relative mb-6">
-                        <input type="text" id="email" name="email" value={formik.values.email} onChange={formik.handleChange} onBlur={formik.handleBlur} className="block px-2.5 pb-2.5 pt-4 w-full text-sm text-black bg-gray-100 rounded-lg border border-gray-300 focus:outline-none focus:ring-0 focus:border-[#00b3a1] peer" placeholder=" " />
-                        <label htmlFor="email" className="absolute text-sm text-gray-500 duration-300 transform -translate-y-4 scale-75 top-2 z-10 origin-left bg-gray-100 px-2 peer-focus:px-2 peer-focus:text-[#00b3a1] peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-90 peer-focus:-translate-y-4 rtl:peer-focus:translate-x-1/4 rtl:peer-focus:left-auto inset-s-1">Email</label>
-                    </div>
-                    <div className="relative mb-6">
-                        <input type="tel" id="phone" name="phone" value={formik.values.phone} onChange={formik.handleChange} onBlur={formik.handleBlur} className="block px-2.5 pb-2.5 pt-4 w-full text-sm text-black bg-gray-100 rounded-lg border border-gray-300 focus:outline-none focus:ring-0 focus:border-[#00b3a1] peer" placeholder=" " />
-                        <label htmlFor="phone" className="absolute text-sm text-gray-500 duration-300 transform -translate-y-4 scale-75 top-2 z-10 origin-left bg-gray-100 px-2 peer-focus:px-2 peer-focus:text-[#00b3a1] peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-90 peer-focus:-translate-y-4 rtl:peer-focus:translate-x-1/4 rtl:peer-focus:left-auto inset-s-1">Phone</label>
-                    </div>
-                    <div className="relative mb-6">
-                        <input type="date" id="dateOfBirth" name="dateOfBirth" value={formik.values.dateOfBirth} onChange={formik.handleChange} onBlur={formik.handleBlur} className="block px-2.5 pb-2.5 pt-4 w-full text-sm text-black bg-gray-100 rounded-lg border border-gray-300 focus:outline-none focus:ring-0 focus:border-[#00b3a1] peer" placeholder=" " />
-                        <label htmlFor="dateOfBirth" className="absolute text-sm text-gray-500 duration-300 transform -translate-y-4 scale-75 top-2 z-10 origin-left bg-gray-100 px-2 peer-focus:px-2 peer-focus:text-[#00b3a1] peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-90 peer-focus:-translate-y-4 rtl:peer-focus:translate-x-1/4 rtl:peer-focus:left-auto inset-s-1">Date Of Birth</label>
-                    </div>
-                    <div className="relative mb-6">
-                        <select id="gender" name="gender" value={formik.values.gender} onChange={formik.handleChange} onBlur={formik.handleBlur} className="block px-2.5 pb-2.5 pt-4 w-full text-sm text-black bg-gray-100 rounded-lg border border-gray-300 focus:outline-none focus:ring-0 focus:border-[#00b3a1] peer" required>
-                            <option value="female" className="text-black">Female</option>
-                            <option value="male" className="text-black">Male</option>
-                        </select>
-                        <label htmlFor="gender" className="absolute text-sm text-gray-500 duration-300 transform -translate-y-4 scale-75 top-2 z-10 origin-left bg-gray-100 px-2 peer-focus:px-2 peer-focus:text-[#00b3a1] peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-90 peer-focus:-translate-y-4 rtl:peer-focus:translate-x-1/4 rtl:peer-focus:left-auto inset-s-1">Gender</label>
-                    </div>
-                    <div className="relative mb-6">
-                        <input type="text" id="address" name="address" value={formik.values.address} onChange={formik.handleChange} onBlur={formik.handleBlur} className="block px-2.5 pb-2.5 pt-4 w-full text-sm text-black bg-gray-100 rounded-lg border border-gray-300 focus:outline-none focus:ring-0 focus:border-[#00b3a1] peer" placeholder=" " />
-                        <label htmlFor="address" className="absolute text-sm text-gray-500 duration-300 transform -translate-y-4 scale-75 top-2 z-10 origin-left bg-gray-100 px-2 peer-focus:px-2 peer-focus:text-[#00b3a1] peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-90 peer-focus:-translate-y-4 rtl:peer-focus:translate-x-1/4 rtl:peer-focus:left-auto inset-s-1">Address</label>
-                    </div>
-                    <div className="relative mb-6">
-                        <input type="text" id="emergencyContact" name="emergencyContact" value={formik.values.emergencyContact} onChange={formik.handleChange} onBlur={formik.handleBlur} className="block px-2.5 pb-2.5 pt-4 w-full text-sm text-black bg-gray-100 rounded-lg border border-gray-300 focus:outline-none focus:ring-0 focus:border-[#00b3a1] peer" placeholder=" " />
-                        <label htmlFor="emergencyContact" className="absolute text-sm text-gray-500 duration-300 transform -translate-y-4 scale-75 top-2 z-10 origin-left bg-gray-100 px-2 peer-focus:px-2 peer-focus:text-[#00b3a1] peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-90 peer-focus:-translate-y-4 rtl:peer-focus:translate-x-1/4 rtl:peer-focus:left-auto inset-s-1">Emergency Contact</label>
-                    </div>
-                    <div className="relative mb-6">
-                        <input type="text" id="primaryCondition" name="primaryCondition" value={formik.values.primaryCondition} onChange={formik.handleChange} onBlur={formik.handleBlur} className="block px-2.5 pb-2.5 pt-4 w-full text-sm text-black bg-gray-100 rounded-lg border border-gray-300 focus:outline-none focus:ring-0 focus:border-[#00b3a1] peer" placeholder=" " />
-                        <label htmlFor="primaryCondition" className="absolute text-sm text-gray-500 duration-300 transform -translate-y-4 scale-75 top-2 z-10 origin-left bg-gray-100 px-2 peer-focus:px-2 peer-focus:text-[#00b3a1] peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-90 peer-focus:-translate-y-4 rtl:peer-focus:translate-x-1/4 rtl:peer-focus:left-auto inset-s-1">Primary Condition</label>
-                    </div>
-                    <div className="relative mb-6">
-                        <input type="text" id="diagnosisDate" name="diagnosisDate" value={formik.values.diagnosisDate} onChange={formik.handleChange} onBlur={formik.handleBlur} className="block px-2.5 pb-2.5 pt-4 w-full text-sm text-black bg-gray-100 rounded-lg border border-gray-300 focus:outline-none focus:ring-0 focus:border-[#00b3a1] peer" placeholder=" " />
-                        <label htmlFor="diagnosisDate" className="absolute text-sm text-gray-500 duration-300 transform -translate-y-4 scale-75 top-2 z-10 origin-left bg-gray-100 px-2 peer-focus:px-2 peer-focus:text-[#00b3a1] peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-90 peer-focus:-translate-y-4 rtl:peer-focus:translate-x-1/4 rtl:peer-focus:left-auto inset-s-1">Diagnosis Date</label>
-                    </div>
-                    <div className="relative mb-6">
-                        <input type="text" id="currentMedications" name="currentMedications" value={formik.values.currentMedications} onChange={formik.handleChange} onBlur={formik.handleBlur} className="block px-2.5 pb-2.5 pt-4 w-full text-sm text-black bg-gray-100 rounded-lg border border-gray-300 focus:outline-none focus:ring-0 focus:border-[#00b3a1] peer" placeholder=" " />
-                        <label htmlFor="currentMedications" className="absolute text-sm text-gray-500 duration-300 transform -translate-y-4 scale-75 top-2 z-10 origin-left bg-gray-100 px-2 peer-focus:px-2 peer-focus:text-[#00b3a1] peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-90 peer-focus:-translate-y-4 rtl:peer-focus:translate-x-1/4 rtl:peer-focus:left-auto inset-s-1">Current Medications</label>
-                    </div>
-                    <div className="relative mb-6">
-                        <input type="text" id="allergies" name="allergies" value={formik.values.allergies} onChange={formik.handleChange} onBlur={formik.handleBlur} className="block px-2.5 pb-2.5 pt-4 w-full text-sm text-black bg-gray-100 rounded-lg border border-gray-300 focus:outline-none focus:ring-0 focus:border-[#00b3a1] peer" placeholder=" " />
-                        <label htmlFor="allergies" className="absolute text-sm text-gray-500 duration-300 transform -translate-y-4 scale-75 top-2 z-10 origin-left bg-gray-100 px-2 peer-focus:px-2 peer-focus:text-[#00b3a1] peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-90 peer-focus:-translate-y-4 rtl:peer-focus:translate-x-1/4 rtl:peer-focus:left-auto inset-s-1">Allergies</label>
-                    </div>
-                    <div className="relative mb-6">
-                        <input type="text" id="primaryEndocrinologist" name="primaryEndocrinologist" value={formik.values.primaryEndocrinologist} onChange={formik.handleChange} onBlur={formik.handleBlur} className="block px-2.5 pb-2.5 pt-4 w-full text-sm text-black bg-gray-100 rounded-lg border border-gray-300 focus:outline-none focus:ring-0 focus:border-[#00b3a1] peer" placeholder=" " />
-                        <label htmlFor="primaryEndocrinologist" className="absolute text-sm text-gray-500 duration-300 transform -translate-y-4 scale-75 top-2 z-10 origin-left bg-gray-100 px-2 peer-focus:px-2 peer-focus:text-[#00b3a1] peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-90 peer-focus:-translate-y-4 rtl:peer-focus:translate-x-1/4 rtl:peer-focus:left-auto inset-s-1">Primary Endocrinologist</label>
-                    </div>
-                    <button type="submit" disabled={formik.isSubmitting} className="text-white justify-center flex items-center bg-amber-500 hover:bg-amber-600 w-full  font-medium rounded-lg text-md px-5 py-2.5 mb-2 disabled:opacity-50">
-                        {formik.isSubmitting ? "Updating..." : "Update"}
-                    </button>   
-                    
-                </form>
-                <button type="button" onClick={()=>setupdate(false)} className="text-white justify-center flex items-center bg-red-600 hover:bg-red-700 w-full  font-medium rounded-lg text-md px-5 py-2.5 mb-2">Cancle</button>
+    const medicalFields = [
+        { key: "primaryCondition", label: "Primary Condition", type: "text" },
+        { key: "diagnosisDate", label: "Diagnosis Date", type: "text" },
+        { key: "currentMedications", label: "Current Medications", type: "text" },
+        { key: "allergies", label: "Allergies", type: "text" },
+        { key: "primaryEndocrinologist", label: "Primary Endocrinologist", type: "text" },
+    ];
 
-            </div>
-
-        </> : null}
-
-
-        <div className="bg-[url(/assets/image-3.png)] w-full h-100 bg-cover bg-position-[50%_15%]"></div>
-
-        <div className="mx-15 md:mb-25 flex gap-x-6 flex-wrap md:flex-nowrap justify-center md:justify-between items-start">
-
-            <div className="bg-white w-75 relative -top-25 rounded-4xl shadow-[6px_6px_25px_rgba(0,0,0,0.25)]">
-                <div className="w-full h-full flex flex-wrap items-center justify-center my-7">
-                    {user?.gender === "female"?
-                        <img src="/assets/girl.png" className="w-35 rounded-full"/>:
-                        <img src="/assets/boy.png" className="w-35 rounded-full"/>
-                    }
-                    <p className="w-full mt-4 font-1 text-center text-3xl">{user?.firstName} {user?.lastName}</p>
-                    <p className="w-full font-1 color-1 text-center">Hypothyroidism Patient</p>
-                    <div className="w-full mt-7 flex justify-center gap-5">
-                        <button onClick={()=>setupdate(true)} className="bg-black text-white font-1 w-25 text-center text-lg py-1 rounded-full cursor-pointer">Edit</button>
-                        <span onClick={signout} className="bg-black text-white font-1 w-25 text-center text-lg py-1 rounded-full cursor-pointer">Logout</span>
-                    </div>
-                </div>
-            </div>
-
-            <div className="relative -top-10 md:top-15 w-full md:w-[59%] font-1">
-                <p className="text-3xl pb-4 border-b-2">Personal Information</p>
-                <div className="mt-4">
-                    <div className="w-[50%] inline-block">
-                        <p className="text-xl">First Name</p>
-                        <p className="color-1 text-lg">{user?.firstName}</p>
-                    </div>
-                    <div className="w-[50%] inline-block">
-                        <p className="text-xl">Last Name</p>
-                        <p className="color-1 text-lg">{user?.lastName}</p>
-                    </div>
-                </div>
-                <div className="mt-4">
-                    <div className="w-[50%] inline-block">
-                        <p className="text-xl">Date of Birth</p>
-                        <p className="color-1 text-lg">{user?.dateOfBirth}</p>
-                    </div>
-                    <div className="w-[50%] inline-block">
-                        <p className="text-xl">Gender</p>
-                        <p className="color-1 text-lg">{user?.gender}</p>
-                    </div>
-                </div>
-                <div className="mt-4">
-                    <p className="text-xl">Email</p>
-                    <p className="color-1 text-lg">{user?.email}</p>
-                </div>
-                <div className="mt-4">
-                    <p className="text-xl">Phone Number</p>
-                    <p className="color-1 text-lg">{user?.phone}</p>
-                </div>
-                <div className="mt-4">
-                    <p className="text-xl">Address</p>
-                    <p className="color-1 text-lg">{user?.address || "-"}</p>
-                </div>
-                <div className="mt-4">
-                    <p className="text-xl">Emergency Contact</p>
-                    <p className="color-1 text-lg">{user?.emergencyContact || "-"}</p>
-                </div>
-
-                <p className="text-3xl mt-15 pb-4 border-b-2">Medical Information</p>
-                <div className="mt-4">
-                    <p className="text-xl">Primary Condition</p>
-                    <p className="color-1 text-lg">{user?.primaryCondition || "-"}</p>
-                </div>
-                <div className="mt-4">
-                    <p className="text-xl">Diagnosis Date</p>
-                    <p className="color-1 text-lg">{user?.diagnosisDate || "-"}</p>
-                </div>
-                <div className="mt-4">
-                    <p className="text-xl">Current Medications</p>
-                    <p className="color-1 text-lg">{user?.currentMedications || "-"}</p>
-                </div>
-                <div className="mt-4">
-                    <p className="text-xl">Allergies</p>
-                    <p className="color-1 text-lg">{user?.allergies || "-"}</p>
-                </div>
-                <div className="mt-4">
-                    <p className="text-xl">Primary Endocrinologist</p>
-                    <p className="color-1 text-lg">{user?.primaryEndocrinologist || "-"}</p>
-                </div>
-            </div>
-            
+    const infoItem = (label, value) => (
+        <div>
+            <p className="font-5 text-xs text-gray-500 uppercase tracking-wider mb-1">{label}</p>
+            <p className="font-1 text-base text-gray-800">{value || "—"}</p>
         </div>
-    </>
+    );
+
+    if (isLoading) {
+        return (
+            <div className="background-DB min-h-screen flex items-center justify-center">
+                <i className="fas fa-spinner fa-spin text-[#00B3A1] text-3xl"></i>
+            </div>
+        );
+    }
+
+    return (
+        <div className="background-DB min-h-screen">
+            <div className="pt-24 pb-8 px-4 md:px-12 lg:px-20 max-w-4xl mx-auto">
+
+                {/* ═══════════════════════════════════════════════════════════
+         *  PROFILE CARD
+         * ═══════════════════════════════════════════════════════════ */}
+                <div className="background-card p-6 md:p-8">
+                    <div className="flex flex-col sm:flex-row items-center gap-6">
+                        {/* Avatar */}
+                        <div className="flex-shrink-0">
+                            {user?.gender === "female" ? (
+                                <div className="w-24 h-24 rounded-2xl bg-[#00B3A1]/10 flex items-center justify-center">
+                                    <img src="/assets/girl.png" className="w-20 h-20 rounded-xl" alt="Avatar" />
+                                </div>
+                            ) : (
+                                <div className="w-24 h-24 rounded-2xl bg-[#00B3A1]/10 flex items-center justify-center">
+                                    <img src="/assets/boy.png" className="w-20 h-20 rounded-xl" alt="Avatar" />
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Info */}
+                        <div className="text-center sm:text-left flex-1">
+                            <h1 className="font-1 text-2xl text-gray-800">
+                                {user?.firstName} {user?.lastName}
+                            </h1>
+                            <p className="font-5 text-sm text-gray-500 mt-1">{user?.email}</p>
+                            {user?.primaryCondition && (
+                                <span className="inline-block mt-2 px-3 py-1 rounded-full text-xs font-semibold bg-[#00B3A1]/10 text-[#00B3A1] border border-[#00B3A1]/20">
+                                    {user.primaryCondition}
+                                </span>
+                            )}
+                        </div>
+
+                        {/* Actions */}
+                        <div className="flex gap-3">
+                            <button
+                                onClick={() => setShowEdit(true)}
+                                className="px-5 py-2 bg-[#00B3A1] text-white font-1 rounded-xl hover:bg-[#009e8e] transition-all duration-200 text-sm"
+                            >
+                                <i className="fas fa-pen mr-1.5"></i>Edit
+                            </button>
+                            <button
+                                onClick={signout}
+                                className="px-5 py-2 border border-gray-200 text-gray-600 font-5 rounded-xl hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition-all duration-200 text-sm"
+                            >
+                                <i className="fas fa-sign-out-alt mr-1.5"></i>Logout
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                {/* ═══════════════════════════════════════════════════════════
+         *  PERSONAL INFORMATION
+         * ═══════════════════════════════════════════════════════════ */}
+                <div className="background-card p-6 md:p-8 mt-4">
+                    <div className="flex items-center gap-3 mb-5 pb-3 border-b border-gray-200">
+                        <div className="w-9 h-9 rounded-xl bg-[#00B3A1]/10 flex items-center justify-center">
+                            <i className="fas fa-user text-[#00B3A1] text-sm"></i>
+                        </div>
+                        <h3 className="font-1 text-lg text-gray-800">Personal Information</h3>
+                    </div>
+
+                    <div className="grid gap-5 sm:grid-cols-2">
+                        {infoItem("First Name", user?.firstName)}
+                        {infoItem("Last Name", user?.lastName)}
+                        {infoItem("Date of Birth", user?.dateOfBirth)}
+                        {infoItem("Gender", user?.gender ? user.gender.charAt(0).toUpperCase() + user.gender.slice(1) : "")}
+                        {infoItem("Email", user?.email)}
+                        {infoItem("Phone", user?.phone)}
+                        {infoItem("Address", user?.address)}
+                        {infoItem("Emergency Contact", user?.emergencyContact)}
+                    </div>
+                </div>
+
+                {/* ═══════════════════════════════════════════════════════════
+         *  MEDICAL INFORMATION
+         * ═══════════════════════════════════════════════════════════ */}
+                <div className="background-card p-6 md:p-8 mt-4">
+                    <div className="flex items-center gap-3 mb-5 pb-3 border-b border-gray-200">
+                        <div className="w-9 h-9 rounded-xl bg-[#00B3A1]/10 flex items-center justify-center">
+                            <i className="fas fa-heart-pulse text-[#00B3A1] text-sm"></i>
+                        </div>
+                        <h3 className="font-1 text-lg text-gray-800">Medical Information</h3>
+                    </div>
+
+                    <div className="grid gap-5 sm:grid-cols-2">
+                        {infoItem("Primary Condition", user?.primaryCondition)}
+                        {infoItem("Diagnosis Date", user?.diagnosisDate)}
+                        {infoItem("Current Medications", user?.currentMedications)}
+                        {infoItem("Allergies", user?.allergies)}
+                        {infoItem("Primary Endocrinologist", user?.primaryEndocrinologist)}
+                    </div>
+                </div>
+
+            </div>
+
+            {/* ═══════════════════════════════════════════════════════════
+       *  EDIT MODAL
+       * ═══════════════════════════════════════════════════════════ */}
+            {showEdit && (
+                <>
+                    <div className="fixed inset-0 bg-black/40 z-40" />
+                    <div className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-8 overflow-y-auto">
+                        <div className="bg-white rounded-2xl w-full max-w-lg shadow-xl mb-8">
+                            {/* Header */}
+                            <div className="flex items-center justify-between p-5 border-b border-gray-100">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-9 h-9 rounded-xl bg-[#00B3A1]/10 flex items-center justify-center">
+                                        <i className="fas fa-pen text-[#00B3A1] text-sm"></i>
+                                    </div>
+                                    <h3 className="font-1 text-lg text-gray-800">Edit Profile</h3>
+                                </div>
+                                <button
+                                    onClick={() => { setShowEdit(false); setFeedback({ message: "", type: "" }); }}
+                                    className="w-8 h-8 rounded-lg hover:bg-gray-100 flex items-center justify-center text-gray-400 hover:text-gray-600 transition"
+                                >
+                                    <i className="fas fa-times"></i>
+                                </button>
+                            </div>
+
+                            {/* Form */}
+                            <form onSubmit={formik.handleSubmit} className="p-5 space-y-5">
+                                {/* Feedback */}
+                                {feedback.message && (
+                                    <div className={`p-3 rounded-xl text-sm font-5 ${feedback.type === "success"
+                                            ? "bg-green-50 text-green-700 border border-green-200"
+                                            : "bg-red-50 text-red-700 border border-red-200"
+                                        }`}>
+                                        <i className={`fas ${feedback.type === "success" ? "fa-check-circle" : "fa-exclamation-circle"} mr-2`}></i>
+                                        {feedback.message}
+                                    </div>
+                                )}
+
+                                {/* Personal Info */}
+                                <div className="flex items-center gap-2 pb-2 border-b border-gray-100">
+                                    <i className="fas fa-user text-[#00B3A1] text-sm"></i>
+                                    <span className="font-5 text-sm text-gray-500">Personal Information</span>
+                                </div>
+                                <div className="grid gap-3 sm:grid-cols-2">
+                                    {personalFields.map((field) => (
+                                        <div key={field.key} className={field.key === "address" || field.key === "emergencyContact" ? "sm:col-span-2" : ""}>
+                                            <label className="block font-5 text-xs text-gray-500 mb-1">{field.label}</label>
+                                            {field.type === "select" ? (
+                                                <select
+                                                    name={field.key}
+                                                    value={formik.values[field.key]}
+                                                    onChange={formik.handleChange}
+                                                    className={`${inputClass} appearance-none cursor-pointer`}
+                                                >
+                                                    <option value="female" className="text-black">Female</option>
+                                                    <option value="male" className="text-black">Male</option>
+                                                </select>
+                                            ) : (
+                                                <input
+                                                    type={field.type}
+                                                    name={field.key}
+                                                    value={formik.values[field.key]}
+                                                    onChange={formik.handleChange}
+                                                    className={`${inputClass} ${field.type === "date" ? "[color-scheme:light]" : ""}`}
+                                                />
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+
+                                {/* Medical Info */}
+                                <div className="flex items-center gap-2 pb-2 border-b border-gray-100">
+                                    <i className="fas fa-heart-pulse text-[#00B3A1] text-sm"></i>
+                                    <span className="font-5 text-sm text-gray-500">Medical Information</span>
+                                </div>
+                                <div className="grid gap-3 sm:grid-cols-2">
+                                    {medicalFields.map((field) => (
+                                        <div key={field.key}>
+                                            <label className="block font-5 text-xs text-gray-500 mb-1">{field.label}</label>
+                                            <input
+                                                type="text"
+                                                name={field.key}
+                                                value={formik.values[field.key]}
+                                                onChange={formik.handleChange}
+                                                className={inputClass}
+                                            />
+                                        </div>
+                                    ))}
+                                </div>
+
+                                {/* Buttons */}
+                                <div className="flex gap-3 pt-2">
+                                    <button
+                                        type="submit"
+                                        disabled={formik.isSubmitting}
+                                        className="flex-1 py-2.5 bg-[#00B3A1] text-white font-1 rounded-xl hover:bg-[#009e8e] transition-all disabled:opacity-60 disabled:cursor-not-allowed text-sm"
+                                    >
+                                        {formik.isSubmitting ? (
+                                            <><i className="fas fa-spinner fa-spin mr-2"></i>Saving...</>
+                                        ) : (
+                                            "Save Changes"
+                                        )}
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => { setShowEdit(false); setFeedback({ message: "", type: "" }); }}
+                                        className="flex-1 py-2.5 border border-gray-200 text-gray-600 font-5 rounded-xl hover:bg-gray-50 transition-all text-sm"
+                                    >
+                                        Cancel
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </>
+            )}
+        </div>
+    );
 }

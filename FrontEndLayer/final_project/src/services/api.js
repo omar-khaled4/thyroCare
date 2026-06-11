@@ -19,6 +19,8 @@ const OPTIONAL_ENDPOINTS = [
   "/predict/history",
   "/symptoms",
   "/lab-results",
+  "/reports",
+  "/predict/report",
 ];
 
 /* ── Guard: only trigger logout once per page load ── */
@@ -29,10 +31,10 @@ api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("userToken");
     if (token) {
-      
+
       config.headers.Authorization = `Bearer ${token}`;
     } else {
-      
+      console.log("No token found");
     }
     return config;
   },
@@ -46,7 +48,7 @@ api.interceptors.response.use(
     const { response, config } = error;
     const status = response ? response.status : null;
 
-    
+
 
     const message =
       error?.response?.data?.message ||
@@ -62,7 +64,7 @@ api.interceptors.response.use(
       window.location.pathname.includes("/verify-email");
 
     if (status === 401 || status === 403) {
-      
+
 
       // Check if this is an optional/non-critical endpoint
       const isOptional = OPTIONAL_ENDPOINTS.some((ep) =>
@@ -71,14 +73,18 @@ api.interceptors.response.use(
 
       if (isOptional) {
         // Never logout for optional endpoints — just log and continue
-        
+
       } else if (!isAuthPage && !isLoggingOut) {
-        // Core auth failure — logout once
         isLoggingOut = true;
-        
-        localStorage.removeItem("userToken");
-        localStorage.removeItem("user");
-        window.location.href = "/login";
+        console.warn("[api] ⚠️ CORE endpoint returned 401");
+        console.warn("[api] ⚠️ Failed URL:", config?.url);
+        console.warn("[api] ⚠️ Method:", config?.method);
+        console.warn("[api] ⚠️ Response:", response?.data);
+        setTimeout(() => {
+          localStorage.removeItem("userToken");
+          localStorage.removeItem("user");
+          window.location.href = "/login";
+        }, 3000);
       }
     } else if (!isAuthPage && !error?.config?._toastFired) {
       if (error.config) {

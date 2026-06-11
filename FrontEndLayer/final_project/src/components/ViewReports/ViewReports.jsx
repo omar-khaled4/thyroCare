@@ -1,76 +1,65 @@
 import React, { useState, useEffect } from "react";
-import style from "./ViewReports.module.css"
 import { useFormik } from "formik";
 import { getReports, deleteReport, updateReport } from "../../services/reportService";
 
 export default function ViewReports() {
+    const [Loading, setLoading] = useState(true);
+    const [reports, setReports] = useState([]);
+    const [viewData, setViewData] = useState([]);
+    const [report, setReport] = useState(null);
+    const [updateLoading, setUpdateLoading] = useState(false);
+    const [showView, setShowView] = useState(false);
+    const [showUpdate, setShowUpdate] = useState(false);
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(null);
+    const [deleteLoading, setDeleteLoading] = useState(false);
 
-    let [Loading, setLoading] = useState(true)
-    let [reports, setReports] = useState([])
-    let [viewData, setviewData] = useState([])
-    let [report, setreport] = useState(null)
-    let [updateLoading, setupdateLoading] = useState(false)
-
-    /* ── Pagination state ── */
+    // Pagination
     const ITEMS_PER_PAGE = 5;
     const [currentPage, setCurrentPage] = useState(1);
     const [totalReports, setTotalReports] = useState(0);
-
-    /* total pages */
     const totalPages = Math.ceil(totalReports / ITEMS_PER_PAGE);
 
-    /* page slice (comes AFTER viewData is set) */
     const paginatedData = viewData.slice(
         (currentPage - 1) * ITEMS_PER_PAGE,
         currentPage * ITEMS_PER_PAGE
     );
 
-    /* reset to page 1 whenever searched list changes */
-    useEffect(() => {
-        setCurrentPage(1);
-    }, [viewData]);
+    useEffect(() => { setCurrentPage(1); }, [viewData]);
 
-    // fetch reports on mount
+    // Fetch reports
     useEffect(() => {
         const fetchReports = async () => {
-            
             try {
                 const data = await getReports(1, 100);
-                // Normalize backend fields to frontend expected names (flat structure)
-                const normalized = data.map(r => ({
+                const normalized = data.map((r) => ({
                     ...r,
                     id: r._id,
                     date: r.testDate,
                     TestingFacility: r.testingFacility,
-
-                    // Flatten nested objects
                     TSH: r.thyroidFunction?.tsh,
                     FreeT3: r.thyroidFunction?.freeT3,
                     FreeT4: r.thyroidFunction?.freeT4,
                     TotalT4: r.thyroidFunction?.totalT4,
                     TotalT3: r.thyroidFunction?.totalT3,
-
                     TPOAntibodies: r.antibodies?.tpo,
                     ThyroglobulinAntibodies: r.antibodies?.antiTg,
                     TSHReceptorAntibodies: r.antibodies?.tshr,
-
                     Thyroglobulin: r.otherTests?.thyroglobulin,
                     Calcitonin: r.otherTests?.calcitonin,
                     ReverseT3: r.otherTests?.reverseT3,
-
                     Fatigue: r.symptoms?.fatigue,
                     WeightChanges: r.symptoms?.weightChange,
                     TemperatureSensitivity: r.symptoms?.coldIntolerance,
                     HairSkinChanges: r.symptoms?.hairLoss,
-                    MoodChanges: r.symptoms?.anxiety, // mapping anxiety to mood
-                    SkinChanges: r.symptoms?.hairLoss
+                    MoodChanges: r.symptoms?.anxiety,
+                    Palpitations: r.symptoms?.palpitations,
+                    Insomnia: r.symptoms?.insomnia,
                 }));
-                
                 setReports(normalized);
-                setviewData(normalized);
+                setViewData(normalized);
                 setTotalReports(normalized.length);
             } catch (err) {
-                
+                console.error("[ViewReports] Fetch failed:", err);
             } finally {
                 setLoading(false);
             }
@@ -78,43 +67,36 @@ export default function ViewReports() {
         fetchReports();
     }, []);
 
-    //search
-    let [inputValue, setinputValue] = useState('')
-    let change = (event) => {
-        setinputValue(event.target.value)
-        search(event.target.value, viewData);
-    }
-    function clear() {
-        setinputValue('')
-        setviewData(reports)
-    }
-
-    function search(value, dataList) {
-        
-        if (dataList.length > 0) {
-            const filtered = dataList.filter(r =>
-                (r.TestingFacility || "").toLocaleLowerCase().includes(value.toLocaleLowerCase()) || (r.date || "").includes(value)
+    // Search
+    const [inputValue, setInputValue] = useState("");
+    const handleSearch = (event) => {
+        const value = event.target.value;
+        setInputValue(value);
+        if (value === "") {
+            setViewData(reports);
+        } else {
+            const filtered = reports.filter(
+                (r) =>
+                    (r.TestingFacility || "").toLowerCase().includes(value.toLowerCase()) ||
+                    (r.date || "").includes(value)
             );
-            
-            setviewData(filtered);
+            setViewData(filtered);
         }
-    }
+    };
+    const clearSearch = () => {
+        setInputValue("");
+        setViewData(reports);
+    };
 
-    //view
-    let [_show, set_show] = useState(false)
-    let show = (report) => {
-        setreport(report)
-        set_show(prev => !prev)
-    }
+    // View
+    const openView = (r) => { setReport(r); setShowView(true); };
+    const closeView = () => { setShowView(false); setReport(null); };
 
-    //update
-    let [_update, set_update] = useState(false)
-    let update = (report) => {
-        setreport(report)
-        set_update(prev => !prev)
-    }
+    // Update
+    const openUpdate = (r) => { setReport(r); setShowUpdate(true); };
+    const closeUpdate = () => { setShowUpdate(false); setReport(null); };
 
-    let formik = useFormik({
+    const formik = useFormik({
         initialValues: {
             id: report?.id,
             DateOfTest: report?.date,
@@ -136,55 +118,61 @@ export default function ViewReports() {
             SkinChanges: report?.HairSkinChanges,
         },
         enableReinitialize: true,
-    })
+        onSubmit: async (values) => {
+            setUpdateLoading(true);
+            try {
+                await updateReport(report.id, values);
+                // Refresh list
+                const data = await getReports(1, 100);
+                const normalized = data.map((r) => ({
+                    ...r, id: r._id, date: r.testDate, TestingFacility: r.testingFacility,
+                    TSH: r.thyroidFunction?.tsh, FreeT3: r.thyroidFunction?.freeT3,
+                    FreeT4: r.thyroidFunction?.freeT4, TotalT4: r.thyroidFunction?.totalT4,
+                    TotalT3: r.thyroidFunction?.totalT3, TPOAntibodies: r.antibodies?.tpo,
+                    ThyroglobulinAntibodies: r.antibodies?.antiTg, TSHReceptorAntibodies: r.antibodies?.tshr,
+                    Thyroglobulin: r.otherTests?.thyroglobulin, Calcitonin: r.otherTests?.calcitonin,
+                    ReverseT3: r.otherTests?.reverseT3, Fatigue: r.symptoms?.fatigue,
+                    WeightChanges: r.symptoms?.weightChange, TemperatureSensitivity: r.symptoms?.coldIntolerance,
+                    HairSkinChanges: r.symptoms?.hairLoss, MoodChanges: r.symptoms?.anxiety,
+                    Palpitations: r.symptoms?.palpitations, Insomnia: r.symptoms?.insomnia,
+                }));
+                setReports(normalized);
+                setViewData(normalized);
+                setTotalReports(normalized.length);
+                closeUpdate();
+            } catch (err) {
+                console.error("[ViewReports] Update failed:", err);
+            } finally {
+                setUpdateLoading(false);
+            }
+        },
+    });
 
-    const handleDelete = async (reportId) => {
-        
-        const confirmed = window.confirm('Are you sure you want to delete this report?');
-        if (!confirmed) {
-            
-            return;
-        }
-
-        // Capture the report being deleted for potential rollback
-        const removed = viewData.find(r => r._id === reportId);
-
-        // Optimistic update — remove from UI immediately
-        setviewData(prev => prev.filter(r => r._id !== reportId));
-        setTotalReports(prev => prev - 1);
-
+    // Delete
+    const confirmDelete = async (reportId) => {
+        setDeleteLoading(true);
+        const removed = viewData.find((r) => r._id === reportId);
+        setViewData((prev) => prev.filter((r) => r._id !== reportId));
+        setTotalReports((prev) => prev - 1);
         try {
             await deleteReport(reportId);
-            
+            setShowDeleteConfirm(null);
         } catch (err) {
-            // Rollback on error
-            
             if (removed) {
-                setviewData(prev => [...prev, removed]);
-                setTotalReports(prev => prev + 1);
+                setViewData((prev) => [...prev, removed]);
+                setTotalReports((prev) => prev + 1);
             }
-        }
-    }
-
-    const handleUpdate = async (values) => {
-        setupdateLoading(true)
-        try {
-            await updateReport(report.id, values);
-            set_update(false);
-        } catch (err) {
-            
         } finally {
-            setupdateLoading(false)
+            setDeleteLoading(false);
         }
-    }
+    };
 
-    /* ── Pagination helpers ── */
+    // Pagination helpers
     function goToPage(page) {
         if (page < 1 || page > totalPages) return;
         setCurrentPage(page);
     }
 
-    /* build page-number array with ellipsis */
     function getPageNumbers() {
         if (totalPages <= 7) return Array.from({ length: totalPages }, (_, i) => i + 1);
         if (currentPage <= 4) return [1, 2, 3, 4, 5, "...", totalPages];
@@ -192,232 +180,458 @@ export default function ViewReports() {
         return [1, "...", currentPage - 1, currentPage, currentPage + 1, "...", totalPages];
     }
 
-    return <>
+    // Shared classes
+    const inputClass = "w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-gray-800 font-5 text-sm outline-none transition-all duration-200 focus:border-[#00B3A1] focus:ring-2 focus:ring-[#00B3A1]/20";
 
-        {_update ? <>
+    const sectionHeader = (icon, title) => (
+        <div className="flex items-center gap-2 mb-3 pb-2 border-b border-gray-200">
+            <i className={`fas ${icon} text-[#00B3A1] text-sm`}></i>
+            <span className="font-1 text-sm text-gray-700">{title}</span>
+        </div>
+    );
 
-            <div className="fixed top-0 right-0 left-0 bottom-0 bg-black opacity-50 z-10"></div>
-            <div className="fixed top-0 left-0 z-10 h-screen p-4 pt-20 overflow-y-auto bg-gray-100 w-full sm:w-100 font-1">
+    const symptomLabels = {
+        Fatigue: "Fatigue",
+        WeightChanges: "Weight Changes",
+        TemperatureSensitivity: "Temp. Sensitivity",
+        MoodChanges: "Mood Changes",
+        SkinChanges: "Hair/Skin Changes",
+    };
 
-                <p className="mb-8 text-xl color-1 text-center uppercase"><i className="fa-regular fa-pen-to-square pr-2"></i> update report </p>
-                <form onSubmit={handleUpdate} className="mb-6">
+    return (
+        <div className="background-DB min-h-screen">
+            <div className="pt-24 pb-8 px-4 md:px-12 lg:px-20 max-w-5xl mx-auto">
 
-                    <div className="relative mb-6">
-                        <input type="date" id="date" name="DateOfTest" value={formik.values.DateOfTest} onChange={formik.handleChange} onBlur={formik.handleBlur} className="block px-2.5 pb-2.5 pt-4 w-full text-sm text-black bg-gray-100 rounded-lg border border-gray-300 focus:outline-none focus:ring-0 focus:border-[#00b3a1] peer" placeholder=" " />
-                        <label htmlFor="date" className="absolute text-sm text-gray-500 duration-300 transform -translate-y-4 scale-75 top-2 z-10 origin-left bg-gray-100 px-2 peer-focus:px-2 peer-focus:text-[#00b3a1] peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-90 peer-focus:-translate-y-4 rtl:peer-focus:translate-x-1/4 rtl:peer-focus:left-auto inset-s-1">Date Of Test</label>
+                {/* ═══════════════════════════════════════════════════════════
+         *  HEADER + SEARCH
+         * ═══════════════════════════════════════════════════════════ */}
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
+                    <div>
+                        <h1 className="font-1 text-3xl text-gray-800">Your Reports</h1>
+                        <p className="font-5 text-gray-500 text-sm mt-1">
+                            {totalReports} report{totalReports !== 1 ? "s" : ""} found
+                        </p>
                     </div>
-                    <div className="relative mb-6">
-                        <input type="text" id="TestingFacility" name="TestingFacility" value={formik.values.TestingFacility} onChange={formik.handleChange} onBlur={formik.handleBlur} className="block px-2.5 pb-2.5 pt-4 w-full text-sm text-black bg-gray-100 rounded-lg border border-gray-300 focus:outline-none focus:ring-0 focus:border-[#00b3a1] peer" placeholder=" " />
-                        <label htmlFor="TestingFacility" className="absolute text-sm text-gray-500 duration-300 transform -translate-y-4 scale-75 top-2 z-10 origin-left bg-gray-100 px-2 peer-focus:px-2 peer-focus:text-[#00b3a1] peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-90 peer-focus:-translate-y-4 rtl:peer-focus:translate-x-1/4 rtl:peer-focus:left-auto inset-s-1">Testing Facility</label>
+                    <div className="relative w-full sm:w-72">
+                        <i className="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+                        <input
+                            type="search"
+                            value={inputValue}
+                            onChange={handleSearch}
+                            className="w-full pl-9 pr-10 py-2.5 bg-white border border-gray-200 rounded-xl text-sm font-5 text-gray-700 outline-none focus:border-[#00B3A1] focus:ring-2 focus:ring-[#00B3A1]/20 transition-all"
+                            placeholder="Search by date or facility..."
+                        />
+                        {inputValue && (
+                            <button
+                                onClick={clearSearch}
+                                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                            >
+                                <i className="fas fa-times text-sm"></i>
+                            </button>
+                        )}
                     </div>
-                    <div className="relative mb-6">
-                        <input type="text" id="TSH" name="TSH" value={formik.values.TSH} onChange={formik.handleChange} onBlur={formik.handleBlur} className="block px-2.5 pb-2.5 pt-4 w-full text-sm text-black bg-gray-100 rounded-lg border border-gray-300 focus:outline-none focus:ring-0 focus:border-[#00b3a1] peer" placeholder=" " />
-                        <label htmlFor="TSH" className="absolute text-sm text-gray-500 duration-300 transform -translate-y-4 scale-75 top-2 z-10 origin-left bg-gray-100 px-2 peer-focus:px-2 peer-focus:text-[#00b3a1] peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-90 peer-focus:-translate-y-4 rtl:peer-focus:translate-x-1/4 rtl:peer-focus:left-auto inset-s-1">TSH</label>
-                    </div>
-                    <div className="relative mb-6">
-                        <input type="text" id="FreeT4" name="FreeT4" value={formik.values.FreeT4} onChange={formik.handleChange} onBlur={formik.handleBlur} className="block px-2.5 pb-2.5 pt-4 w-full text-sm text-black bg-gray-100 rounded-lg border border-gray-300 focus:outline-none focus:ring-0 focus:border-[#00b3a1] peer" placeholder=" " />
-                        <label htmlFor="FreeT4" className="absolute text-sm text-gray-500 duration-300 transform -translate-y-4 scale-75 top-2 z-10 origin-left bg-gray-100 px-2 peer-focus:px-2 peer-focus:text-[#00b3a1] peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-90 peer-focus:-translate-y-4 rtl:peer-focus:translate-x-1/4 rtl:peer-focus:left-auto inset-s-1">Free T4</label>
-                    </div>
-                    <div className="relative mb-6">
-                        <input type="text" id="FreeT3" name="FreeT3" value={formik.values.FreeT3} onChange={formik.handleChange} onBlur={formik.handleBlur} className="block px-2.5 pb-2.5 pt-4 w-full text-sm text-black bg-gray-100 rounded-lg border border-gray-300 focus:outline-none focus:ring-0 focus:border-[#00b3a1] peer" placeholder=" " />
-                        <label htmlFor="FreeT3" className="absolute text-sm text-gray-500 duration-300 transform -translate-y-4 scale-75 top-2 z-10 origin-left bg-gray-100 px-2 peer-focus:px-2 peer-focus:text-[#00b3a1] peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-90 peer-focus:-translate-y-4 rtl:peer-focus:translate-x-1/4 rtl:peer-focus:left-auto inset-s-1">Free T3</label>
-                    </div>
-                    <div className="relative mb-6">
-                        <input type="text" id="TotalT4" name="TotalT4" value={formik.values.TotalT4} onChange={formik.handleChange} onBlur={formik.handleBlur} className="block px-2.5 pb-2.5 pt-4 w-full text-sm text-black bg-gray-100 rounded-lg border border-gray-300 focus:outline-none focus:ring-0 focus:border-[#00b3a1] peer" placeholder=" " />
-                        <label htmlFor="TotalT4" className="absolute text-sm text-gray-500 duration-300 transform -translate-y-4 scale-75 top-2 z-10 origin-left bg-gray-100 px-2 peer-focus:px-2 peer-focus:text-[#00b3a1] peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-90 peer-focus:-translate-y-4 rtl:peer-focus:translate-x-1/4 rtl:peer-focus:left-auto inset-s-1">Total T4</label>
-                    </div>
-                    <div className="relative mb-6">
-                        <input type="text" id="TPOAntibodies" name="TPOAntibodies" value={formik.values.TPOAntibodies} onChange={formik.handleChange} onBlur={formik.handleBlur} className="block px-2.5 pb-2.5 pt-4 w-full text-sm text-black bg-gray-100 rounded-lg border border-gray-300 focus:outline-none focus:ring-0 focus:border-[#00b3a1] peer" placeholder=" " />
-                        <label htmlFor="TPOAntibodies" className="absolute text-sm text-gray-500 duration-300 transform -translate-y-4 scale-75 top-2 z-10 origin-left bg-gray-100 px-2 peer-focus:px-2 peer-focus:text-[#00b3a1] peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-90 peer-focus:-translate-y-4 rtl:peer-focus:translate-x-1/4 rtl:peer-focus:left-auto inset-s-1">TPO Antibodies</label>
-                    </div>
-                    <div className="relative mb-6">
-                        <input type="text" id="ThyroglobulinAntibodies" name="ThyroglobulinAntibodies" value={formik.values.ThyroglobulinAntibodies} onChange={formik.handleChange} onBlur={formik.handleBlur} className="block px-2.5 pb-2.5 pt-4 w-full text-sm text-black bg-gray-100 rounded-lg border border-gray-300 focus:outline-none focus:ring-0 focus:border-[#00b3a1] peer" placeholder=" " />
-                        <label htmlFor="ThyroglobulinAntibodies" className="absolute text-sm text-gray-500 duration-300 transform -translate-y-4 scale-75 top-2 z-10 origin-left bg-gray-100 px-2 peer-focus:px-2 peer-focus:text-[#00b3a1] peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-90 peer-focus:-translate-y-4 rtl:peer-focus:translate-x-1/4 rtl:peer-focus:left-auto inset-s-1">Thyroglobulin Antibodies</label>
-                    </div>
-                    <div className="relative mb-6">
-                        <input type="text" id="TSHReceptorAntibodies" name="TSHReceptorAntibodies" value={formik.values.TSHReceptorAntibodies} onChange={formik.handleChange} onBlur={formik.handleBlur} className="block px-2.5 pb-2.5 pt-4 w-full text-sm text-black bg-gray-100 rounded-lg border border-gray-300 focus:outline-none focus:ring-0 focus:border-[#00b3a1] peer" placeholder=" " />
-                        <label htmlFor="TSHReceptorAntibodies" className="absolute text-sm text-gray-500 duration-300 transform -translate-y-4 scale-75 top-2 z-10 origin-left bg-gray-100 px-2 peer-focus:px-2 peer-focus:text-[#00b3a1] peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-90 peer-focus:-translate-y-4 rtl:peer-focus:translate-x-1/4 rtl:peer-focus:left-auto inset-s-1">TSH Receptor Antibodies</label>
-                    </div>
-                    <div className="relative mb-6">
-                        <input type="text" id="Thyroglobulin" name="Thyroglobulin" value={formik.values.Thyroglobulin} onChange={formik.handleChange} onBlur={formik.handleBlur} className="block px-2.5 pb-2.5 pt-4 w-full text-sm text-black bg-gray-100 rounded-lg border border-gray-300 focus:outline-none focus:ring-0 focus:border-[#00b3a1] peer" placeholder=" " />
-                        <label htmlFor="Thyroglobulin" className="absolute text-sm text-gray-500 duration-300 transform -translate-y-4 scale-75 top-2 z-10 origin-left bg-gray-100 px-2 peer-focus:px-2 peer-focus:text-[#00b3a1] peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-90 peer-focus:-translate-y-4 rtl:peer-focus:translate-x-1/4 rtl:peer-focus:left-auto inset-s-1">Thyroglobulin</label>
-                    </div>
-                    <div className="relative mb-6">
-                        <input type="text" id="Calcitonin" name="Calcitonin" value={formik.values.Calcitonin} onChange={formik.handleChange} onBlur={formik.handleBlur} className="block px-2.5 pb-2.5 pt-4 w-full text-sm text-black bg-gray-100 rounded-lg border border-gray-300 focus:outline-none focus:ring-0 focus:border-[#00b3a1] peer" placeholder=" " />
-                        <label htmlFor="Calcitonin" className="absolute text-sm text-gray-500 duration-300 transform -translate-y-4 scale-75 top-2 z-10 origin-left bg-gray-100 px-2 peer-focus:px-2 peer-focus:text-[#00b3a1] peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-90 peer-focus:-translate-y-4 rtl:peer-focus:translate-x-1/4 rtl:peer-focus:left-auto inset-s-1">Calcitonin</label>
-                    </div>
-                    <div className="relative mb-6">
-                        <input type="text" id="ReverseT3" name="ReverseT3" value={formik.values.ReverseT3} onChange={formik.handleChange} onBlur={formik.handleBlur} className="block px-2.5 pb-2.5 pt-4 w-full text-sm text-black bg-gray-100 rounded-lg border border-gray-300 focus:outline-none focus:ring-0 focus:border-[#00b3a1] peer" placeholder=" " />
-                        <label htmlFor="ReverseT3" className="absolute text-sm text-gray-500 duration-300 transform -translate-y-4 scale-75 top-2 z-10 origin-left bg-gray-100 px-2 peer-focus:px-2 peer-focus:text-[#00b3a1] peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-90 peer-focus:-translate-y-4 rtl:peer-focus:translate-x-1/4 rtl:peer-focus:left-auto inset-s-1">Reverse T3</label>
-                    </div>
-                    <div className="relative mb-6">
-                        <label htmlFor="Fatigue" className="text-gray-500 w-full text-sm">Fatigue : {formik.values.Fatigue}</label>
-                        <input type="range" id="Fatigue" name="Fatigue" min="0" max="10" value={formik.values.Fatigue} onChange={formik.handleChange} onBlur={formik.handleBlur} className="w-full h-1 background-1 rounded-full cursor-pointer mt-2" />
-                    </div>
-                    <div className="relative mb-6">
-                        <label htmlFor="WeightChanges" className="text-gray-500 w-full text-sm">Weight Changes : {formik.values.WeightChanges}</label>
-                        <input type="range" id="WeightChanges" name="WeightChanges" min="0" max="10" value={formik.values.WeightChanges} onChange={formik.handleChange} onBlur={formik.handleBlur} className="w-full h-1 background-1 rounded-full cursor-pointer mt-2" />
-                    </div>
-                    <div className="relative mb-6">
-                        <label htmlFor="TemperatureSensitivity" className="text-gray-500 w-full text-sm">Temperature Sensitivity : {formik.values.TemperatureSensitivity}</label>
-                        <input type="range" id="TemperatureSensitivity" name="TemperatureSensitivity" min="0" max="10" value={formik.values.TemperatureSensitivity} onChange={formik.handleChange} onBlur={formik.handleBlur} className="w-full h-1 background-1 rounded-full cursor-pointer mt-2" />
-                    </div>
-                    <div className="relative mb-6">
-                        <label htmlFor="MoodChanges" className="text-gray-500 w-full text-sm">Mood Changes : {formik.values.MoodChanges}</label>
-                        <input type="range" id="MoodChanges" name="MoodChanges" min="0" max="10" value={formik.values.MoodChanges} onChange={formik.handleChange} onBlur={formik.handleBlur} className="w-full h-1 background-1 rounded-full cursor-pointer mt-2" />
-                    </div>
-                    <div className="relative mb-6">
-                        <label htmlFor="SkinChanges" className="text-gray-500 w-full text-sm">Skin Changes : {formik.values.SkinChanges}</label>
-                        <input type="range" id="SkinChanges" name="SkinChanges" min="0" max="10" value={formik.values.SkinChanges} onChange={formik.handleChange} onBlur={formik.handleBlur} className="w-full h-1 background-1 rounded-full cursor-pointer mt-2" />
-                    </div>
-
-                    <button type="submit" disabled={updateLoading} className="text-white justify-center flex items-center bg-amber-500 hover:bg-amber-600 w-full  font-medium rounded-lg text-md px-5 py-2.5 mb-2">{updateLoading ? <><i className="fas fa-spinner fa-spin mr-2" /> Updating…</> : "Update"}</button>
-
-                </form>
-                <button type="button" onClick={() => update(null)} className="text-white justify-center flex items-center bg-red-600 hover:bg-red-700 w-full  font-medium rounded-lg text-md px-5 py-2.5 mb-2">Cancel</button>
-
-            </div>
-        </> : null}
-
-
-        {_show ? <>
-
-            <div onClick={() => show(null)} className="fixed top-0 right-0 left-0 bottom-0 bg-black opacity-50 z-10"></div>
-            <div className="fixed max-h-[calc(100vh-100px)] z-20 mt-10 top-1/2 -translate-y-1/2 bg-gray-100 justify-self-center w-11/12 md:w-3/4 p-4 rounded-xl font-1 text-2xl overflow-y-auto">
-                <button onClick={() => show(null)} type="button" className="color-1 hover:text-black! rounded-lg w-8 h-8 absolute top-4 right-4 cursor-pointer">
-                    <i className="fa-solid fa-xmark text-2xl"></i>
-                </button>
-
-                <div className="grid sm:grid-cols-2 gap-2 mt-8">
-                    <p>Id : <span className="color-1">{report.id}</span></p>
-                    <p>Date : <span className="color-1">{report.date}</span></p>
                 </div>
-                <p className="mt-2 border-b pb-3">Testing Facility : <span className="color-1">{report.TestingFacility}</span></p>
-                <div className="grid sm:grid-cols-2 gap-2 mt-4 border-b pb-3">
-                    <p>TSH : <span className="color-1">{report.TSH} mIU/L</span></p>
-                    <p>Free T3 : <span className="color-1">{report.FreeT3} pg/ml</span></p>
-                    <p>Free T4 : <span className="color-1">{report.FreeT4} ng/dL</span></p>
-                    <p>Total T4 : <span className="color-1">{report.TotalT4} μg/dl</span></p>
-                </div>
-                <p className="mt-4">TPO Antibodies : <span className="color-1">{report.TPOAntibodies} IU/mL</span></p>
-                <p className="mt-2">Thyroglobulin Antibodies : <span className="color-1">{report.ThyroglobulinAntibodies} IU/mL</span></p>
-                <p className="mt-2 border-b pb-3">TSH Receptor Antibodies : <span className="color-1">{report.TSHReceptorAntibodies} IU/L</span></p>
-                <p className="mt-4">Thyroglobulin : <span className="color-1">{report.Thyroglobulin} ng/mL</span></p>
-                <p className="mt-2">Calcitonin : <span className="color-1">{report.Calcitonin} pg/mL</span></p>
-                <p className="mt-2 border-b pb-3">Reverse T3 : <span className="color-1">{report.ReverseT3} ng/dL</span></p>
-                <div className="grid sm:grid-cols-2 gap-2 mt-4">
-                    <p>Fatigue (1-10) : <span className="color-1">{report.Fatigue}</span></p>
-                    <p>Weight Changes (1-10) : <span className="color-1">{report.WeightChanges}</span></p>
-                    <p>Temperature Sensitivity (1-10) : <span className="color-1">{report.TemperatureSensitivity}</span></p>
-                    <p>Mood Changes (1-10) : <span className="color-1">{report.MoodChanges}</span></p>
-                    <p>Hair/Skin Changes (1-10) : <span className="color-1">{report.HairSkinChanges}</span></p>
-                </div>
-            </div>
 
-        </> : null}
+                {/* ═══════════════════════════════════════════════════════════
+         *  REPORTS LIST
+         * ═══════════════════════════════════════════════════════════ */}
+                {!Loading ? (
+                    paginatedData.length > 0 ? (
+                        <div className="space-y-3">
+                            {paginatedData.map((r, index) => (
+                                <div
+                                    key={r._id}
+                                    className="background-card p-5 flex flex-col sm:flex-row sm:items-center gap-4"
+                                >
+                                    {/* Left — Report info */}
+                                    <div className="flex-1 min-w-0">
+                                        <div className="flex items-center gap-2 mb-1">
+                                            <div className="w-8 h-8 rounded-lg bg-[#00B3A1]/10 flex items-center justify-center flex-shrink-0">
+                                                <i className="fas fa-file-medical text-[#00B3A1] text-sm"></i>
+                                            </div>
+                                            <div className="min-w-0">
+                                                <p className="font-1 text-base text-gray-800 truncate">
+                                                    {r.TestingFacility || "Unknown Facility"}
+                                                </p>
+                                                <p className="font-5 text-xs text-gray-500">
+                                                    {new Date(r.date).toLocaleDateString("en-US", {
+                                                        year: "numeric", month: "short", day: "numeric",
+                                                    })}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        {/* Quick lab values */}
+                                        <div className="flex gap-4 mt-2 ml-10">
+                                            <span className="font-5 text-xs text-gray-500">
+                                                TSH: <span className="text-[#00B3A1] font-semibold">{r.TSH}</span>
+                                            </span>
+                                            <span className="font-5 text-xs text-gray-500">
+                                                FT4: <span className="text-[#00B3A1] font-semibold">{r.FreeT4}</span>
+                                            </span>
+                                            <span className="font-5 text-xs text-gray-500">
+                                                FT3: <span className="text-[#00B3A1] font-semibold">{r.FreeT3}</span>
+                                            </span>
+                                        </div>
+                                    </div>
 
+                                    {/* Right — Actions */}
+                                    <div className="flex items-center gap-2 sm:gap-1">
+                                        <button
+                                            onClick={() => openView(r)}
+                                            className="flex items-center gap-1.5 px-3 py-2 text-sm font-5 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors"
+                                            title="View"
+                                        >
+                                            <i className="fas fa-eye text-sm"></i>
+                                            <span className="sm:hidden">View</span>
+                                        </button>
+                                        <button
+                                            onClick={() => openUpdate(r)}
+                                            className="flex items-center gap-1.5 px-3 py-2 text-sm font-5 rounded-lg text-amber-600 hover:bg-amber-50 transition-colors"
+                                            title="Edit"
+                                        >
+                                            <i className="fas fa-pen-to-square text-sm"></i>
+                                            <span className="sm:hidden">Edit</span>
+                                        </button>
+                                        <button
+                                            onClick={() => setShowDeleteConfirm(r._id)}
+                                            className="flex items-center gap-1.5 px-3 py-2 text-sm font-5 rounded-lg text-red-500 hover:bg-red-50 transition-colors"
+                                            title="Delete"
+                                        >
+                                            <i className="fas fa-trash-can text-sm"></i>
+                                            <span className="sm:hidden">Delete</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            ))}
 
-        <div className="background-DB">
-            <div className="h-25"></div>
-
-            <div className=" w-70 justify-self-end mx-5 relative">
-                <div className="absolute inset-y-0 inset-x-0 flex items-center ps-3 pointer-events-none">
-                    <i className="fa-solid fa-magnifying-glass color-1"></i>
-                </div>
-                <input type="search" value={inputValue} onChange={change} className="block w-full p-3 ps-10 text-sm color-1 font-1 border border-[#00b3a1] rounded-lg bg-[#00000000]" placeholder="Date , Testing Facility" required />
-                {inputValue == '' ?
-                    <button type="submit" className="text-black absolute inset-e-2.5 bottom-1 background-1 font-1 rounded-lg text-sm px-4 py-2 cursor-pointer">Search</button> :
-                    <button type="submit" onClick={() => clear()} className="text-black absolute inset-e-2.5 bottom-1 background-1 font-1 rounded-lg text-sm px-4 py-2 cursor-pointer">Clear</button>
-                }
-            </div>
-
-            <div className="background-card relative overflow-x-auto shadow-md sm:rounded-lg mt-10 mx-5 md:mx-15 p-3">
-
-                {!Loading ?
-                    paginatedData.length > 0 ?
-                        <>
-                            <p className="font-1 text-center text-3xl my-4">your Reports : <span className="color-1">{totalReports}</span></p>
-
-                            <table className="w-full font-1 text-center">
-                                <thead className="uppercase text-lg md:text-xl">
-                                    <tr>
-                                        <th scope="col" className="py-2 px-3">No.</th>
-                                        <th scope="col" className="py-2 px-3">date</th>
-                                        <th scope="col" className="py-2 px-3">View</th>
-                                        <th scope="col" className="py-2 px-3">edit</th>
-                                        <th scope="col" className="py-2 px-3">delete</th>
-                                    </tr>
-                                </thead>
-
-                                {paginatedData?.map((report, index) => (
-                                    <tbody key={index + 1}>
-                                        <tr className="border-b border-gray-300 text-lg">
-                                            <td className="p-4">{index + 1}</td>
-                                            <td className="p-4">{new Date(report.date).toLocaleString()}</td>
-                                            <td className="p-4"><span onClick={() => show(report)} className="cursor-pointer text-2xl text-blue-400"><i className="fa-regular fa-eye"></i></span></td>
-                                            <td className="p-4"><span onClick={() => update(report)} className="cursor-pointer text-2xl text-amber-400"><i className="fa-regular fa-pen-to-square"></i></span></td>
-                                            <td className="p-4"><span onClick={() => handleDelete(report._id)} className="cursor-pointer text-2xl text-red-600"><i className="fa-solid fa-trash-can"></i></span></td>
-                                        </tr>
-                                    </tbody>
-                                ))}
-
-                            </table>
-
-                            {/* ── Pagination controls ── */}
+                            {/* Pagination */}
                             {totalPages > 1 && (
-                                <div className="flex items-center justify-center gap-2 mt-6 mb-4 font-1">
-                                    {/* Previous */}
+                                <div className="flex items-center justify-center gap-1.5 mt-6 font-5 text-sm">
                                     <button
                                         onClick={() => goToPage(currentPage - 1)}
                                         disabled={currentPage === 1}
-                                        className="px-3 py-1 rounded-lg background-1 text-white disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#009284] transition"
+                                        className="px-3 py-1.5 rounded-lg bg-white border border-gray-200 text-gray-600 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-50 transition"
                                     >
-                                        &laquo; Prev
+                                        <i className="fas fa-chevron-left text-xs"></i>
                                     </button>
-
-                                    {/* Page numbers */}
                                     {getPageNumbers().map((p, idx) =>
                                         p === "..." ? (
-                                            <span key={`ellipsis-${idx}`} className="px-2 text-gray-500">…</span>
+                                            <span key={`e${idx}`} className="px-2 text-gray-400">…</span>
                                         ) : (
                                             <button
                                                 key={p}
                                                 onClick={() => goToPage(p)}
-                                                className={`px-3 py-1 rounded-lg transition ${currentPage === p
-                                                    ? "bg-amber-600 text-white"
-                                                    : "background-1 text-white hover:bg-[#009284]"
+                                                className={`w-8 h-8 rounded-lg transition ${currentPage === p
+                                                        ? "bg-[#00B3A1] text-white"
+                                                        : "bg-white border border-gray-200 text-gray-600 hover:bg-gray-50"
                                                     }`}
                                             >
                                                 {p}
                                             </button>
                                         )
                                     )}
-
-                                    {/* Next */}
                                     <button
                                         onClick={() => goToPage(currentPage + 1)}
                                         disabled={currentPage === totalPages}
-                                        className="px-3 py-1 rounded-lg background-1 text-white disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#009284] transition"
+                                        className="px-3 py-1.5 rounded-lg bg-white border border-gray-200 text-gray-600 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-gray-50 transition"
                                     >
-                                        Next &raquo;
+                                        <i className="fas fa-chevron-right text-xs"></i>
                                     </button>
                                 </div>
                             )}
-
-                        </>
-                        :
-                        <div className="w-full h-100 flex items-center justify-center font-1 color-1 text-4xl sm:text-5xl">
-                            {inputValue == '' ? <p>there are no reports</p> : <p>No Result</p>}
                         </div>
-                    :
-                    <div className="w-full h-100 flex items-center justify-center">
-                        <i className="fas fa-spinner fa-spin color-1 text-7xl"></i>
+                    ) : (
+                        /* Empty State */
+                        <div className="background-card p-12 text-center">
+                            <div className="w-16 h-16 mx-auto rounded-full bg-gray-100 flex items-center justify-center mb-4">
+                                <i className="fas fa-folder-open text-gray-300 text-2xl"></i>
+                            </div>
+                            <p className="font-1 text-xl text-gray-500">
+                                {inputValue ? "No matching reports found" : "No reports yet"}
+                            </p>
+                            <p className="font-5 text-sm text-gray-400 mt-1">
+                                {inputValue
+                                    ? "Try a different search term"
+                                    : "Insert your first thyroid report to get started"}
+                            </p>
+                        </div>
+                    )
+                ) : (
+                    /* Loading */
+                    <div className="background-card p-12 flex items-center justify-center">
+                        <i className="fas fa-spinner fa-spin text-[#00B3A1] text-3xl"></i>
                     </div>
-                }
+                )}
+
+                {/* ═══════════════════════════════════════════════════════════
+         *  VIEW MODAL
+         * ═══════════════════════════════════════════════════════════ */}
+                {showView && report && (
+                    <>
+                        <div onClick={closeView} className="fixed inset-0 bg-black/40 z-40" />
+                        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                            <div className="bg-white rounded-2xl w-full max-w-lg max-h-[85vh] overflow-y-auto shadow-xl">
+                                {/* Header */}
+                                <div className="sticky top-0 bg-white flex items-center justify-between p-5 border-b border-gray-100 rounded-t-2xl">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-9 h-9 rounded-xl bg-[#00B3A1]/10 flex items-center justify-center">
+                                            <i className="fas fa-file-medical text-[#00B3A1] text-sm"></i>
+                                        </div>
+                                        <div>
+                                            <h3 className="font-1 text-lg text-gray-800">Report Details</h3>
+                                            <p className="font-5 text-xs text-gray-400">
+                                                {new Date(report.date).toLocaleDateString("en-US", {
+                                                    year: "numeric", month: "long", day: "numeric",
+                                                })}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <button onClick={closeView} className="w-8 h-8 rounded-lg hover:bg-gray-100 flex items-center justify-center text-gray-400 hover:text-gray-600 transition">
+                                        <i className="fas fa-times"></i>
+                                    </button>
+                                </div>
+
+                                {/* Content */}
+                                <div className="p-5 space-y-5">
+                                    {/* Facility */}
+                                    <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-xl">
+                                        <i className="fas fa-hospital text-[#00B3A1] text-sm"></i>
+                                        <span className="font-5 text-sm text-gray-700">{report.TestingFacility || "—"}</span>
+                                    </div>
+
+                                    {/* Thyroid Function */}
+                                    {sectionHeader("fa-vials", "Thyroid Function")}
+                                    <div className="grid grid-cols-2 gap-3">
+                                        {[
+                                            { label: "TSH", value: report.TSH, unit: "mIU/L" },
+                                            { label: "Free T4", value: report.FreeT4, unit: "ng/dL" },
+                                            { label: "Free T3", value: report.FreeT3, unit: "pg/mL" },
+                                            { label: "Total T4", value: report.TotalT4, unit: "μg/dL" },
+                                            { label: "Total T3", value: report.TotalT3, unit: "ng/dL" },
+                                        ].map((item) => (
+                                            <div key={item.label} className="p-3 bg-gray-50 rounded-xl">
+                                                <p className="font-5 text-xs text-gray-500">{item.label}</p>
+                                                <p className="font-1 text-base text-gray-800">
+                                                    {item.value ?? "—"} <span className="text-xs text-gray-400">{item.unit}</span>
+                                                </p>
+                                            </div>
+                                        ))}
+                                    </div>
+
+                                    {/* Antibodies */}
+                                    {sectionHeader("fa-shield-virus", "Antibodies")}
+                                    <div className="grid grid-cols-3 gap-3">
+                                        {[
+                                            { label: "TPO", value: report.TPOAntibodies, unit: "IU/mL" },
+                                            { label: "Anti-Tg", value: report.ThyroglobulinAntibodies, unit: "IU/mL" },
+                                            { label: "TSHR", value: report.TSHReceptorAntibodies, unit: "IU/L" },
+                                        ].map((item) => (
+                                            <div key={item.label} className="p-3 bg-gray-50 rounded-xl">
+                                                <p className="font-5 text-xs text-gray-500">{item.label}</p>
+                                                <p className="font-1 text-base text-gray-800">
+                                                    {item.value ?? "—"} <span className="text-xs text-gray-400">{item.unit}</span>
+                                                </p>
+                                            </div>
+                                        ))}
+                                    </div>
+
+                                    {/* Other Tests */}
+                                    {sectionHeader("fa-flask", "Other Tests")}
+                                    <div className="grid grid-cols-3 gap-3">
+                                        {[
+                                            { label: "Thyroglobulin", value: report.Thyroglobulin, unit: "ng/mL" },
+                                            { label: "Calcitonin", value: report.Calcitonin, unit: "pg/mL" },
+                                            { label: "Reverse T3", value: report.ReverseT3, unit: "ng/dL" },
+                                        ].map((item) => (
+                                            <div key={item.label} className="p-3 bg-gray-50 rounded-xl">
+                                                <p className="font-5 text-xs text-gray-500">{item.label}</p>
+                                                <p className="font-1 text-base text-gray-800">
+                                                    {item.value ?? "—"} <span className="text-xs text-gray-400">{item.unit}</span>
+                                                </p>
+                                            </div>
+                                        ))}
+                                    </div>
+
+                                    {/* Symptoms */}
+                                    {sectionHeader("fa-stethoscope", "Symptoms")}
+                                    <div className="grid grid-cols-2 gap-2">
+                                        {Object.entries(symptomLabels).map(([key, label]) => {
+                                            const val = Number(report[key]) || 0;
+                                            return (
+                                                <div key={key} className="flex items-center justify-between p-2.5 bg-gray-50 rounded-lg">
+                                                    <span className="font-5 text-xs text-gray-600">{label}</span>
+                                                    <span className={`text-xs font-bold px-2 py-0.5 rounded ${val === 0 ? "text-gray-400 bg-gray-100" :
+                                                            val <= 3 ? "text-green-600 bg-green-50" :
+                                                                val <= 6 ? "text-amber-600 bg-amber-50" :
+                                                                    "text-red-600 bg-red-50"
+                                                        }`}>
+                                                        {val}/10
+                                                    </span>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </>
+                )}
+
+                {/* ═══════════════════════════════════════════════════════════
+         *  UPDATE MODAL
+         * ═══════════════════════════════════════════════════════════ */}
+                {showUpdate && report && (
+                    <>
+                        <div className="fixed inset-0 bg-black/40 z-40" />
+                        <div className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-8 overflow-y-auto">
+                            <div className="bg-white rounded-2xl w-full max-w-lg shadow-xl mb-8">
+                                {/* Header */}
+                                <div className="flex items-center justify-between p-5 border-b border-gray-100">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-9 h-9 rounded-xl bg-amber-50 flex items-center justify-center">
+                                            <i className="fas fa-pen text-amber-500 text-sm"></i>
+                                        </div>
+                                        <h3 className="font-1 text-lg text-gray-800">Edit Report</h3>
+                                    </div>
+                                    <button onClick={closeUpdate} className="w-8 h-8 rounded-lg hover:bg-gray-100 flex items-center justify-center text-gray-400 hover:text-gray-600 transition">
+                                        <i className="fas fa-times"></i>
+                                    </button>
+                                </div>
+
+                                {/* Form */}
+                                <form onSubmit={formik.handleSubmit} className="p-5 space-y-4">
+                                    {/* Basic */}
+                                    <div className="grid gap-4 grid-cols-2">
+                                        <div>
+                                            <label className="block font-5 text-xs text-gray-500 mb-1">Date of Test</label>
+                                            <input type="date" name="DateOfTest" value={formik.values.DateOfTest} onChange={formik.handleChange} className={`${inputClass} [color-scheme:light]`} />
+                                        </div>
+                                        <div>
+                                            <label className="block font-5 text-xs text-gray-500 mb-1">Facility</label>
+                                            <input type="text" name="TestingFacility" value={formik.values.TestingFacility} onChange={formik.handleChange} className={inputClass} />
+                                        </div>
+                                    </div>
+
+                                    {/* Thyroid Function */}
+                                    {sectionHeader("fa-vials", "Thyroid Function")}
+                                    <div className="grid gap-3 grid-cols-2">
+                                        {[
+                                            { name: "TSH", label: "TSH (mIU/L)" },
+                                            { name: "FreeT4", label: "Free T4 (ng/dL)" },
+                                            { name: "FreeT3", label: "Free T3 (pg/mL)" },
+                                            { name: "TotalT4", label: "Total T4 (μg/dL)" },
+                                        ].map((f) => (
+                                            <div key={f.name}>
+                                                <label className="block font-5 text-xs text-gray-500 mb-1">{f.label}</label>
+                                                <input type="number" step="any" name={f.name} value={formik.values[f.name]} onChange={formik.handleChange} className={inputClass} />
+                                            </div>
+                                        ))}
+                                    </div>
+
+                                    {/* Antibodies */}
+                                    {sectionHeader("fa-shield-virus", "Antibodies")}
+                                    <div className="grid gap-3 grid-cols-3">
+                                        {[
+                                            { name: "TPOAntibodies", label: "TPO (IU/mL)" },
+                                            { name: "ThyroglobulinAntibodies", label: "Anti-Tg (IU/mL)" },
+                                            { name: "TSHReceptorAntibodies", label: "TSHR (IU/L)" },
+                                        ].map((f) => (
+                                            <div key={f.name}>
+                                                <label className="block font-5 text-xs text-gray-500 mb-1">{f.label}</label>
+                                                <input type="number" step="any" name={f.name} value={formik.values[f.name]} onChange={formik.handleChange} className={inputClass} />
+                                            </div>
+                                        ))}
+                                    </div>
+
+                                    {/* Other Tests */}
+                                    {sectionHeader("fa-flask", "Other Tests")}
+                                    <div className="grid gap-3 grid-cols-3">
+                                        {[
+                                            { name: "Thyroglobulin", label: "Thyroglobulin" },
+                                            { name: "Calcitonin", label: "Calcitonin" },
+                                            { name: "ReverseT3", label: "Reverse T3" },
+                                        ].map((f) => (
+                                            <div key={f.name}>
+                                                <label className="block font-5 text-xs text-gray-500 mb-1">{f.label}</label>
+                                                <input type="number" step="any" name={f.name} value={formik.values[f.name]} onChange={formik.handleChange} className={inputClass} />
+                                            </div>
+                                        ))}
+                                    </div>
+
+                                    {/* Symptoms */}
+                                    {sectionHeader("fa-stethoscope", "Symptoms")}
+                                    <div className="grid gap-3 grid-cols-2">
+                                        {Object.entries(symptomLabels).map(([key, label]) => {
+                                            const value = Number(formik.values[key]) || 0;
+                                            return (
+                                                <div key={key} className="bg-gray-50 rounded-xl p-3">
+                                                    <div className="flex items-center justify-between mb-1.5">
+                                                        <span className="font-5 text-xs text-gray-600">{label}</span>
+                                                        <span className={`text-xs font-bold px-2 py-0.5 rounded ${value === 0 ? "text-gray-400 bg-gray-100" :
+                                                                value <= 3 ? "text-green-600 bg-green-50" :
+                                                                    value <= 6 ? "text-amber-600 bg-amber-50" :
+                                                                        "text-red-600 bg-red-50"
+                                                            }`}>
+                                                            {value}
+                                                        </span>
+                                                    </div>
+                                                    <input type="range" name={key} min="0" max="10" value={formik.values[key]} onChange={formik.handleChange} className="w-full cursor-pointer" />
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+
+                                    {/* Buttons */}
+                                    <div className="flex gap-3 pt-2">
+                                        <button type="submit" disabled={updateLoading} className="flex-1 py-2.5 bg-[#00B3A1] text-white font-1 rounded-xl hover:bg-[#009e8e] transition-all disabled:opacity-60 disabled:cursor-not-allowed text-sm">
+                                            {updateLoading ? <><i className="fas fa-spinner fa-spin mr-2"></i>Saving...</> : "Save Changes"}
+                                        </button>
+                                        <button type="button" onClick={closeUpdate} className="flex-1 py-2.5 border border-gray-200 text-gray-600 font-5 rounded-xl hover:bg-gray-50 transition-all text-sm">
+                                            Cancel
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </>
+                )}
+
+                {/* ═══════════════════════════════════════════════════════════
+         *  DELETE CONFIRMATION MODAL
+         * ═══════════════════════════════════════════════════════════ */}
+                {showDeleteConfirm && (
+                    <>
+                        <div className="fixed inset-0 bg-black/40 z-40" />
+                        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                            <div className="bg-white rounded-2xl w-full max-w-sm p-6 shadow-xl text-center">
+                                <div className="w-14 h-14 mx-auto rounded-full bg-red-50 flex items-center justify-center mb-4">
+                                    <i className="fas fa-trash-can text-red-500 text-xl"></i>
+                                </div>
+                                <h3 className="font-1 text-lg text-gray-800 mb-2">Delete Report?</h3>
+                                <p className="font-5 text-sm text-gray-500 mb-6">
+                                    This action cannot be undone. The report will be permanently removed.
+                                </p>
+                                <div className="flex gap-3">
+                                    <button
+                                        onClick={() => setShowDeleteConfirm(null)}
+                                        className="flex-1 py-2.5 border border-gray-200 text-gray-600 font-5 rounded-xl hover:bg-gray-50 transition-all text-sm"
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        onClick={() => confirmDelete(showDeleteConfirm)}
+                                        disabled={deleteLoading}
+                                        className="flex-1 py-2.5 bg-red-500 text-white font-1 rounded-xl hover:bg-red-600 transition-all disabled:opacity-60 disabled:cursor-not-allowed text-sm"
+                                    >
+                                        {deleteLoading ? <><i className="fas fa-spinner fa-spin mr-1"></i>Deleting...</> : "Delete"}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </>
+                )}
 
             </div>
-
-            <div className="h-15"></div>
         </div>
-    </>
+    );
 }

@@ -11,6 +11,7 @@ export default function Login() {
   const [isLoading, setIsLoading] = useState(false);
   const [serverError, setServerError] = useState("");
   const [showResendVerification, setShowResendVerification] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const { login: doLogin } = useContext(UserContext);
 
   async function handleLogin(values) {
@@ -58,12 +59,10 @@ export default function Login() {
   const validationSchema = yup.object().shape({
     email: yup
       .string()
-      .email(" not valid email ")
-      .required(" email is required ")
-      .matches(/^[a-zA-Z]{3,}/, "email must start with 3 char at least"),
-    password: yup
-      .string()
-      .required("Password is required"),
+      .email("Please enter a valid email")
+      .required("Email is required")
+      .matches(/^[a-zA-Z]{3,}/, "Email must start with 3 letters at least"),
+    password: yup.string().required("Password is required"),
   });
 
   const formik = useFormik({
@@ -73,114 +72,139 @@ export default function Login() {
   });
 
   return (
-    <>
-      <div className="background-image w-full min-h-screen">
-        <div className="pt-35 mx-10 grid gap-4 md:grid-cols-12">
-          <div className="md:col-span-5 fixed w-90">
-            <p className="text-white font-1 text-5xl hidden md:flex leading-15">
-              When your body speaks, Listening is the first step toward
-              healing
+    <div className="background-image w-full min-h-screen flex items-center justify-center">
+      <div className="w-full max-w-md mx-4 pt-20 pb-10 md:pt-10">
+        {/* Card */}
+        <div className="w-full backdrop-blur-[16px] bg-white/10 rounded-2xl border border-white/15 overflow-hidden">
+          {/* Header */}
+          <div className="px-8 pt-8 pb-4 text-center">
+            <h1 className="text-white font-1 text-3xl font-semibold">
+              Welcome Back
+            </h1>
+            <p className="text-white/60 font-1 text-sm mt-2">
+              Sign in to access your thyroid health dashboard
             </p>
           </div>
 
-          <div className="md:col-span-6 md:col-start-7 lg:col-span-5 lg:col-start-8">
-            <div className="w-full backdrop-blur-[10px] bg-white/10 rounded-[50px] border border-white mb-4">
-              <p className="text-white font-1 text-center text-2xl py-3 border-b-2 mx-5">
-                login
-              </p>
-
-              <form onSubmit={formik.handleSubmit} className="m-5">
-                <div className="mt-4">
-                  <label
-                    htmlFor="email"
-                    className="text-white font-1 w-full text-lg"
-                  >
-                    Email
-                  </label>
-                  <input
-                    type="email"
-                    id="email"
-                    name="email"
-                    value={formik.values.email}
-                    onChange={formik.handleChange}
-                    onBlur={formik.handleBlur}
-                    className="w-full font-1 bg-[#00000000] text-white rounded-lg"
-                    placeholder="name@gmail.com"
-                    required
-                  />
-                  {formik.errors.email && formik.touched.email ? (
-                    <p className="font-1 pt-1 text-red-800">
-                      {formik.errors.email}
-                    </p>
-                  ) : null}
-                </div>
-
-                <div className="mt-4">
-                  <label
-                    htmlFor="password"
-                    className="text-white font-1 w-full text-lg"
-                  >
-                    Password
-                  </label>
-                  <input
-                    type="password"
-                    id="password"
-                    name="password"
-                    value={formik.values.password}
-                    onChange={formik.handleChange}
-                    onBlur={formik.handleBlur}
-                    className="w-full font-1 bg-[#00000000] text-white rounded-lg"
-                    required
-                  />
-                  {formik.errors.password && formik.touched.password ? (
-                    <p className="font-1 pt-1 text-red-800">
-                      {formik.errors.password}
-                    </p>
-                  ) : null}
-                </div>
-
-                {/* Forgot Password? link */}
-                <div className="text-right text-sm mt-2">
-                  <Link to="/forgot-password" className="text-white font-1 hover:underline">
-                    Forgot Password?
-                  </Link>
-                </div>
-
-                {/* Server-side error message */}
-                {serverError && (
-                  <p className="font-1 pt-2 text-red-600 bg-red-100/20 rounded p-2">
-                    {serverError}
-                  </p>
-                )}
-
-                {/* Resend Verification Email button */}
-                {showResendVerification && (
-                  <button
-                    type="button"
-                    onClick={handleResendVerification}
-                    className="bg-white font-1 text-lg w-full mb-4 py-2 rounded-lg cursor-pointer"
-                  >
-                    Resend Verification Email
-                  </button>
-                )}
-
-                {isLoading ? (
-                  <p className="bg-white font-1 text-lg w-full my-8 py-2 rounded-lg cursor-pointer text-center">
-                    <i className="fas fa-spinner fa-spin text-black"></i>
-                  </p>
-                ) : (
-                  <button
-                    type="submit"
-                    className="bg-white font-1 text-lg w-full my-8 py-2 rounded-lg cursor-pointer"
-                  >
-                    Submit
-                  </button>
-                )}
-              </form>
+          {/* Form */}
+          <form onSubmit={formik.handleSubmit} className="px-8 pb-8">
+            {/* Email */}
+            <div className="mt-5">
+              <label
+                htmlFor="email"
+                className="block text-white/80 font-1 text-sm mb-1.5"
+              >
+                Email
+              </label>
+              <input
+                type="email"
+                id="email"
+                name="email"
+                value={formik.values.email}
+                onChange={formik.handleChange}
+                onBlur={formik.handleBlur}
+                className="w-full px-4 py-3 bg-white/8 border border-white/20 rounded-xl text-white font-5 text-sm outline-none transition-all duration-200 placeholder:text-white/30 focus:border-[#00B3A1] focus:bg-white/12 focus:ring-2 focus:ring-[#00B3A1]/20"
+                placeholder="name@gmail.com"
+                required
+              />
+              {formik.errors.email && formik.touched.email ? (
+                <p className="text-red-400 font-5 text-xs mt-1.5">
+                  {formik.errors.email}
+                </p>
+              ) : null}
             </div>
-          </div>
+
+            {/* Password */}
+            <div className="mt-4">
+              <label
+                htmlFor="password"
+                className="block text-white/80 font-1 text-sm mb-1.5"
+              >
+                Password
+              </label>
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  id="password"
+                  name="password"
+                  value={formik.values.password}
+                  onChange={formik.handleChange}
+                  onBlur={formik.handleBlur}
+                  className="w-full px-4 py-3 pr-12 bg-white/8 border border-white/20 rounded-xl text-white font-5 text-sm outline-none transition-all duration-200 placeholder:text-white/30 focus:border-[#00B3A1] focus:bg-white/12 focus:ring-2 focus:ring-[#00B3A1]/20"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-[#00B3A1] transition-colors"
+                >
+                  <i
+                    className={`fa-solid ${showPassword ? "fa-eye-slash" : "fa-eye"
+                      } text-sm`}
+                  ></i>
+                </button>
+              </div>
+              {formik.errors.password && formik.touched.password ? (
+                <p className="text-red-400 font-5 text-xs mt-1.5">
+                  {formik.errors.password}
+                </p>
+              ) : null}
+            </div>
+
+            {/* Forgot Password */}
+            <div className="text-right mt-3">
+              <Link
+                to="/forgot-password"
+                className="text-white/50 font-5 text-xs hover:text-[#00B3A1] transition-colors"
+              >
+                Forgot Password?
+              </Link>
+            </div>
+
+            {/* Server Error */}
+            {serverError && (
+              <div className="mt-4 p-3 bg-red-500/15 border border-red-500/25 rounded-xl">
+                <p className="text-red-300 font-5 text-sm">{serverError}</p>
+              </div>
+            )}
+
+            {/* Resend Verification */}
+            {showResendVerification && (
+              <button
+                type="button"
+                onClick={handleResendVerification}
+                className="w-full mt-4 py-3 border border-[#00B3A1] text-[#00B3A1] rounded-xl font-1 text-sm hover:bg-[#00B3A1] hover:text-white transition-all duration-200"
+              >
+                Resend Verification Email
+              </button>
+            )}
+
+            {/* Submit Button */}
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="w-full mt-6 py-3 bg-[#00B3A1] text-white font-1 text-lg rounded-xl hover:bg-[#009e8e] transition-all duration-200 hover:shadow-lg hover:shadow-[#00B3A1]/20 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:shadow-none"
+            >
+              {isLoading ? (
+                <i className="fas fa-spinner fa-spin"></i>
+              ) : (
+                "Sign In"
+              )}
+            </button>
+
+            {/* Sign Up Link */}
+            <p className="text-center mt-6 text-white/50 font-5 text-sm">
+              Don't have an account?{" "}
+              <Link
+                to="/signup"
+                className="text-[#00B3A1] hover:underline font-1"
+              >
+                Sign Up
+              </Link>
+            </p>
+          </form>
         </div>
       </div>
-    </>
+    </div>
   );
 }

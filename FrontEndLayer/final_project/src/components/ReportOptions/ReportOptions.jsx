@@ -1,106 +1,57 @@
-import React, { useRef, useState } from "react";
-import style from "./ReportOptions.module.css"
-import { Link, useNavigate } from "react-router-dom";
-import api from "../../services/api";
+import React from "react";
+import { Link } from "react-router-dom";
 
-export default function ReportOptions(){
-    const navigate = useNavigate();
-    const [uploadError, setUploadError] = useState("");
-    const [uploadSuccess, setUploadSuccess] = useState("");
-    const [isUploading, setIsUploading] = useState(false);
-    const fileInputRef = useRef(null);
+export default function ReportOptions() {
+  const options = [
+    {
+      to: "insert_report",
+      icon: "fa-file-medical",
+      title: "Insert Report",
+      description: "Enter your thyroid test results manually",
+      color: "bg-[#00B3A1]",
+    },
+    {
+      to: "view_report",
+      icon: "fa-clipboard-list",
+      title: "View Reports",
+      description: "Review your past reports and predictions",
+      color: "bg-[#282828]",
+    },
+  ];
 
-    /* ── handle file selection ── */
-    const handleFileChange = async (e) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
-
-        /* ── guard: only image or PDF ── */
-        const allowedTypes = [
-          "application/pdf",
-          "image/jpeg",
-          "image/png",
-          "image/gif",
-          "image/webp",
-        ];
-        if (!allowedTypes.includes(file.type)) {
-          setUploadError("Only PDF and image files (JPG, PNG, GIF, WEBP) are supported.");
-          e.target.value = "";
-          return;
-        }
-
-        setUploadError("");
-        setUploadSuccess("");
-        setIsUploading(true);
-
-        const formData = new FormData();
-        formData.append("report", file);
-
-        try {
-          /* ── POST /reports/upload ──
-           * The backend defines POST /reports as the create endpoint with a
-           * structured JSON body. A dedicated multipart upload endpoint has NOT
-           * yet been added to the ThyroCare.postman_collection.json. Until the
-           * backend provides a POST /reports/upload endpoint the code below
-           * attempts the upload and catches the 405/404 so the UI degrades
-           * gracefully instead of crashing. */
-          const { data } = await api.post("/reports/upload", formData, {
-            headers: { "Content-Type": "multipart/form-data" },
-          });
-          setUploadSuccess(`${file.name} uploaded successfully!`);
-          /* ── NOTE: Add a dedicated POST /reports/upload endpoint to the backend
-           * to accept multipart file uploads. The expected response body is:
-           *   { reportId: string, fileName: string, message: string } */
-        } catch (err) {
-          if (err.response?.status === 404 || err.response?.status === 405) {
-            setUploadError(
-              "File upload endpoint (/reports/upload) is not yet available on the backend. " +
-              "A new POST /reports/upload endpoint needs to be added to serve this feature."
-            );
-          } else {
-            const msg = err.response?.data?.message || err.message || "Upload failed. Please try again.";
-            setUploadError(msg);
-          }
-        } finally {
-          setIsUploading(false);
-          if (fileInputRef.current) fileInputRef.current.value = "";
-        }
-    };
-
-    return <>
-        <div className="background-DB flex items-center justify-center">
-
-            <div className="flex flex-wrap w-[50%] md:w-[35%] gap-5">
-                <Link to="insert_report" className="text-black text-2xl font-1 py-1 background-card rounded-full w-full text-center hover:scale-125 transition duration-400">Insert Report</Link>
-                <Link to="view_report" className="text-black text-2xl font-1 py-1 background-card rounded-full w-full text-center hover:scale-125 transition duration-400">View Report</Link>
-                <button
-                    onClick={() => fileInputRef.current?.click()}
-                    disabled={isUploading}
-                    className="text-black text-2xl font-1 py-1 background-card rounded-full w-full text-center hover:scale-125 transition duration-400 disabled:cursor-not-allowed disabled:opacity-60"
-                >
-                    {isUploading ? "Uploading…" : "Insert Photo/PDF"}
-                </button>
-                {/* native file input — hidden until the button above is clicked */}
-                <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/*,.pdf"
-                    onChange={handleFileChange}
-                    className="hidden"
-                />
-            </div>
-
-            {/* ── inline upload feedback ── */}
-            {uploadError && (
-              <div className="mt-4 p-3 bg-red-100 border border-red-400 rounded-lg text-red-800 text-sm text-center max-w-[50%] md:max-w-[35%] font-1">
-                {uploadError}
-              </div>
-            )}
-            {uploadSuccess && (
-              <div className="mt-4 p-3 bg-green-100 border border-green-400 rounded-lg text-green-800 text-sm text-center max-w-[50%] md:max-w-[35%] font-1">
-                {uploadSuccess}
-              </div>
-            )}
+  return (
+    <div className="background-DB min-h-screen flex items-center justify-center">
+      <div className="w-full max-w-lg mx-4">
+        <div className="text-center mb-8">
+          <h1 className="font-1 text-3xl text-gray-800">Thyroid Reports</h1>
+          <p className="font-5 text-gray-500 text-sm mt-2">
+            Choose what you'd like to do
+          </p>
         </div>
-    </>
+
+        <div className="flex flex-col gap-4">
+          {options.map((opt) => (
+            <Link
+              key={opt.to}
+              to={opt.to}
+              className="background-card p-6 flex items-center gap-5 group hover:shadow-lg hover:shadow-[#00B3A1]/10 transition-all duration-300"
+            >
+              <div
+                className={`w-14 h-14 ${opt.color} rounded-2xl flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform duration-300`}
+              >
+                <i className={`fas ${opt.icon} text-white text-xl`}></i>
+              </div>
+              <div>
+                <p className="font-1 text-xl text-gray-800">{opt.title}</p>
+                <p className="font-5 text-sm text-gray-500 mt-0.5">
+                  {opt.description}
+                </p>
+              </div>
+              <i className="fas fa-chevron-right text-gray-300 ml-auto group-hover:text-[#00B3A1] group-hover:translate-x-1 transition-all duration-300"></i>
+            </Link>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
 }

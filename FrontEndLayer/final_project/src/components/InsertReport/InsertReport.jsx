@@ -2,27 +2,15 @@ import React, { useState } from "react";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import { useNavigate } from "react-router-dom";
-
-/* ── service layer ── */
 import { createReport } from "../../services/reportService";
 import { postPredict } from "../../services/chatService";
 
 export default function InsertReport() {
   const navigate = useNavigate();
-
-  /* ── loading / error ── */
-  const [IsLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
-
-  /* ── prediction result ──
-   * null  → prediction in-flight or not yet triggered
-   * false → prediction failed  (error detail in setError above)
-   * object → successful prediction result  { diagnosis, confidence, healthScore,
-   *          predictionId, createdAt, reportData } */
   const [prediction, setPrediction] = useState(null);
 
-  /* ── helper: read current user from localStorage ──
-   * (Used by postPredict to fill age/gender/medical defaults.) */
   function getCurrentUser() {
     try {
       const raw = localStorage.getItem("user");
@@ -32,85 +20,71 @@ export default function InsertReport() {
     }
   }
 
-  /* ── colour helper for healthScore ── */
   function healthColor(score) {
     if (score >= 75) return "text-green-600";
-    if (score >= 50) return "text-yellow-600";
+    if (score >= 50) return "text-amber-600";
     return "text-red-600";
   }
 
-  /* ── ring colour for healthScore ── */
   function ringColor(score) {
     if (score >= 75) return "#22c55e";
-    if (score >= 50) return "#ca8a04";
-    return "#ef4444";
+    if (score >= 50) return "#e17100";
+    return "#dc2626";
   }
 
-  /* ── Yup validation schema ── */
   const validationSchema = Yup.object({
     testDate: Yup.date().required("Test date is required"),
     testingFacility: Yup.string().required("Testing facility is required"),
     thyroidFunction: Yup.object({
-      tsh: Yup.number().typeError("Must be a number").required("TSH is required"),
-      freeT3: Yup.number().typeError("Must be a number").required("Free T3 is required"),
-      freeT4: Yup.number().typeError("Must be a number").required("Free T4 is required"),
-      totalT3: Yup.number().typeError("Must be a number").required("Total T3 is required"),
-      totalT4: Yup.number().typeError("Must be a number").required("Total T4 is required"),
+      tsh: Yup.number().typeError("Must be a number").required("Required"),
+      freeT3: Yup.number().typeError("Must be a number").required("Required"),
+      freeT4: Yup.number().typeError("Must be a number").required("Required"),
+      totalT3: Yup.number().typeError("Must be a number").required("Required"),
+      totalT4: Yup.number().typeError("Must be a number").required("Required"),
     }),
     antibodies: Yup.object({
-      tpo: Yup.number().typeError("Must be a number").required("TPO is required"),
-      antiTg: Yup.number().typeError("Must be a number").required("Anti Tg is required"),
-      tshr: Yup.number().typeError("Must be a number").required("TSHR is required"),
+      tpo: Yup.number().typeError("Must be a number").required("Required"),
+      antiTg: Yup.number().typeError("Must be a number").required("Required"),
+      tshr: Yup.number().typeError("Must be a number").required("Required"),
     }),
     otherTests: Yup.object({
-      thyroglobulin: Yup.number().typeError("Must be a number").required("Thyroglobulin is required"),
-      calcitonin: Yup.number().typeError("Must be a number").required("Calcitonin is required"),
-      reverseT3: Yup.number().typeError("Must be a number").required("Reverse T3 is required"),
+      thyroglobulin: Yup.number().typeError("Must be a number").required("Required"),
+      calcitonin: Yup.number().typeError("Must be a number").required("Required"),
+      reverseT3: Yup.number().typeError("Must be a number").required("Required"),
     }),
     symptoms: Yup.object({
-      fatigue: Yup.number().min(0).max(10).required("Fatigue is required"),
-      weightChange: Yup.number().min(0).max(10).required("Weight change is required"),
-      coldIntolerance: Yup.number().min(0).max(10).required("Cold intolerance is required"),
-      hairLoss: Yup.number().min(0).max(10).required("Hair loss is required"),
-      palpitations: Yup.number().min(0).max(10).required("Palpitations is required"),
-      anxiety: Yup.number().min(0).max(10).required("Anxiety is required"),
-      insomnia: Yup.number().min(0).max(10).required("Insomnia is required"),
+      fatigue: Yup.number().min(0).max(10).required("Required"),
+      weightChange: Yup.number().min(0).max(10).required("Required"),
+      coldIntolerance: Yup.number().min(0).max(10).required("Required"),
+      hairLoss: Yup.number().min(0).max(10).required("Required"),
+      palpitations: Yup.number().min(0).max(10).required("Required"),
+      anxiety: Yup.number().min(0).max(10).required("Required"),
+      insomnia: Yup.number().min(0).max(10).required("Required"),
     }),
   });
 
-  /* ── form submission ── */
   const handleSubmit = async (values) => {
-    
     setIsLoading(true);
     setError(null);
     setPrediction(null);
 
     try {
-      // Step 1: create the report
-      
       const created = await createReport(values);
-      
-
-      // Step 2: automatically run the NN prediction
-      
       const user = getCurrentUser();
       const result = await postPredict(values, user);
-      
-      
-      
-      // Defensive check: ensure result has the expected fields
+
       const normalizedResult = {
         diagnosis: result?.diagnosis || "Negative",
         confidence: result?.confidence ?? 0.0,
         healthScore: result?.healthScore ?? 0,
+        severity: result?.severity || "",
+        recommendations: result?.recommendations || [],
         createdAt: result?.createdAt || new Date().toISOString(),
-        ...result
+        ...result,
       };
-      
-      
+
       setPrediction(normalizedResult);
     } catch (err) {
-      
       setError(
         err.response?.data?.message || err.message || "Something went wrong. Please try again."
       );
@@ -123,543 +97,354 @@ export default function InsertReport() {
     initialValues: {
       testDate: "",
       testingFacility: "",
-      thyroidFunction: {
-        tsh: "",
-        freeT3: "",
-        freeT4: "",
-        totalT3: "",
-        totalT4: "",
-      },
-      antibodies: {
-        tpo: "",
-        antiTg: "",
-        tshr: "",
-      },
-      otherTests: {
-        thyroglobulin: "",
-        calcitonin: "",
-        reverseT3: "",
-      },
-      symptoms: {
-        fatigue: "5",
-        weightChange: "5",
-        coldIntolerance: "5",
-        hairLoss: "5",
-        palpitations: "5",
-        anxiety: "5",
-        insomnia: "5",
-      },
+      thyroidFunction: { tsh: "", freeT3: "", freeT4: "", totalT3: "", totalT4: "" },
+      antibodies: { tpo: "", antiTg: "", tshr: "" },
+      otherTests: { thyroglobulin: "", calcitonin: "", reverseT3: "" },
+      symptoms: { fatigue: "0", weightChange: "0", coldIntolerance: "0", hairLoss: "0", palpitations: "0", anxiety: "0", insomnia: "0" },
     },
     validationSchema,
     onSubmit: handleSubmit,
   });
 
+  // Shared classes
+  const inputClass =
+    "w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-gray-800 font-5 text-sm outline-none transition-all duration-200 placeholder:text-gray-400 focus:border-[#00B3A1] focus:ring-2 focus:ring-[#00B3A1]/20";
+
+  const errorClass = "text-red-500 font-5 text-xs mt-1";
+
+  const sectionHeader = (icon, title, subtitle) => (
+    <div className="flex items-center gap-3 mb-4 pb-3 border-b border-gray-200">
+      <div className="w-9 h-9 rounded-xl bg-[#00B3A1]/10 flex items-center justify-center flex-shrink-0">
+        <i className={`fas ${icon} text-[#00B3A1] text-sm`}></i>
+      </div>
+      <div>
+        <h3 className="font-1 text-lg text-gray-800">{title}</h3>
+        {subtitle && <p className="font-5 text-xs text-gray-400">{subtitle}</p>}
+      </div>
+    </div>
+  );
+
+  const labField = (name, label, placeholder, unit) => (
+    <div>
+      <label className="block font-5 text-sm text-gray-600 mb-1.5">
+        {label} {unit && <span className="text-gray-400 text-xs">({unit})</span>}
+      </label>
+      <input
+        type="number"
+        step="any"
+        name={name}
+        value={formik.values[name.split(".")[0]]?.[name.split(".")[1]] ?? ""}
+        onChange={formik.handleChange}
+        onBlur={formik.handleBlur}
+        placeholder={placeholder}
+        className={inputClass}
+        required
+      />
+      {(() => {
+        const keys = name.split(".");
+        const err = formik.errors[keys[0]]?.[keys[1]];
+        const touched = formik.touched[keys[0]]?.[keys[1]];
+        return err && touched ? <p className={errorClass}>{err}</p> : null;
+      })()}
+    </div>
+  );
+
+  const symptomLabels = {
+    fatigue: { label: "Fatigue", icon: "fa-battery-quarter" },
+    weightChange: { label: "Weight Changes", icon: "fa-weight-scale" },
+    coldIntolerance: { label: "Temperature Sensitivity", icon: "fa-temperature-low" },
+    hairLoss: { label: "Hair Loss", icon: "fa-head-side" },
+    palpitations: { label: "Palpitations", icon: "fa-heartbeat" },
+    anxiety: { label: "Anxiety", icon: "fa-brain" },
+    insomnia: { label: "Insomnia", icon: "fa-moon" },
+  };
+
+  function getSeverityBadge(severity) {
+    if (severity === "Severe") return "bg-red-50 text-red-700 border-red-200";
+    if (severity === "Moderate") return "bg-amber-50 text-amber-700 border-amber-200";
+    if (severity === "Mild") return "bg-green-50 text-green-700 border-green-200";
+    return "bg-gray-50 text-gray-600 border-gray-200";
+  }
+
+  function getPriorityConfig(priority) {
+    if (priority === "high") return { bg: "bg-red-50 border-red-200", text: "text-red-700", dot: "bg-red-500" };
+    if (priority === "medium") return { bg: "bg-amber-50 border-amber-200", text: "text-amber-700", dot: "bg-amber-500" };
+    return { bg: "bg-green-50 border-green-200", text: "text-green-700", dot: "bg-green-500" };
+  }
+
   return (
-    <>
-      <div className="background-DB flex flex-wrap items-center justify-center">
-        <div className="background-card p-5 w-[90%] mt-21 mb-10">
-          <p className="font-1 text-4xl text-center">Thyroid Test Report</p>
-          <form onSubmit={formik.handleSubmit}>
+    <div className="background-DB min-h-screen">
+      <div className="pt-24 pb-8 px-4 md:px-12 lg:px-20 max-w-4xl mx-auto">
+        {/* Header */}
+        <div className="mb-6">
+          <h1 className="font-1 text-3xl text-gray-800">Thyroid Test Report</h1>
+          <p className="font-5 text-gray-500 text-sm mt-1">
+            Enter your lab results and symptoms to get an AI-powered analysis
+          </p>
+        </div>
+
+        {/* Form Card */}
+        <div className="background-card p-6 md:p-8">
+          <form onSubmit={formik.handleSubmit} className="space-y-8">
             {/* ── Basic Information ── */}
+            {sectionHeader("fa-user", "Basic Information", "When and where was the test done?")}
             <div className="grid gap-4 md:grid-cols-2">
-              <p className="md:col-span-2 font-1 text-2xl mt-5 mb-2 border-b-2 py-3">
-                Basic Information
-              </p>
               <div>
-                <label htmlFor="testDate" className="font-1 w-full text-xl">
-                  Date Of Test
-                </label>
+                <label className="block font-5 text-sm text-gray-600 mb-1.5">Date of Test</label>
                 <input
                   type="date"
-                  id="testDate"
                   name="testDate"
                   value={formik.values.testDate}
                   onChange={formik.handleChange}
                   onBlur={formik.handleBlur}
-                  className="w-full font-1 bg-[#00000000] color-1 border border-black rounded-lg mt-2"
+                  className={`${inputClass} [color-scheme:light]`}
                   required
                 />
                 {formik.errors.testDate && formik.touched.testDate ? (
-                  <p className="font-1 pt-1 text-red-800">{formik.errors.testDate}</p>
+                  <p className={errorClass}>{formik.errors.testDate}</p>
                 ) : null}
               </div>
               <div>
-                <label htmlFor="testingFacility" className="font-1 w-full text-xl">
-                  Testing Facility
-                </label>
+                <label className="block font-5 text-sm text-gray-600 mb-1.5">Testing Facility</label>
                 <input
                   type="text"
-                  id="testingFacility"
                   name="testingFacility"
                   value={formik.values.testingFacility}
                   onChange={formik.handleChange}
                   onBlur={formik.handleBlur}
-                  placeholder="hospital or clinic name"
-                  className="w-full font-1 bg-[#00000000] color-1 border border-black rounded-lg mt-2"
+                  placeholder="Hospital or clinic name"
+                  className={inputClass}
                   required
                 />
                 {formik.errors.testingFacility && formik.touched.testingFacility ? (
-                  <p className="font-1 pt-1 text-red-800">{formik.errors.testingFacility}</p>
+                  <p className={errorClass}>{formik.errors.testingFacility}</p>
                 ) : null}
               </div>
             </div>
 
             {/* ── Thyroid Function Tests ── */}
-            <div className="grid gap-4 md:grid-cols-2">
-              <p className="md:col-span-2 font-1 text-2xl mt-5 mb-2 border-b-2 py-3">
-                Thyroid Function Tests
-              </p>
-              <div>
-                <label htmlFor="tsh" className="font-1 w-full text-xl">TSH</label>
-                <input
-                  type="number"
-                  id="tsh"
-                  name="thyroidFunction.tsh"
-                  value={formik.values.thyroidFunction.tsh}
-                  onChange={formik.handleChange}
-                  onBlur={formik.handleBlur}
-                  placeholder="value in mIU/L"
-                  className="w-full font-1 bg-[#00000000] color-1 border border-black rounded-lg mt-2"
-                  required
-                />
-                {formik.errors.thyroidFunction?.tsh && formik.touched.thyroidFunction?.tsh ? (
-                  <p className="font-1 pt-1 text-red-800">{formik.errors.thyroidFunction.tsh}</p>
-                ) : null}
-              </div>
-              <div>
-                <label htmlFor="freeT4" className="font-1 w-full text-xl">Free T4</label>
-                <input
-                  type="number"
-                  id="freeT4"
-                  name="thyroidFunction.freeT4"
-                  value={formik.values.thyroidFunction.freeT4}
-                  onChange={formik.handleChange}
-                  onBlur={formik.handleBlur}
-                  placeholder="value in ng/dL"
-                  className="w-full font-1 bg-[#00000000] color-1 border border-black rounded-lg mt-2"
-                  required
-                />
-                {formik.errors.thyroidFunction?.freeT4 && formik.touched.thyroidFunction?.freeT4 ? (
-                  <p className="font-1 pt-1 text-red-800">{formik.errors.thyroidFunction.freeT4}</p>
-                ) : null}
-              </div>
-              <div>
-                <label htmlFor="freeT3" className="font-1 w-full text-xl">Free T3</label>
-                <input
-                  type="number"
-                  id="freeT3"
-                  name="thyroidFunction.freeT3"
-                  value={formik.values.thyroidFunction.freeT3}
-                  onChange={formik.handleChange}
-                  onBlur={formik.handleBlur}
-                  placeholder="value in pg/ml"
-                  className="w-full font-1 bg-[#00000000] color-1 border border-black rounded-lg mt-2"
-                  required
-                />
-                {formik.errors.thyroidFunction?.freeT3 && formik.touched.thyroidFunction?.freeT3 ? (
-                  <p className="font-1 pt-1 text-red-800">{formik.errors.thyroidFunction.freeT3}</p>
-                ) : null}
-              </div>
-              <div>
-                <label htmlFor="totalT4" className="font-1 w-full text-xl">Total T4</label>
-                <input
-                  type="number"
-                  id="totalT4"
-                  name="thyroidFunction.totalT4"
-                  value={formik.values.thyroidFunction.totalT4}
-                  onChange={formik.handleChange}
-                  onBlur={formik.handleBlur}
-                  placeholder="value in μg/dl"
-                  className="w-full font-1 bg-[#00000000] color-1 border border-black rounded-lg mt-2"
-                  required
-                />
-                {formik.errors.thyroidFunction?.totalT4 && formik.touched.thyroidFunction?.totalT4 ? (
-                  <p className="font-1 pt-1 text-red-800">{formik.errors.thyroidFunction.totalT4}</p>
-                ) : null}
-              </div>
-              <div>
-                <label htmlFor="totalT3" className="font-1 w-full text-xl">Total T3</label>
-                <input
-                  type="number"
-                  id="totalT3"
-                  name="thyroidFunction.totalT3"
-                  value={formik.values.thyroidFunction.totalT3}
-                  onChange={formik.handleChange}
-                  onBlur={formik.handleBlur}
-                  placeholder="value in ng/dL"
-                  className="w-full font-1 bg-[#00000000] color-1 border border-black rounded-lg mt-2"
-                  required
-                />
-                {formik.errors.thyroidFunction?.totalT3 && formik.touched.thyroidFunction?.totalT3 ? (
-                  <p className="font-1 pt-1 text-red-800">{formik.errors.thyroidFunction.totalT3}</p>
-                ) : null}
-              </div>
+            {sectionHeader("fa-vials", "Thyroid Function Tests", "Core thyroid hormone levels from your lab report")}
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {labField("thyroidFunction.tsh", "TSH", "e.g. 2.1", "mIU/L")}
+              {labField("thyroidFunction.freeT4", "Free T4", "e.g. 1.2", "ng/dL")}
+              {labField("thyroidFunction.freeT3", "Free T3", "e.g. 3.1", "pg/mL")}
+              {labField("thyroidFunction.totalT4", "Total T4", "e.g. 8.5", "μg/dL")}
+              {labField("thyroidFunction.totalT3", "Total T3", "e.g. 1.1", "ng/dL")}
             </div>
 
-            {/* ── Thyroid Antibody Tests ── */}
+            {/* ── Antibody Tests ── */}
+            {sectionHeader("fa-shield-virus", "Thyroid Antibody Tests", "Autoimmune markers — key for diagnosing thyroiditis")}
             <div className="grid gap-4 md:grid-cols-3">
-              <p className="md:col-span-3 font-1 text-2xl mt-5 mb-2 border-b-2 py-3">
-                Thyroid Antibody Tests
-              </p>
-              <div>
-                <label htmlFor="tpo" className="font-1 w-full text-xl">TPO Antibodies</label>
-                <input
-                  type="number"
-                  id="tpo"
-                  name="antibodies.tpo"
-                  value={formik.values.antibodies.tpo}
-                  onChange={formik.handleChange}
-                  onBlur={formik.handleBlur}
-                  placeholder="value in IU/mL"
-                  className="w-full font-1 bg-[#00000000] color-1 border border-black rounded-lg mt-2"
-                  required
-                />
-                {formik.errors.antibodies?.tpo && formik.touched.antibodies?.tpo ? (
-                  <p className="font-1 pt-1 text-red-800">{formik.errors.antibodies.tpo}</p>
-                ) : null}
-              </div>
-              <div>
-                <label htmlFor="antiTg" className="font-1 w-full text-xl">Thyroglobulin Antibodies</label>
-                <input
-                  type="number"
-                  id="antiTg"
-                  name="antibodies.antiTg"
-                  value={formik.values.antibodies.antiTg}
-                  onChange={formik.handleChange}
-                  onBlur={formik.handleBlur}
-                  placeholder="value in IU/mL"
-                  className="w-full font-1 bg-[#00000000] color-1 border border-black rounded-lg mt-2"
-                  required
-                />
-                {formik.errors.antibodies?.antiTg && formik.touched.antibodies?.antiTg ? (
-                  <p className="font-1 pt-1 text-red-800">{formik.errors.antibodies.antiTg}</p>
-                ) : null}
-              </div>
-              <div>
-                <label htmlFor="tshr" className="font-1 w-full text-xl">TSH Receptor Antibodies</label>
-                <input
-                  type="number"
-                  id="tshr"
-                  name="antibodies.tshr"
-                  value={formik.values.antibodies.tshr}
-                  onChange={formik.handleChange}
-                  onBlur={formik.handleBlur}
-                  placeholder="value in IU/L"
-                  className="w-full font-1 bg-[#00000000] color-1 border border-black rounded-lg mt-2"
-                  required
-                />
-                {formik.errors.antibodies?.tshr && formik.touched.antibodies?.tshr ? (
-                  <p className="font-1 pt-1 text-red-800">{formik.errors.antibodies.tshr}</p>
-                ) : null}
-              </div>
+              {labField("antibodies.tpo", "TPO Antibodies", "e.g. 12", "IU/mL")}
+              {labField("antibodies.antiTg", "Anti-Thyroglobulin", "e.g. 8", "IU/mL")}
+              {labField("antibodies.tshr", "TSH Receptor Ab", "e.g. 0.3", "IU/L")}
             </div>
 
-            {/* ── Other Relevant Tests ── */}
-            <div className="grid gap-4 md:grid-cols-2">
-              <p className="md:col-span-2 font-1 text-2xl mt-5 mb-2 border-b-2 py-3">
-                Other Relevant Tests
-              </p>
-              <div>
-                <label htmlFor="thyroglobulin" className="font-1 w-full text-xl">
-                  Thyroglobulin
-                </label>
-                <input
-                  type="number"
-                  id="thyroglobulin"
-                  name="otherTests.thyroglobulin"
-                  value={formik.values.otherTests.thyroglobulin}
-                  onChange={formik.handleChange}
-                  onBlur={formik.handleBlur}
-                  placeholder="value in ng/mL"
-                  className="w-full font-1 bg-[#00000000] color-1 border border-black rounded-lg mt-2"
-                  required
-                />
-                {formik.errors.otherTests?.thyroglobulin && formik.touched.otherTests?.thyroglobulin ? (
-                  <p className="font-1 pt-1 text-red-800">{formik.errors.otherTests.thyroglobulin}</p>
-                ) : null}
-              </div>
-              <div>
-                <label htmlFor="calcitonin" className="font-1 w-full text-xl">Calcitonin</label>
-                <input
-                  type="number"
-                  id="calcitonin"
-                  name="otherTests.calcitonin"
-                  value={formik.values.otherTests.calcitonin}
-                  onChange={formik.handleChange}
-                  onBlur={formik.handleBlur}
-                  placeholder="value in pg/mL"
-                  className="w-full font-1 bg-[#00000000] color-1 border border-black rounded-lg mt-2"
-                  required
-                />
-                {formik.errors.otherTests?.calcitonin && formik.touched.otherTests?.calcitonin ? (
-                  <p className="font-1 pt-1 text-red-800">{formik.errors.otherTests.calcitonin}</p>
-                ) : null}
-              </div>
-              <div>
-                <label htmlFor="reverseT3" className="font-1 w-full text-xl">Reverse T3</label>
-                <input
-                  type="number"
-                  id="reverseT3"
-                  name="otherTests.reverseT3"
-                  value={formik.values.otherTests.reverseT3}
-                  onChange={formik.handleChange}
-                  onBlur={formik.handleBlur}
-                  placeholder="value in ng/dL"
-                  className="w-full font-1 bg-[#00000000] color-1 border border-black rounded-lg mt-2"
-                  required
-                />
-                {formik.errors.otherTests?.reverseT3 && formik.touched.otherTests?.reverseT3 ? (
-                  <p className="font-1 pt-1 text-red-800">{formik.errors.otherTests.reverseT3}</p>
-                ) : null}
-              </div>
+            {/* ── Other Tests ── */}
+            {sectionHeader("fa-flask", "Other Relevant Tests", "Additional markers your doctor may have ordered")}
+            <div className="grid gap-4 md:grid-cols-3">
+              {labField("otherTests.thyroglobulin", "Thyroglobulin", "e.g. 15", "ng/mL")}
+              {labField("otherTests.calcitonin", "Calcitonin", "e.g. 3", "pg/mL")}
+              {labField("otherTests.reverseT3", "Reverse T3", "e.g. 14", "ng/dL")}
             </div>
 
             {/* ── Symptoms Checklist ── */}
-            <div className="grid gap-4 md:grid-cols-2">
-              <p className="md:col-span-2 font-1 text-2xl mt-5 mb-2 border-b-2 py-3">
-                Symptoms Checklist
-              </p>
-              <div>
-                <label htmlFor="fatigue" className="font-1 w-full text-xl">
-                  Fatigue : {formik.values.symptoms.fatigue}
-                </label>
-                <input
-                  type="range"
-                  id="fatigue"
-                  name="symptoms.fatigue"
-                  min="0"
-                  max="10"
-                  value={formik.values.symptoms.fatigue}
-                  onChange={formik.handleChange}
-                  onBlur={formik.handleBlur}
-                  className="w-full h-2 background-1 rounded-full cursor-pointer mt-2"
-                />
-                {formik.errors.symptoms?.fatigue && formik.touched.symptoms?.fatigue ? (
-                  <p className="font-1 pt-1 text-red-800">{formik.errors.symptoms.fatigue}</p>
-                ) : null}
-              </div>
-              <div>
-                <label htmlFor="weightChange" className="font-1 w-full text-xl">
-                  Weight Changes : {formik.values.symptoms.weightChange}
-                </label>
-                <input
-                  type="range"
-                  id="weightChange"
-                  name="symptoms.weightChange"
-                  min="0"
-                  max="10"
-                  value={formik.values.symptoms.weightChange}
-                  onChange={formik.handleChange}
-                  onBlur={formik.handleBlur}
-                  className="w-full h-2 background-1 rounded-full cursor-pointer mt-2"
-                />
-                {formik.errors.symptoms?.weightChange && formik.touched.symptoms?.weightChange ? (
-                  <p className="font-1 pt-1 text-red-800">{formik.errors.symptoms.weightChange}</p>
-                ) : null}
-              </div>
-              <div>
-                <label htmlFor="coldIntolerance" className="font-1 w-full text-xl">
-                  Temperature Sensitivity : {formik.values.symptoms.coldIntolerance}
-                </label>
-                <input
-                  type="range"
-                  id="coldIntolerance"
-                  name="symptoms.coldIntolerance"
-                  min="0"
-                  max="10"
-                  value={formik.values.symptoms.coldIntolerance}
-                  onChange={formik.handleChange}
-                  onBlur={formik.handleBlur}
-                  className="w-full h-2 background-1 rounded-full cursor-pointer mt-2"
-                />
-                {formik.errors.symptoms?.coldIntolerance && formik.touched.symptoms?.coldIntolerance ? (
-                  <p className="font-1 pt-1 text-red-800">{formik.errors.symptoms.coldIntolerance}</p>
-                ) : null}
-              </div>
-              <div>
-                <label htmlFor="hairLoss" className="font-1 w-full text-xl">
-                  Hair Loss : {formik.values.symptoms.hairLoss}
-                </label>
-                <input
-                  type="range"
-                  id="hairLoss"
-                  name="symptoms.hairLoss"
-                  min="0"
-                  max="10"
-                  value={formik.values.symptoms.hairLoss}
-                  onChange={formik.handleChange}
-                  onBlur={formik.handleBlur}
-                  className="w-full h-2 background-1 rounded-full cursor-pointer mt-2"
-                />
-                {formik.errors.symptoms?.hairLoss && formik.touched.symptoms?.hairLoss ? (
-                  <p className="font-1 pt-1 text-red-800">{formik.errors.symptoms.hairLoss}</p>
-                ) : null}
-              </div>
-              <div>
-                <label htmlFor="palpitations" className="font-1 w-full text-xl">
-                  Palpitations : {formik.values.symptoms.palpitations}
-                </label>
-                <input
-                  type="range"
-                  id="palpitations"
-                  name="symptoms.palpitations"
-                  min="0"
-                  max="10"
-                  value={formik.values.symptoms.palpitations}
-                  onChange={formik.handleChange}
-                  onBlur={formik.handleBlur}
-                  className="w-full h-2 background-1 rounded-full cursor-pointer mt-2"
-                />
-                {formik.errors.symptoms?.palpitations && formik.touched.symptoms?.palpitations ? (
-                  <p className="font-1 pt-1 text-red-800">{formik.errors.symptoms.palpitations}</p>
-                ) : null}
-              </div>
-              <div>
-                <label htmlFor="anxiety" className="font-1 w-full text-xl">
-                  Anxiety : {formik.values.symptoms.anxiety}
-                </label>
-                <input
-                  type="range"
-                  id="anxiety"
-                  name="symptoms.anxiety"
-                  min="0"
-                  max="10"
-                  value={formik.values.symptoms.anxiety}
-                  onChange={formik.handleChange}
-                  onBlur={formik.handleBlur}
-                  className="w-full h-2 background-1 rounded-full cursor-pointer mt-2"
-                />
-                {formik.errors.symptoms?.anxiety && formik.touched.symptoms?.anxiety ? (
-                  <p className="font-1 pt-1 text-red-800">{formik.errors.symptoms.anxiety}</p>
-                ) : null}
-              </div>
-              <div>
-                <label htmlFor="insomnia" className="font-1 w-full text-xl">
-                  Insomnia : {formik.values.symptoms.insomnia}
-                </label>
-                <input
-                  type="range"
-                  id="insomnia"
-                  name="symptoms.insomnia"
-                  min="0"
-                  max="10"
-                  value={formik.values.symptoms.insomnia}
-                  onChange={formik.handleChange}
-                  onBlur={formik.handleBlur}
-                  className="w-full h-2 background-1 rounded-full cursor-pointer mt-2"
-                />
-                {formik.errors.symptoms?.insomnia && formik.touched.symptoms?.insomnia ? (
-                  <p className="font-1 pt-1 text-red-800">{formik.errors.symptoms.insomnia}</p>
-                ) : null}
-              </div>
+            {sectionHeader("fa-stethoscope", "Symptoms Checklist", "Rate each symptom from 0 (none) to 10 (severe)")}
+            <div className="grid gap-5 md:grid-cols-2">
+              {Object.entries(symptomLabels).map(([key, { label, icon }]) => {
+                const value = Number(formik.values.symptoms[key]) || 0;
+                return (
+                  <div key={key} className="bg-white rounded-xl p-4 border border-gray-100">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <i className={`fas ${icon} text-gray-400 text-sm`}></i>
+                        <span className="font-5 text-sm text-gray-700">{label}</span>
+                      </div>
+                      <span className={`text-sm font-bold min-w-[28px] text-center py-0.5 px-2 rounded-lg ${value === 0 ? "text-gray-400 bg-gray-50" :
+                        value <= 3 ? "text-green-600 bg-green-50" :
+                          value <= 6 ? "text-amber-600 bg-amber-50" :
+                            "text-red-600 bg-red-50"
+                        }`}>
+                        {value}
+                      </span>
+                    </div>
+                    <input
+                      type="range"
+                      name={`symptoms.${key}`}
+                      min="0"
+                      max="10"
+                      value={formik.values.symptoms[key]}
+                      onChange={formik.handleChange}
+                      onBlur={formik.handleBlur}
+                      className="w-full cursor-pointer"
+                    />
+                    <div className="flex justify-between mt-1">
+                      <span className="text-[10px] text-gray-400 font-5">None</span>
+                      <span className="text-[10px] text-gray-400 font-5">Severe</span>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
 
-            {/* ── validation / submission errors ── */}
+            {/* ── Error ── */}
             {error && (
-              <p className="font-1 pt-1 text-red-800 text-center mt-4">{error}</p>
+              <div className="p-4 bg-red-50 border border-red-200 rounded-xl">
+                <div className="flex items-center gap-2">
+                  <i className="fas fa-exclamation-circle text-red-500"></i>
+                  <p className="font-5 text-sm text-red-700">{error}</p>
+                </div>
+              </div>
             )}
 
-            {/* ── submit button ── */}
-            {IsLoading ? (
-              <p className="bg-[#009284] font-1 text-white text-2xl w-full my-8 py-2 rounded-lg cursor-pointer text-center">
-                <i className="fas fa-spinner fa-spin" /> Generating Report…
-              </p>
-            ) : (
-              <button
-                type="submit"
-                className="background-1 font-1 text-white text-2xl w-full my-8 py-2 rounded-lg cursor-pointer hover:bg-[#009284]! transition duration-400"
-              >
-                Generate Report
-              </button>
-            )}
-          </form>
-
-          {/* ═══════════════════════════════════════════════════════
-           * PREDICTION RESULT
-           * Rendered below the form after a successful predict call.
-           * Uses the same glassmorphism and teal-identity styling as
-           * the rest of the application.
-           * ═══════════════════════════════════════════════════════ */}
-          {prediction && !IsLoading && (
-            <div className="mt-8 background-card bg-white! p-6 shadow-[6px_6px_25px_rgba(0,0,0,0.25)!">
-              <div className="flex items-center gap-3 mb-5">
-                <span className="background-1 text-white text-sm px-3 py-1 rounded-full font-1 mb-2">
-                  NN Prediction Result
+            {/* ── Submit ── */}
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="w-full py-3.5 bg-[#00B3A1] text-white font-1 text-lg rounded-xl hover:bg-[#009e8e] transition-all duration-200 hover:shadow-lg hover:shadow-[#00B3A1]/20 disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              {isLoading ? (
+                <span className="flex items-center justify-center gap-2">
+                  <i className="fas fa-spinner fa-spin"></i>
+                  Analyzing...
                 </span>
-                <span className="font-1 text-sm color-1">
+              ) : (
+                <span className="flex items-center justify-center gap-2">
+                  <i className="fas fa-microscope"></i>
+                  Generate Report
+                </span>
+              )}
+            </button>
+          </form>
+        </div>
+
+        {/* ═══════════════════════════════════════════════════════════
+         *  PREDICTION RESULT
+         * ═══════════════════════════════════════════════════════════ */}
+        {prediction && !isLoading && (
+          <div className="mt-6 background-card p-6 md:p-8">
+            {/* Header */}
+            <div className="flex items-center gap-3 mb-6 pb-4 border-b border-gray-200">
+              <div className="w-10 h-10 rounded-xl bg-[#00B3A1]/10 flex items-center justify-center">
+                <i className="fas fa-brain text-[#00B3A1]"></i>
+              </div>
+              <div>
+                <h3 className="font-1 text-lg text-gray-800">AI Analysis Result</h3>
+                <p className="font-5 text-xs text-gray-400">
                   {prediction.createdAt
                     ? new Date(prediction.createdAt).toLocaleString()
-                    : ""}
-                </span>
+                    : "Just now"}
+                </p>
               </div>
+            </div>
 
-              <div className="grid gap-6 md:grid-cols-2">
-                {/* ─ diagnosis + confidence ─ */}
-                <div>
-                  <p className="font-1 text-xl border-b-2 pb-1 mb-3 text-[#222222]">Diagnosis</p>
-                  <p className="font-1 text-[#222222] mb-2">{prediction.diagnosis || "—"}</p>
-
-                  <p className="font-1 text-xl border-b-2 pb-1 mb-3 text-[#222222]">
-                    Model Confidence
-                  </p>
-                  <p className="font-1 text-2xl background-1 text-white inline-block px-4 py-1 rounded-lg">
-                    {typeof prediction.confidence === "number"
-                      ? `${Math.round(prediction.confidence * 100)}%`
-                      : `${prediction.confidence}%` || "—"}
-                  </p>
+            {/* Diagnosis + Score */}
+            <div className="grid gap-6 md:grid-cols-2 mb-6">
+              {/* Diagnosis */}
+              <div>
+                <p className="font-5 text-xs text-gray-500 uppercase tracking-wider mb-2">Diagnosis</p>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="font-1 text-xl text-gray-800 font-semibold">
+                    {prediction.diagnosis || "—"}
+                  </span>
+                  {prediction.severity && (
+                    <span className={`px-2.5 py-0.5 text-xs font-semibold rounded-full border ${getSeverityBadge(prediction.severity)}`}>
+                      {prediction.severity}
+                    </span>
+                  )}
                 </div>
-
-                {/* ─ health stability score ─ */}
-                <div>
-                  <p className="font-1 text-xl border-b-2 pb-1 mb-3 text-[#222222]">
-                    Health Stability Score
-                  </p>
-                  <div className="flex items-center gap-4">
-                    {/* circular SVG gauge — same widget shape used in Dashboard */}
-                    <svg width="80" height="80" className="transform -rotate-90">
-                      <circle
-                        cx="40"
-                        cy="40"
-                        r="34"
-                        fill="none"
-                        stroke="#e5e7eb"
-                        strokeWidth="8"
-                      />
-                      <circle
-                        cx="40"
-                        cy="40"
-                        r="34"
-                        fill="none"
-                        stroke={ringColor(prediction.healthScore)}
-                        strokeWidth="8"
-                        strokeDasharray={`${2 * Math.PI * 34}`}
-                        strokeDashoffset={`${
-                          2 * Math.PI * 34 * (1 - (prediction.healthScore || 0) / 100)
-                        }`}
-                        strokeLinecap="round"
-                      />
-                    </svg>
-                    <span
-                      className={`font-1 text-3xl font-bold ${healthColor(prediction.healthScore)}`}
-                    >
-                      {prediction.healthScore ?? "—"}%
+                <div className="mt-3">
+                  <p className="font-5 text-xs text-gray-500 mb-1">Confidence</p>
+                  <div className="flex items-center gap-2">
+                    <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-[#00B3A1] rounded-full transition-all duration-500"
+                        style={{ width: `${Math.round((prediction.confidence ?? 0) * 100)}%` }}
+                      ></div>
+                    </div>
+                    <span className="font-5 text-sm text-gray-600 font-semibold">
+                      {typeof prediction.confidence === "number"
+                        ? `${Math.round(prediction.confidence * 100)}%`
+                        : `${prediction.confidence}%` || "—"}
                     </span>
                   </div>
+                </div>
+              </div>
 
-                  {prediction.reportData && (
-                    <p className="font-1 text-sm color-1 mt-3">
-                      <strong>Report:</strong> {prediction.reportData.testDate}
-                      {prediction.reportData.testingFacility
-                        ? `  ·  ${prediction.reportData.testingFacility}`
-                        : ""}
-                    </p>
-                  )}
+              {/* Health Score */}
+              <div>
+                <p className="font-5 text-xs text-gray-500 uppercase tracking-wider mb-2">Health Score</p>
+                <div className="flex items-center gap-4">
+                  <svg width="80" height="80" className="transform -rotate-90">
+                    <circle cx="40" cy="40" r="34" fill="none" stroke="#e5e7eb" strokeWidth="8" />
+                    <circle
+                      cx="40" cy="40" r="34" fill="none"
+                      stroke={ringColor(prediction.healthScore)}
+                      strokeWidth="8"
+                      strokeDasharray={`${2 * Math.PI * 34}`}
+                      strokeDashoffset={`${2 * Math.PI * 34 * (1 - (prediction.healthScore || 0) / 100)}`}
+                      strokeLinecap="round"
+                    />
+                  </svg>
+                  <div>
+                    <span className={`font-1 text-3xl font-bold ${healthColor(prediction.healthScore)}`}>
+                      {prediction.healthScore ?? "—"}
+                    </span>
+                    <span className="font-5 text-sm text-gray-500"> / 100</span>
+                  </div>
                 </div>
               </div>
             </div>
-          )}
-        </div>
+
+            {/* Recommendations */}
+            {prediction.recommendations && prediction.recommendations.length > 0 && (
+              <div>
+                <p className="font-5 text-xs text-gray-500 uppercase tracking-wider mb-3">Recommendations</p>
+                <div className="space-y-2">
+                  {prediction.recommendations.map((item, index) => {
+                    const config = getPriorityConfig(item.priority);
+                    return (
+                      <div key={index} className={`flex items-start gap-3 p-3 rounded-xl border ${config.bg}`}>
+                        <span className="w-6 h-6 rounded-full bg-[#00B3A1] text-white text-xs font-bold flex items-center justify-center flex-shrink-0 mt-0.5">
+                          {index + 1}
+                        </span>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="font-1 text-sm text-gray-800 font-semibold">{item.action}</span>
+                            <span className={`inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-semibold rounded-full uppercase tracking-wider ${config.text}`}>
+                              <span className={`w-1.5 h-1.5 rounded-full ${config.dot}`}></span>
+                              {item.priority}
+                            </span>
+                          </div>
+                          {item.reason && (
+                            <p className="font-5 text-xs text-gray-500 mt-0.5">{item.reason}</p>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Actions */}
+            <div className="flex gap-3 mt-6 pt-4 border-t border-gray-200">
+              <button
+                onClick={() => navigate("/dashboard")}
+                className="flex-1 py-2.5 bg-[#00B3A1] text-white font-1 rounded-xl hover:bg-[#009e8e] transition-all duration-200 text-sm"
+              >
+                <i className="fas fa-chart-line mr-2"></i>Go to Dashboard
+              </button>
+              <button
+                onClick={() => setPrediction(null)}
+                className="flex-1 py-2.5 border border-gray-200 text-gray-600 font-5 rounded-xl hover:bg-gray-50 transition-all duration-200 text-sm"
+              >
+                <i className="fas fa-plus mr-2"></i>New Report
+              </button>
+            </div>
+          </div>
+        )}
       </div>
-    </>
+    </div>
   );
 }

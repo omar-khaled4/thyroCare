@@ -1,211 +1,369 @@
 import React, { useContext } from "react";
-import style from "./Home.module.css"
 import { Link } from "react-router-dom";
 import { UserContext } from "../../context/UserContext";
 
-export default function Home(){
+export default function Home() {
+    const { userToken, user } = useContext(UserContext);
+    const isLoggedIn = userToken && user;
 
-    let { userToken , setuserToken , user , setuser } = useContext(UserContext)
+    const features = [
+        {
+            icon: "fa-brain",
+            title: "AI-Powered Diagnosis",
+            description:
+                "Advanced AI analyzes your thyroid test results instantly, providing accurate diagnosis with confidence scores and severity levels.",
+        },
+        {
+            icon: "fa-chart-line",
+            title: "Health Tracking",
+            description:
+                "Monitor your TSH, T3, T4 levels and symptom patterns over time with interactive charts and visual dashboards.",
+        },
+        {
+            icon: "fa-lightbulb",
+            title: "Smart Recommendations",
+            description:
+                "Receive personalized, priority-ranked health recommendations based on your diagnosis, lab values, and reported symptoms.",
+        },
+        {
+            icon: "fa-file-pdf",
+            title: "Medical Reports",
+            description:
+                "Generate downloadable PDF reports with your complete diagnosis, lab values, and AI recommendations to share with your doctor.",
+        },
+        {
+            icon: "fa-robot",
+            title: "AI Health Assistant",
+            description:
+                "Chat with our AI assistant anytime to ask questions about your thyroid condition, medications, and lifestyle adjustments.",
+        },
+        {
+            icon: "fa-shield-heart",
+            title: "Patient-Centered Care",
+            description:
+                "Everything is designed around the patient — clear information, continuous support, and an easy-to-use experience you can trust.",
+        },
+    ];
 
-    return <>
+    const stats = [
+        { value: "7+", label: "Lab Markers Tracked" },
+        { value: "24/7", label: "AI Assistant Available" },
+        { value: "< 5s", label: "Diagnosis Time" },
+        { value: "100%", label: "Free to Use" },
+    ];
 
-        <div className=" bg-[url(/assets/home-background.png)] h-screen bg-cover bg-position-[79%_40%]">
-            <div className="relative top-25 px-4 w-full md:w-140 md:mx-10 md:px-0 md:top-40">
-                <p className="font-3 color-2 text-2xl line-1">INSPIRING BETTER THYROID HEALTH</p>
-                <p className="color-1 font-4 font-extrabold! mt-7 text-4xl md:text-6xl">Healthy thyroid,</p>
-                <p className="color-3 font-4 mt-4 text-4xl md:text-6xl">healthy life</p>
-                <p className="color-2 font-3 font-light! text-xl mt-4 md:w-110">Empowering thyroid care through trusted medical insights and smart digital solutions. Continuously supporting awareness, early detection, and effective management through integrated healthcare services.</p>
-                { userToken == null && user == null ?
-                    <div className="flex space-x-3 mt-4">
-                        <Link to="login" className="text-white text-lg  px-7 py-1 background-1 rounded-full">Log in</Link>
-                        <Link to="signup" className="text-white text-lg px-7 py-1 background-2 rounded-full">Sign up</Link>
-                    </div>:null
-                }
-            </div>
-        </div>
+    const howItWorks = [
+        {
+            step: "1",
+            icon: "fa-file-medical",
+            title: "Submit Your Report",
+            description: "Enter your thyroid lab results and rate your symptoms through our simple form.",
+        },
+        {
+            step: "2",
+            icon: "fa-microscope",
+            title: "AI Analysis",
+            description: "Our AI model analyzes your TSH, T3, T4, antibodies, and symptoms together.",
+        },
+        {
+            step: "3",
+            icon: "fa-clipboard-check",
+            title: "Get Your Results",
+            description: "Receive your diagnosis, health score, and personalized recommendations instantly.",
+        },
+    ];
 
-        <div className="bg-white mx-10">
-            <p className="font-1 text-6xl text-center text-black line-2 mt-13">Features</p>
+    const teamMembers = [
+        {
+            name: "Omar Khaled",
+            role: "Full-Stack Developer",
+            description: "Built the backend API, LLM integration layer, and dashboard system.",
+            avatar: "/assets/boy.png",
+        },
+        {
+            name: "Team Member",
+            role: "ML Engineer",
+            description: "Developed the neural network prediction model and data pipeline.",
+            avatar: "/assets/girl.png",
+        },
+        {
+            name: "Team Member",
+            role: "Frontend Developer",
+            description: "Designed and implemented the React frontend and user experience.",
+            avatar: "/assets/boy.png",
+        },
+        {
+            name: "Team Member",
+            role: "UI/UX Designer",
+            description: "Created the visual design system and patient-centered interface.",
+            avatar: "/assets/girl.png",
+        },
+    ];
 
-            <div className="my-15 grid gap-7 sm:grid-cols-2 lg:grid-cols-3">
+    return (
+        <div className="bg-white">
+            {/* ═══════════════════════════════════════════════════════════
+       *  HERO SECTION
+       * ═══════════════════════════════════════════════════════════ */}
+            <section className="relative h-screen flex items-center overflow-hidden">
+                {/* Background */}
+                <div
+                    className="absolute inset-0 bg-[url(/assets/home-background.png)] bg-cover bg-center"
+                />
+                <div className="absolute inset-0 bg-gradient-to-r from-white/90 via-white/70 to-transparent" />
 
-                <div className="bg-gray-100 border-2 border-gray-200 rounded-xl shadow-lg overflow-hidden">
-                    <div className="relative">
-                        <img src="/assets/shutterstock_159016388-640x480.jpg" alt="Feature Image" className="w-full h-full object-contain"/>
-                        <div className="absolute hov left-4 -bottom-6 w-12 h-12 flex items-center justify-center rounded-full shadow-md ">
-                            <i className="fa-solid fa-plus text-2xl "></i>
+                {/* Content */}
+                <div className="relative z-10 px-6 md:px-16 lg:px-24 max-w-3xl">
+                    <p className="font-5 text-[#00B3A1] text-sm uppercase tracking-[3px] mb-4">
+                        AI-Powered Thyroid Care
+                    </p>
+                    <h1 className="font-1 text-4xl md:text-6xl text-gray-800 leading-tight">
+                        Healthy thyroid,
+                        <br />
+                        <span className="text-[#00B3A1]">healthy life</span>
+                    </h1>
+                    <p className="font-5 text-gray-600 text-base md:text-lg mt-6 leading-relaxed max-w-xl">
+                        Empowering thyroid care through trusted medical insights and smart
+                        digital solutions. Get AI-powered diagnosis, track your health over
+                        time, and receive personalized recommendations — all in one place.
+                    </p>
+
+                    {!isLoggedIn && (
+                        <div className="flex gap-3 mt-8">
+                            <Link
+                                to="signup"
+                                className="px-8 py-3 bg-[#00B3A1] text-white font-1 rounded-xl hover:bg-[#009e8e] transition-all duration-200 hover:shadow-lg hover:shadow-[#00B3A1]/20"
+                            >
+                                Get Started
+                            </Link>
+                            <Link
+                                to="login"
+                                className="px-8 py-3 border-2 border-[#00B3A1] text-[#00B3A1] font-1 rounded-xl hover:bg-[#00B3A1] hover:text-white transition-all duration-200"
+                            >
+                                Sign In
+                            </Link>
                         </div>
-                    </div>
-                    <div className="px-3 py-8 text-center">
-                        <h3 className="font-1 text-2xl color-2"> Continuous Follow-Up </h3>
-                        <p className="mt-3 font-4 color-2 text-sm leading-6"> The platform provides ongoing monitoring of the patient's condition by tracking symptoms, test results, and health changes over time. This helps in early detection of issues and ensures long-term stability. </p>
-                    </div>
-                </div>
+                    )}
 
-                <div className="bg-gray-100 border-2 border-gray-200 rounded-xl shadow-lg overflow-hidden">
-                    <div className="relative">
-                        <img src="/assets/shutterstock_157746134-640x480.jpg" alt="Feature Image" className="w-full h-full object-contain"/>
-                        <div className="absolute hov left-4 -bottom-6 w-12 h-12 flex items-center justify-center rounded-full shadow-md ">
-                            <i className="fa-solid fa-plus text-2xl "></i>
+                    {isLoggedIn && (
+                        <div className="mt-8">
+                            <Link
+                                to="dashboard"
+                                className="px-8 py-3 bg-[#00B3A1] text-white font-1 rounded-xl hover:bg-[#009e8e] transition-all duration-200 hover:shadow-lg hover:shadow-[#00B3A1]/20 inline-flex items-center gap-2"
+                            >
+                                <i className="fas fa-chart-line"></i>
+                                Go to Dashboard
+                            </Link>
                         </div>
-                    </div>
-                    <div className="px-3 py-8 text-center">
-                        <h3 className="font-1 text-2xl color-2"> Medication Schedule Management </h3>
-                        <p className="mt-3 font-4 color-2 text-sm leading-6"> The website helps patients stay consistent with their medication through clear dosing schedules and smart reminders. This improves treatment effectiveness and reduces missed or incorrect doses. </p>
-                    </div>
+                    )}
                 </div>
+            </section>
 
-                <div className="bg-gray-100 border-2 border-gray-200 rounded-xl shadow-lg overflow-hidden">
-                    <div className="relative">
-                        <img src="/assets/photo_2026-01-26_22-30-21.jpg" alt="Feature Image" className="w-full h-full object-contain"/>
-                        <div className="absolute hov left-4 -bottom-6 w-12 h-12 flex items-center justify-center rounded-full shadow-md ">
-                            <i className="fa-solid fa-plus text-2xl "></i>
+            {/* ═══════════════════════════════════════════════════════════
+       *  STATS BAR
+       * ═══════════════════════════════════════════════════════════ */}
+            <section className="bg-[#00B3A1] py-10">
+                <div className="max-w-5xl mx-auto px-6 grid grid-cols-2 md:grid-cols-4 gap-8 text-center text-white">
+                    {stats.map((stat) => (
+                        <div key={stat.label}>
+                            <p className="font-1 text-3xl md:text-4xl font-bold">{stat.value}</p>
+                            <p className="font-5 text-sm opacity-80 mt-1">{stat.label}</p>
                         </div>
-                    </div>
-                    <div className="px-3 py-8 text-center">
-                        <h3 className="font-1 text-2xl color-2"> Patient-Centered Care </h3>
-                        <p className="mt-3 font-4 color-2 text-sm leading-6"> The platform is designed with the patient as the priority, offering clear medical information, continuous support, and an easy-to-use experience that builds trust and improves overall quality of life. </p>
-                    </div>
+                    ))}
                 </div>
+            </section>
 
-            </div>
-        </div>
-
-        <div className="relative bg-[url(/assets/bgn-team-members.jpg)] h-screen bg-cover bg-right md:bg-left text-center md:text-left">
-            <div className="absolute px-10 w-full top-20 md:w-[60%] md:top-40 md:right-0">
-                <p className="font-3 color-2 text-2xl line-1">INTRODUCING OUR TEAM</p>
-                <p className="color-1 font-4 font-extrabold! mt-7 text-4xl md:text-6xl">Great passion</p>
-                <p className="color-3 font-4 mt-4 text-4xl md:text-6xl">for healing</p>
-                <p className="color-2 font-3 font-light! text-xl mt-4">Some up and coming trends are healthcare consolidation for independent healthcare centers that see a cut in unforeseen payouts. High deductible health plans are also expected to transpire along with a growth of independent practices.</p>
-                <div className="flex space-x-3 mt-10 absolute right-0 mr-10 items-center">
-                    <div className="mr-5">
-                        <p className="color-1 font-4 text-xl! font-bold!">CHASE FRANKLIN</p>
-                        <p className=" font-4 text-[15px] text-right">Fonder & CEO</p>
+            {/* ═══════════════════════════════════════════════════════════
+       *  FEATURES
+       * ═══════════════════════════════════════════════════════════ */}
+            <section className="py-20 px-6 md:px-16 lg:px-24">
+                <div className="max-w-6xl mx-auto">
+                    <div className="text-center mb-14">
+                        <p className="font-5 text-[#00B3A1] text-sm uppercase tracking-[3px] mb-3">
+                            What We Offer
+                        </p>
+                        <h2 className="font-1 text-3xl md:text-4xl text-gray-800">
+                            Features
+                        </h2>
                     </div>
-                    <img src="/assets/img-cardiology-signature.png" className="w-20 h-20 object-contain"/>
-                </div>
-            </div>
-        </div>
 
-        <div className="bg-white mx-10">
-            <p className="font-1 text-6xl text-center text-black line-2 mt-13">Services At One Glance</p>
-            <div className="my-15 grid gap-7 md:grid-cols-12">
-                <div className="md:col-span-7">
-                    <p className="font-4 font-light! color-3 text-5xl ">How can we</p>
-                    <p className="font-4 font-extrabold! color-1 text-5xl mt-4">Help you?</p>
-                    <p className="font-1 text-md leading-7 font-light! mt-4">Our platform helps you easily track and monitor your thyroid test results over time, giving you a clear view of your health progress. Based on your condition and results, we provide personalized guidance to support better thyroid management. In addition, our built-in chatbot is always available to answer your questions, explain your condition, and help you understand your treatment anytime you need.</p>
-                </div>
-                <div className="flex items-center md:col-span-5">
-                    <img src="/assets/premium_photo-1661779717978-d7937fa08250.avif" className="w-full rounded-[60px] object-contain"/>
-                </div>                
-            </div>
-        </div>
-
-        <div className="bg-[#f4fcff] py-15">
-            <div className="mx-10 grid gap-4 md:grid-cols-12 md:grid-rows-2">
-                <div className="relative md:row-span-2 md:col-span-8">
-                    <img src="/assets/photo_3_2026-01-26_21-57-15.jpg" className="rounded-[50px] w-full"/>
-                    <div className="absolute top-0">
-                        <p className="font-1 text-2xl sm:text-5xl bg-[#f4fcff] rounded-r-[50px] pb-2 pr-5">Data analysis at the</p>
-                        <p className="font-1 text-2xl sm:text-5xl bg-[#f4fcff] rounded-r-[50px] pb-2 pr-5 inline">highest level</p>
+                    <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                        {features.map((feature) => (
+                            <div
+                                key={feature.title}
+                                className="p-6 rounded-2xl border border-gray-100 hover:border-[#00B3A1]/20 hover:shadow-lg hover:shadow-[#00B3A1]/5 transition-all duration-300 group"
+                            >
+                                <div className="w-12 h-12 rounded-xl bg-[#00B3A1]/10 flex items-center justify-center mb-4 group-hover:bg-[#00B3A1]/20 transition-colors">
+                                    <i className={`fas ${feature.icon} text-[#00B3A1] text-lg`}></i>
+                                </div>
+                                <h3 className="font-1 text-lg text-gray-800 mb-2">
+                                    {feature.title}
+                                </h3>
+                                <p className="font-5 text-sm text-gray-500 leading-relaxed">
+                                    {feature.description}
+                                </p>
+                            </div>
+                        ))}
                     </div>
                 </div>
-                <div className="relative md:col-span-4">
-                    <img src="/assets/photo_2026-01-26_22-08-52.jpg" className="rounded-[50px] w-full"/>
-                    <div className="absolute top-1/2 -translate-y-1/2 left-3">
-                        <p className="font-1 color-2 text-4xl pb-2">The best</p>
-                        <p className="font-1 color-2 text-4xl">Team</p>
+            </section>
+
+            {/* ═══════════════════════════════════════════════════════════
+       *  HOW IT WORKS
+       * ═══════════════════════════════════════════════════════════ */}
+            <section className="py-20 px-6 md:px-16 lg:px-24 bg-[#f4fcff]">
+                <div className="max-w-5xl mx-auto">
+                    <div className="text-center mb-14">
+                        <p className="font-5 text-[#00B3A1] text-sm uppercase tracking-[3px] mb-3">
+                            Simple Process
+                        </p>
+                        <h2 className="font-1 text-3xl md:text-4xl text-gray-800">
+                            How It Works
+                        </h2>
+                    </div>
+
+                    <div className="grid gap-8 md:grid-cols-3">
+                        {howItWorks.map((step, index) => (
+                            <div key={step.step} className="text-center">
+                                <div className="w-16 h-16 mx-auto rounded-2xl bg-[#00B3A1] flex items-center justify-center mb-5">
+                                    <i className={`fas ${step.icon} text-white text-xl`}></i>
+                                </div>
+                                <div className="w-8 h-8 mx-auto rounded-full bg-gray-200 flex items-center justify-center mb-3">
+                                    <span className="font-1 text-sm text-gray-600 font-bold">
+                                        {step.step}
+                                    </span>
+                                </div>
+                                <h3 className="font-1 text-lg text-gray-800 mb-2">
+                                    {step.title}
+                                </h3>
+                                <p className="font-5 text-sm text-gray-500 leading-relaxed">
+                                    {step.description}
+                                </p>
+                                {index < howItWorks.length - 1 && (
+                                    <div className="hidden md:block absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 text-gray-300">
+                                    </div>
+                                )}
+                            </div>
+                        ))}
+                    </div>
+
+                    <div className="text-center mt-12">
+                        {!isLoggedIn ? (
+                            <Link
+                                to="signup"
+                                className="inline-flex items-center gap-2 px-8 py-3 bg-[#00B3A1] text-white font-1 rounded-xl hover:bg-[#009e8e] transition-all duration-200 hover:shadow-lg hover:shadow-[#00B3A1]/20"
+                            >
+                                Start Now <i className="fas fa-arrow-right"></i>
+                            </Link>
+                        ) : (
+                            <Link
+                                to="report"
+                                className="inline-flex items-center gap-2 px-8 py-3 bg-[#00B3A1] text-white font-1 rounded-xl hover:bg-[#009e8e] transition-all duration-200 hover:shadow-lg hover:shadow-[#00B3A1]/20"
+                            >
+                                Submit a Report <i className="fas fa-arrow-right"></i>
+                            </Link>
+                        )}
                     </div>
                 </div>
-                <div className="relative md:col-span-4">
-                    <img src="/assets/photo_2_2026-01-26_21-57-15.jpg" className="rounded-[50px] w-full"/>
-                    <div className="absolute top-1/2 -translate-y-1/2 right-3">
-                        <p className="font-1 text-white text-4xl pb-2 text-center">99.98%</p>
-                        <p className="font-1 text-white text-4xl">Accuracy</p>
-                    </div>
-                </div>
-            </div>
-        </div>
+            </section>
 
-        <div className="bg-white mx-10">
-            <p className="font-1 text-6xl text-center text-black line-2 mt-13">Our Team</p>
-
-            <div className="my-15 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-
-                <div className="bg-gray-100 border-2 border-gray-200 rounded-xl shadow-lg overflow-hidden">
-                    <div className="relative">
-                        <img src="/assets/img-team-member-01.jpg" alt="Feature Image" className="w-full h-full object-contain"/>
-                        <div className="absolute hov left-1/2 -translate-x-1/2 -bottom-6 w-12 h-12 flex items-center justify-center rounded-full shadow-md ">
-                            <i className="fa-solid fa-plus text-2xl "></i>
+            {/* ═══════════════════════════════════════════════════════════
+       *  CTA — CALL TO ACTION
+       * ═══════════════════════════════════════════════════════════ */}
+            <section className="py-20 px-6 md:px-16 lg:px-24">
+                <div className="max-w-4xl mx-auto">
+                    <div className="background-card p-10 md:p-14 text-center">
+                        <div className="w-16 h-16 mx-auto rounded-2xl bg-[#00B3A1]/10 flex items-center justify-center mb-6">
+                            <i className="fas fa-heart-pulse text-[#00B3A1] text-2xl"></i>
                         </div>
-                    </div>
-                    <div className="px-3 py-8 text-center">
-                        <p className="font-3 color-2 text-[16px] my-3 line-2">FOUNDER / CHIEF SURGEON</p>
-                        <h3 className="font-4 text-xl color-3 mt-7"> Chase Franklin </h3>
-                        <p className="mt-3 mb-10 font-3 color-2 text-md md:h-25"> Podcasting operational change management inside of workflows to establish a framework.</p>
-                        <p className="bg-white font-4 text-[15px] inline px-4 py-2 rounded-full border-2 border-gray-200 cursor-pointer">FIND OUT MORE</p>
-                    </div>
-                </div>
-
-                <div className="bg-gray-100 border-2 border-gray-200 rounded-xl shadow-lg overflow-hidden">
-                    <div className="relative">
-                        <img src="/assets/img-team-member-02.jpg" alt="Feature Image" className="w-full h-full object-contain"/>
-                        <div className="absolute hov left-1/2 -translate-x-1/2 -bottom-6 w-12 h-12 flex items-center justify-center rounded-full shadow-md ">
-                            <i className="fa-solid fa-plus text-2xl "></i>
-                        </div>
-                    </div>
-                    <div className="px-3 py-8 text-center">
-                        <p className="font-3 color-2 text-[16px] my-3 line-2">ASSISTANT SURGEON</p>
-                        <h3 className="font-4 text-xl color-3 mt-7">Anna Wilson</h3>
-                        <p className="mt-3 mb-10 font-3 color-2 text-md md:h-25">Quickly disseminate superior deliverables whereas web-enabled applications. Quickly drive clicks-and-mortar catalysts.</p>
-                        <p className="bg-white font-4 text-[15px] inline px-4 py-2 rounded-full border-2 border-gray-200 cursor-pointer">FIND OUT MORE</p>
-                    </div>
-                </div>
-
-                <div className="bg-gray-100 border-2 border-gray-200 rounded-xl shadow-lg overflow-hidden">
-                    <div className="relative">
-                        <img src="/assets/img-team-member-03.jpg" alt="Feature Image" className="w-full h-full object-contain"/>
-                        <div className="absolute hov left-1/2 -translate-x-1/2 -bottom-6 w-12 h-12 flex items-center justify-center rounded-full shadow-md ">
-                            <i className="fa-solid fa-plus text-2xl "></i>
-                        </div>
-                    </div>
-                    <div className="px-3 py-8 text-center">
-                        <p className="font-3 color-2 text-[16px] my-3 line-2">LEAD NURSE</p>
-                        <h3 className="font-4 text-xl color-3 mt-7"> Peggie Cannon </h3>
-                        <p className="mt-3 mb-10 font-3 color-2 text-md md:h-25"> Seamlessly visualize quality intellectual capital without superior collaboration and installed base portals.</p>
-                        <p className="bg-white font-4 text-[15px] inline px-4 py-2 rounded-full border-2 border-gray-200 cursor-pointer">FIND OUT MORE</p>
+                        <h2 className="font-1 text-3xl md:text-4xl text-gray-800 mb-4">
+                            Take Control of Your{" "}
+                            <span className="text-[#00B3A1]">Thyroid Health</span>
+                        </h2>
+                        <p className="font-5 text-gray-500 text-base max-w-2xl mx-auto leading-relaxed mb-8">
+                            Don't wait for symptoms to worsen. Upload your lab results, get an
+                            instant AI analysis, and receive personalized recommendations —
+                            all for free. Your health deserves proactive care.
+                        </p>
+                        {!isLoggedIn && (
+                            <Link
+                                to="signup"
+                                className="inline-flex items-center gap-2 px-10 py-3.5 bg-[#00B3A1] text-white font-1 text-lg rounded-xl hover:bg-[#009e8e] transition-all duration-200 hover:shadow-lg hover:shadow-[#00B3A1]/20"
+                            >
+                                Get Started Free <i className="fas fa-arrow-right"></i>
+                            </Link>
+                        )}
+                        {isLoggedIn && (
+                            <Link
+                                to="dashboard"
+                                className="inline-flex items-center gap-2 px-10 py-3.5 bg-[#00B3A1] text-white font-1 text-lg rounded-xl hover:bg-[#009e8e] transition-all duration-200 hover:shadow-lg hover:shadow-[#00B3A1]/20"
+                            >
+                                Go to Dashboard <i className="fas fa-arrow-right"></i>
+                            </Link>
+                        )}
                     </div>
                 </div>
+            </section>
 
-                <div className="bg-gray-100 border-2 border-gray-200 rounded-xl shadow-lg overflow-hidden">
-                    <div className="relative">
-                        <img src="/assets/img-team-member-04.jpg" alt="Feature Image" className="w-full h-full object-contain"/>
-                        <div className="absolute hov left-1/2 -translate-x-1/2 -bottom-6 w-12 h-12 flex items-center justify-center rounded-full shadow-md ">
-                            <i className="fa-solid fa-plus text-2xl "></i>
-                        </div>
+            {/* ═══════════════════════════════════════════════════════════
+       *  TEAM
+       * ═══════════════════════════════════════════════════════════ */}
+            <section className="py-20 px-6 md:px-16 lg:px-24 bg-[#f4fcff]">
+                <div className="max-w-6xl mx-auto">
+                    <div className="text-center mb-14">
+                        <p className="font-5 text-[#00B3A1] text-sm uppercase tracking-[3px] mb-3">
+                            The People Behind ThyroCare
+                        </p>
+                        <h2 className="font-1 text-3xl md:text-4xl text-gray-800">
+                            Our Team
+                        </h2>
                     </div>
-                    <div className="px-3 py-8 text-center">
-                        <p className="font-3 color-2 text-[16px] my-3 line-2">NURSE</p>
-                        <h3 className="font-4 text-xl color-3 mt-7"> Hubert Jackson</h3>
-                        <p className="mt-3 mb-10 font-3 color-2 text-md md:h-25"> Energistically scale future-proof core competencies vis-a-vis impactful experiences with optimal networks.</p>
-                        <p className="bg-white font-4 text-[15px] inline px-4 py-2 rounded-full border-2 border-gray-200 cursor-pointer">FIND OUT MORE</p>
+
+                    <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+                        {teamMembers.map((member) => (
+                            <div
+                                key={member.name}
+                                className="bg-white rounded-2xl p-6 text-center border border-gray-100 hover:shadow-lg transition-all duration-300"
+                            >
+                                <div className="w-20 h-20 mx-auto rounded-2xl bg-[#00B3A1]/10 flex items-center justify-center mb-4">
+                                    <img
+                                        src={member.avatar}
+                                        className="w-14 h-14 rounded-xl object-cover"
+                                        alt={member.name}
+                                    />
+                                </div>
+                                <h3 className="font-1 text-lg text-gray-800">{member.name}</h3>
+                                <p className="font-5 text-xs text-[#00B3A1] uppercase tracking-wider mt-1 mb-3">
+                                    {member.role}
+                                </p>
+                                <p className="font-5 text-sm text-gray-500 leading-relaxed">
+                                    {member.description}
+                                </p>
+                            </div>
+                        ))}
                     </div>
                 </div>
+            </section>
 
-            </div>
+            {/* ═══════════════════════════════════════════════════════════
+       *  DISCLAIMER
+       * ═══════════════════════════════════════════════════════════ */}
+            <section className="py-10 px-6 md:px-16 lg:px-24">
+                <div className="max-w-3xl mx-auto text-center">
+                    <div className="flex items-center justify-center gap-2 mb-3">
+                        <i className="fas fa-info-circle text-amber-500"></i>
+                        <p className="font-5 text-sm text-gray-500 font-semibold">
+                            Medical Disclaimer
+                        </p>
+                    </div>
+                    <p className="font-5 text-xs text-gray-400 leading-relaxed">
+                        ThyroCare provides AI-generated health insights for informational
+                        purposes only. It does not constitute a medical diagnosis and should
+                        not replace a consultation with a qualified healthcare professional.
+                        Always seek the advice of your physician regarding your condition.
+                    </p>
+                </div>
+            </section>
         </div>
-
-        <div className="relative bg-[url(/assets/bgn-newsletter-subscribe.jpg)] h-screen bg-cover bg-right text-center md:text-left">
-            <div className="md:hidden absolute inset-0 bg-[#000000]/60"></div>
-            <div className="absolute px-10 w-full md:w-[60%] top-40 md:left-0">
-                <p className="font-3 text-white md:text-[#444444] text-2xl line-1">GET THE NOTIFICATION</p>
-                <p className="text-white md:text-[#222222] font-4 mt-7 text-4xl md:text-6xl">We have some</p>                
-                <p className="color-1 font-4 font-extrabold! mt-4 text-4xl md:text-6xl">Good news</p>
-                <p className="text-white md:text-[#444444] font-3 font-light! text-xl mt-4">Sign up for Medicare newsletter to receive all the new offers and discounts from Medicare clinic. Discounts are only valid four our newsletter subscribers.</p>
-                <p className="mt-8 font-3 tracking-[5%] text-[15px] inline-block bg-gray-100  border-2 border-gray-200 px-15 py-3 rounded-full">Type in your email address</p>
-                <p className="mt-3 font-3 text-[15px] font-semibold! text-white background-1 tracking-[5%] px-5 py-3 rounded-full inline-block ml-2">SUBSCRIBE</p>
-            </div>
-        </div>
-
-    </>
+    );
 }
