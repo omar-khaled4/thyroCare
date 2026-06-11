@@ -81,22 +81,34 @@ export default function Home() {
             avatar: "/assets/boy.png",
         },
         {
-            name: "Team Member",
+            name: "Oliver Attia",
             role: "ML Engineer",
             description: "Developed the neural network prediction model and data pipeline.",
-            avatar: "/assets/girl.png",
+            avatar: "/assets/boy.png",
         },
         {
-            name: "Team Member",
+            name: "Mazzen Essam",
             role: "Frontend Developer",
             description: "Designed and implemented the React frontend and user experience.",
             avatar: "/assets/boy.png",
         },
         {
-            name: "Team Member",
+            name: "Kelros Onsy",
+            role: "Frontend Developer",
+            description: "Designed and implemented the React frontend and user experience.",
+            avatar: "/assets/girl.png",
+        },
+        {
+            name: "Youssef Maged",
             role: "UI/UX Designer",
             description: "Created the visual design system and patient-centered interface.",
-            avatar: "/assets/girl.png",
+            avatar: "/assets/boy.png",
+        },
+        {
+            name: "Ahmed Soliman",
+            role: "QA Engineer",
+            description: "Designed and Implemented the testing strategy for the platform to ensure quality and reliability.",
+            avatar: "/assets/boy.png",
         },
     ];
 
