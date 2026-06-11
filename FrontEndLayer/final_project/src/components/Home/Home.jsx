@@ -93,10 +93,10 @@ export default function Home() {
             avatar: "/assets/boy.png",
         },
         {
-            name: "Kelros Onsy",
+            name: "Kirolos Onse",
             role: "Frontend Developer",
             description: "Designed and implemented the React frontend and user experience.",
-            avatar: "/assets/girl.png",
+            avatar: "/assets/boy.png",
         },
         {
             name: "Youssef Maged",
@@ -331,7 +331,7 @@ export default function Home() {
                         </h2>
                     </div>
 
-                    <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+                    <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                         {teamMembers.map((member) => (
                             <div
                                 key={member.name}
