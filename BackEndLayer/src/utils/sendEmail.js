@@ -10,7 +10,7 @@ async function sendEmail({ to, subject, html }) {
     const transporter = nodemailer.createTransport({
         service: process.env.EMAIL_SERVICE,        // e.g. "gmail"
         auth: {
-            user: process.env.EMAIL_USER,            // e.g. "thyrocare.app@gmail.com"
+            user: process.env.EMAIL_USER,            // e.g. "omar.khaled30320@gmail.com"
             pass: process.env.EMAIL_PASS,            // App Password (not account password)
         },
     });
@@ -20,6 +20,10 @@ async function sendEmail({ to, subject, html }) {
         to,
         subject,
         html,
+        headers: {
+            "X-Priority": "1",
+            "Importance": "high",
+        },
     });
 }
 
