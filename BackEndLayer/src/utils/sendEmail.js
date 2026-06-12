@@ -1,17 +1,11 @@
 const nodemailer = require("nodemailer");
 
-/**
- * Sends an email using nodemailer.
- * @param {string} to      — Recipient email
- * @param {string} subject — Email subject
- * @param {string} html    — HTML body
- */
-async function sendEmail({ to, subject, html }) {
+async function sendEmail({ to, subject, html, text }) {
     const transporter = nodemailer.createTransport({
-        service: process.env.EMAIL_SERVICE,        // e.g. "gmail"
+        service: process.env.EMAIL_SERVICE,
         auth: {
-            user: process.env.EMAIL_USER,            // e.g. "omar.khaled30320@gmail.com"
-            pass: process.env.EMAIL_PASS,            // App Password (not account password)
+            user: process.env.EMAIL_USER,
+            pass: process.env.EMAIL_PASS,
         },
     });
 
@@ -20,6 +14,7 @@ async function sendEmail({ to, subject, html }) {
         to,
         subject,
         html,
+        text: text || html.replace(/<[^>]*>/g, ""), // Strip HTML as fallback plain text
         headers: {
             "X-Priority": "1",
             "Importance": "high",

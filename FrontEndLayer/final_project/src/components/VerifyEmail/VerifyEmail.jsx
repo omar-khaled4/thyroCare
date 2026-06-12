@@ -162,15 +162,18 @@ export default function VerifyEmail() {
             {/* ── Resend form (no token in URL) ── */}
             {status === "resend" && (
               <div className="py-4">
-                <div className="w-16 h-16 mx-auto mb-5 rounded-full bg-[#00B3A1]/15 flex items-center justify-center">
+                <div className="w-16 h-16 mx-auto rounded-full bg-[#00B3A1]/15 flex items-center justify-center mb-5">
                   <i className="fas fa-envelope-open-text text-[#00B3A1] text-2xl"></i>
                 </div>
                 <p className="text-white/80 font-1 text-lg font-semibold mb-2">
                   Check your inbox
                 </p>
-                <p className="text-white/60 font-5 text-sm mb-6">
-                  We sent a verification link to your email. Click it to activate
-                  your account. If you didn't receive it, resend below.
+                <p className="text-white/60 font-5 text-sm mb-2">
+                  We sent a verification link to your email.
+                </p>
+                <p className="text-amber-400 font-5 text-xs mb-6">
+                  <i className="fas fa-exclamation-triangle mr-1"></i>
+                  Don't see it? Check your <strong>Spam</strong> or <strong>Junk</strong> folder.
                 </p>
 
                 <form

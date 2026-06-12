@@ -109,18 +109,36 @@ const resendVerification = tryCatch(async (req, res) => {
   const verifyUrl = `${process.env.FRONTEND_URL}/verify-email?token=${verificationToken}`;
   await sendEmail({
     to: email,
-    subject: "ThyroCare — Verify Your Email",
+    subject: "Verify your ThyroCare account",
     html: `
-      <h2>Email Verification</h2>
-      <p>Click the link below to verify your email:</p>
-      <a href="${verifyUrl}" style="
-        display: inline-block; padding: 12px 24px;
-        background-color: #00b3a1; color: white;
-        text-decoration: none; border-radius: 8px;
-        font-weight: bold;
-      ">Verify Email</a>
-      <p>This link expires in 24 hours.</p>
-    `,
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+      <div style="text-align: center; margin-bottom: 30px;">
+        <h1 style="color: #00B3A1; margin: 0;">ThyroCare</h1>
+      </div>
+      <h2 style="color: #333;">Welcome, ${firstName}!</h2>
+      <p style="color: #555; line-height: 1.6;">
+        Thank you for registering with ThyroCare. Please verify your email address to activate your account.
+      </p>
+      <div style="text-align: center; margin: 30px 0;">
+        <a href="${verifyUrl}" style="
+          display: inline-block; padding: 14px 28px;
+          background-color: #00B3A1; color: white;
+          text-decoration: none; border-radius: 8px;
+          font-weight: bold; font-size: 16px;
+        ">Verify My Email</a>
+      </div>
+      <p style="color: #777; font-size: 14px;">
+        Or copy this link: ${verifyUrl}
+      </p>
+      <p style="color: #999; font-size: 13px;">
+        This link expires in 24 hours. If you didn't create an account, please ignore this email.
+      </p>
+      <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
+      <p style="color: #aaa; font-size: 12px; text-align: center;">
+        ThyroCare — AI-Powered Thyroid Health Platform
+      </p>
+    </div>
+  `,
   });
 
   respond(res, 200, null, "Verification email resent successfully");
@@ -185,22 +203,38 @@ const forgotPassword = tryCatch(async (req, res) => {
 
   // Send actual reset email
   const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${token}`;
-  sendEmail({
+  await sendEmail({
     to: email,
-    subject: "ThyroCare — Reset Your Password",
+    subject: "Reset your ThyroCare password",
     html: `
-      <h2>Hello ${user.firstName},</h2>
-      <p>You requested to reset your password.</p>
-      <p>Click the link below to set a new password:</p>
-      <a href="${resetUrl}" style="
-        display: inline-block; padding: 12px 24px;
-        background-color: #00b3a1; color: white;
-        text-decoration: none; border-radius: 8px;
-        font-weight: bold;
-      ">Reset Password</a>
-      <p>This link expires in 1 hour.</p>
-      <p>If you didn't request this, please ignore this email.</p>
-    `,
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+      <div style="text-align: center; margin-bottom: 30px;">
+        <h1 style="color: #00B3A1; margin: 0;">ThyroCare</h1>
+      </div>
+      <h2 style="color: #333;">Password Reset</h2>
+      <p style="color: #555; line-height: 1.6;">
+        We received a request to reset your password. Click the button below to set a new password.
+      </p>
+      <div style="text-align: center; margin: 30px 0;">
+        <a href="${resetUrl}" style="
+          display: inline-block; padding: 14px 28px;
+          background-color: #00B3A1; color: white;
+          text-decoration: none; border-radius: 8px;
+          font-weight: bold; font-size: 16px;
+        ">Reset Password</a>
+      </div>
+      <p style="color: #777; font-size: 14px;">
+        Or copy this link: ${resetUrl}
+      </p>
+      <p style="color: #999; font-size: 13px;">
+        This link expires in 1 hour. If you didn't request this, please ignore this email.
+      </p>
+      <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
+      <p style="color: #aaa; font-size: 12px; text-align: center;">
+        ThyroCare — AI-Powered Thyroid Health Platform
+      </p>
+    </div>
+  `,
   }).catch((err) => {
 
   });
